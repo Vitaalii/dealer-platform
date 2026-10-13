@@ -1,0 +1,820 @@
+[
+ {
+  "request": {
+   "operation": "credit_scenarios_batch",
+   "target_payment": 0,
+   "items": [
+    {
+     "id": "t1",
+     "price": 3000000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": null
+  },
+  "expected": {
+   "operation": "credit_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "standard",
+     "scenarios": {
+      "standard": {
+       "title": "Стандартный расчет",
+       "down_payment": 600000,
+       "monthly_payment": 50000,
+       "term": 84,
+       "rate_text": "18%"
+      }
+     }
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "credit_scenarios_batch",
+   "target_payment": 5000,
+   "items": [
+    {
+     "id": "t1",
+     "price": 3000000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": null
+  },
+  "expected": {
+   "operation": "credit_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "impossible",
+     "message": "Платеж слишком мал. Минимум возможного: 17000",
+     "min_possible_payment": 17000,
+     "scenarios": {
+      "reality_check": {
+       "title": "Минимально возможный платеж",
+       "description": "При взносе 70% и сроке 84 мес.",
+       "down_payment": 2100000,
+       "monthly_payment": 17000,
+       "term": 84,
+       "rate_text": "14%"
+      }
+     }
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "credit_scenarios_batch",
+   "target_payment": 60000,
+   "items": [
+    {
+     "id": "t1",
+     "price": 3000000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": null
+  },
+  "expected": {
+   "operation": "credit_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "success",
+     "scenarios": {
+      "light_entry": {
+       "title": "Минимальный взнос",
+       "description": "Срок 84 мес, минимальный взнос под платеж",
+       "down_payment": 600000,
+       "monthly_payment": 50000,
+       "term": 84,
+       "rate_text": "18%"
+      },
+      "fast_pay": {
+       "title": "Минимальный срок",
+       "description": "Срок 12 мес, максимальный взнос",
+       "down_payment": 2310000,
+       "monthly_payment": 60000,
+       "term": 12,
+       "rate_text": "8%"
+      }
+     }
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "credit_scenarios_batch",
+   "target_payment": 0,
+   "items": [
+    {
+     "id": "t1",
+     "price": 3000000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": {
+    "Program_Name": "Base",
+    "Max_Term_Months": 60,
+    "Min_Down_Payment_Pct": 15
+   }
+  },
+  "expected": {
+   "operation": "credit_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "standard",
+     "scenarios": {
+      "standard": {
+       "title": "Стандартный расчет",
+       "down_payment": 450000,
+       "monthly_payment": 65000,
+       "term": 60,
+       "rate_text": "18%"
+      }
+     }
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "credit_scenarios_batch",
+   "target_payment": 5000,
+   "items": [
+    {
+     "id": "t1",
+     "price": 3000000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": {
+    "Program_Name": "Base",
+    "Max_Term_Months": 60,
+    "Min_Down_Payment_Pct": 15
+   }
+  },
+  "expected": {
+   "operation": "credit_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "impossible",
+     "message": "Платеж слишком мал. Минимум возможного: 21000",
+     "min_possible_payment": 21000,
+     "scenarios": {
+      "reality_check": {
+       "title": "Минимально возможный платеж",
+       "description": "При взносе 70% и сроке 60 мес.",
+       "down_payment": 2100000,
+       "monthly_payment": 21000,
+       "term": 60,
+       "rate_text": "14%"
+      }
+     }
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "credit_scenarios_batch",
+   "target_payment": 60000,
+   "items": [
+    {
+     "id": "t1",
+     "price": 3000000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": {
+    "Program_Name": "Base",
+    "Max_Term_Months": 60,
+    "Min_Down_Payment_Pct": 15
+   }
+  },
+  "expected": {
+   "operation": "credit_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "success",
+     "scenarios": {
+      "light_entry": {
+       "title": "Минимальный взнос",
+       "description": "Срок 60 мес, минимальный взнос под платеж",
+       "down_payment": 640000,
+       "monthly_payment": 60000,
+       "term": 60,
+       "rate_text": "18%"
+      },
+      "fast_pay": {
+       "title": "Минимальный срок",
+       "description": "Срок 12 мес, максимальный взнос",
+       "down_payment": 2310000,
+       "monthly_payment": 60000,
+       "term": 12,
+       "rate_text": "8%"
+      }
+     }
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "combo_scenarios_batch",
+   "target_payment": 80000,
+   "tradein_value": 500000,
+   "tradein_status": "SUCCESS",
+   "items": [
+    {
+     "id": "t1",
+     "price": 2000000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": {
+    "Program_Name": "Base",
+    "Max_Term_Months": 60,
+    "Min_Down_Payment_Pct": 15
+   }
+  },
+  "expected": {
+   "operation": "combo_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "success",
+     "term": 24,
+     "monthly_payment": 71000,
+     "down_payment": 500000,
+     "rate_text": "12%"
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "combo_scenarios_batch",
+   "target_payment": 25000,
+   "tradein_value": 500000,
+   "tradein_status": "SUCCESS",
+   "items": [
+    {
+     "id": "t1",
+     "price": 2000000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": {
+    "Program_Name": "Base",
+    "Max_Term_Months": 60,
+    "Min_Down_Payment_Pct": 15
+   }
+  },
+  "expected": {
+   "operation": "combo_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "impossible",
+     "term": 60,
+     "monthly_payment": 38000,
+     "down_payment": 500000,
+     "rate_text": "18%",
+     "warning": "Желаемый платеж слишком мал. Расчет произведен на максимальный срок."
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "combo_scenarios_batch",
+   "target_payment": 80000,
+   "tradein_value": 2100000,
+   "tradein_status": "SUCCESS",
+   "items": [
+    {
+     "id": "t1",
+     "price": 2000000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": {
+    "Program_Name": "Base",
+    "Max_Term_Months": 60,
+    "Min_Down_Payment_Pct": 15
+   }
+  },
+  "expected": {
+   "operation": "combo_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "full_coverage",
+     "message": "Стоимость старого авто полностью покрывает покупку нового!"
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "combo_scenarios_batch",
+   "target_payment": 80000,
+   "tradein_value": 500000,
+   "tradein_status": "IN_PROGRESS",
+   "items": [
+    {
+     "id": "t1",
+     "price": 2000000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": {
+    "Program_Name": "Base",
+    "Max_Term_Months": 60,
+    "Min_Down_Payment_Pct": 15
+   }
+  },
+  "expected": {
+   "operation": "combo_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "error",
+     "message": "Не удалось автоматически оценить старый автомобиль."
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "combo_scenarios_batch",
+   "target_payment": 40000,
+   "tradein_value": 890000,
+   "tradein_status": "SUCCESS",
+   "extra_down": 200000,
+   "items": [
+    {
+     "id": "t1",
+     "price": 2490000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": {
+    "Program_Name": "Base",
+    "Max_Term_Months": 60,
+    "Min_Down_Payment_Pct": 15
+   }
+  },
+  "expected": {
+   "operation": "combo_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "success",
+     "term": 48,
+     "monthly_payment": 38000,
+     "down_payment": 1090000,
+     "rate_text": "14%"
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "combo_scenarios_batch",
+   "target_payment": 40000,
+   "tradein_value": 890000,
+   "tradein_status": "SUCCESS",
+   "extra_down": 0,
+   "items": [
+    {
+     "id": "t1",
+     "price": 2490000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": {
+    "Program_Name": "Base",
+    "Max_Term_Months": 60,
+    "Min_Down_Payment_Pct": 15
+   }
+  },
+  "expected": {
+   "operation": "combo_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "success",
+     "term": 60,
+     "monthly_payment": 37000,
+     "down_payment": 890000,
+     "rate_text": "14%"
+    }
+   }
+  }
+ },
+ {
+  "request": {
+   "operation": "combo_scenarios_batch",
+   "target_payment": 40000,
+   "tradein_value": 890000,
+   "tradein_status": "SUCCESS",
+   "extra_down": 1600000,
+   "items": [
+    {
+     "id": "t1",
+     "price": 2490000
+    }
+   ],
+   "rates": [
+    {
+     "Rate": 8,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 50,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 12,
+     "Term_From": 12,
+     "Term_To": 36,
+     "Downpayment_From": 20,
+     "Downpayment_To": 49.99
+    },
+    {
+     "Rate": 14,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 30,
+     "Downpayment_To": ""
+    },
+    {
+     "Rate": 18,
+     "Term_From": 37,
+     "Term_To": 84,
+     "Downpayment_From": 10,
+     "Downpayment_To": 29.99
+    }
+   ],
+   "program": {
+    "Program_Name": "Base",
+    "Max_Term_Months": 60,
+    "Min_Down_Payment_Pct": 15
+   }
+  },
+  "expected": {
+   "operation": "combo_scenarios_batch",
+   "results": {
+    "t1": {
+     "status": "full_coverage",
+     "message": "Стоимость старого авто полностью покрывает покупку нового!"
+    }
+   }
+  }
+ }
+]

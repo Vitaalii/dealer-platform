@@ -1,0 +1,103 @@
+{
+  "about": "Известные расхождения исходников с живыми воркфлоу (план 2026-10-09-001, KTD8). Длинные значения — sha256_16 и длина нормализованного JSON.",
+  "entries": [
+    {
+      "id": "pkA3mmrvv9XqmZRE",
+      "workflow": "[TEST] AI Agent v3.0",
+      "path": "nodes.Call Car Search.parameters.workflowInputs",
+      "decision": "n8n",
+      "reason": "артефакт редактора n8n на [TEST]-копии (пустой маппинг, поведение то же); на бою поля нет, как в генераторе",
+      "deferred": "",
+      "generated": "<нет>",
+      "live": {
+        "mappingMode": "defineBelow",
+        "value": {},
+        "matchingColumns": [],
+        "schema": [],
+        "attemptToConvertTypes": false,
+        "convertFieldsToString": true
+      }
+    },
+    {
+      "id": "pkA3mmrvv9XqmZRE",
+      "workflow": "[TEST] AI Agent v3.0",
+      "path": "nodes.Save CRM Direct.parameters.workflowInputs.schema",
+      "decision": "n8n",
+      "reason": "на [TEST]-копии редактор не заполнил schema (метаданные полей; value одинаков); генератор = бой",
+      "deferred": "",
+      "generated": {
+        "sha256_16": "54570e929f14a829",
+        "len": 450
+      },
+      "live": []
+    },
+    {
+      "id": "pkA3mmrvv9XqmZRE",
+      "workflow": "[TEST] AI Agent v3.0",
+      "path": "nodes.finalize_deal.parameters.description",
+      "decision": "Q1",
+      "reason": "[TEST]-агент уже работает с описанием effa014 (без мандата); генератор = бой (откат a3cecdf)",
+      "deferred": "выкатка effa014: git revert a3cecdf → [TEST] → регресс → бой",
+      "generated": {
+        "sha256_16": "a1502a10db61d33c",
+        "len": 3469
+      },
+      "live": {
+        "sha256_16": "7f0a2943dca698ce",
+        "len": 2628
+      }
+    },
+    {
+      "id": "phecB9jOVAR1DqnX",
+      "workflow": "[TEST] Tool: Resolver Core",
+      "path": "nodes.Build Prompt.parameters.jsCode",
+      "decision": "Q2",
+      "reason": "[TEST] Resolver Core уже без client_mode / client_signal (f2de42d); генератор = бой (откат e72a13d)",
+      "deferred": "выкатка f2de42d: git revert e72a13d → [TEST] → регресс → бой",
+      "generated": {
+        "sha256_16": "9e8c1f7eb91e865b",
+        "len": 2745
+      },
+      "live": {
+        "sha256_16": "6742f962a367b598",
+        "len": 2292
+      }
+    },
+    {
+      "id": "phecB9jOVAR1DqnX",
+      "workflow": "[TEST] Tool: Resolver Core",
+      "path": "nodes.Validate.parameters.jsCode",
+      "decision": "Q2",
+      "reason": "то же, что Build Prompt: Validate без client_mode / client_signal на [TEST]",
+      "deferred": "выкатка f2de42d вместе с Build Prompt",
+      "generated": {
+        "sha256_16": "8eb016f91222a464",
+        "len": 1208
+      },
+      "live": {
+        "sha256_16": "2a3d5bddd6935599",
+        "len": 1112
+      }
+    },
+    {
+      "id": "F3eluZCNKGAcPwOT",
+      "workflow": "AI Resolver (shadow)",
+      "path": "name",
+      "decision": "Q3",
+      "reason": "живой shadow назван без префикса [TEST]; оставлен как есть (решение 2026-10-09)",
+      "deferred": "перевод shadow на [TEST] Resolver Core и переименование",
+      "generated": "[TEST] AI Resolver (shadow)",
+      "live": "AI Resolver (shadow)"
+    },
+    {
+      "id": "F3eluZCNKGAcPwOT",
+      "workflow": "AI Resolver (shadow)",
+      "path": "nodes.Resolver Core.parameters.workflowId.value",
+      "decision": "Q3",
+      "reason": "живой [TEST]-shadow зовёт БОЕВОЙ Resolver Core (только чтение NocoDB и вызов LLM, записей нет); оставлен как есть",
+      "deferred": "перевод на [TEST] Tool: Resolver Core phecB9jOVAR1DqnX",
+      "generated": "phecB9jOVAR1DqnX",
+      "live": "qsotmM7sbmyckg3E"
+    }
+  ]
+}

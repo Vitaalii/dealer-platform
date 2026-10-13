@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Личный кабинет — макеты (v4)</title>
+<style>
+/* ===== Базовые стили и компонент попапа ===== */
+
+/* ============================================================
+   ЛИЧНЫЙ КАБИНЕТ АВТОДИЛЕРА — исходник макетов
+   Нативный HTML + CSS. Внешних зависимостей нет.
+   Брендирование дилера — через --accent.
+   ============================================================ */
+
+:root{
+  --accent:#1a1a1a;
+  --text:#111111;
+  --muted:#888888;
+  --chip:#f5f5f5;
+  --line:#efefef;
+  --border:#e6e6e6;
+  --field:#fafafa;
+  --error:#b3261e;
+  --error-soft:#f0c9c5;
+  --warn:#a97c1f;
+  --ok:#2e6b4f;
+  --ok-bg:#eef5f0;
+  --blocked:#d5decf;
+  --r-photo:12px;
+  --r-thumb:6px;
+  --r-chip:8px;
+  --r-btn:6px;
+  --container:1000px;
+  --mobile:390px;
+}
+
+*{box-sizing:border-box}
+
+html,body{margin:0}
+body{
+  background:#fbfbfb;
+  font-family:Arial,Helvetica,sans-serif;
+  color:var(--text);
+  -webkit-text-size-adjust:100%;
+}
+
+a{color:var(--text)}
+a:hover{color:var(--muted)}
+
+input,textarea,button{font-family:Arial,Helvetica,sans-serif;color:var(--text)}
+
+/* ---------- Обвязка галереи макетов (в продакшене не нужна) -------- */
+.gallery{padding:56px 48px 96px;display:flex;flex-direction:column;gap:64px}
+.gallery__group{display:flex;flex-direction:column;gap:16px}
+.gallery__head{display:flex;align-items:baseline;gap:12px}
+.gallery__badge{background:var(--chip);border-radius:var(--r-chip);padding:8px 14px;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.gallery__caption{font-size:13px;color:var(--muted)}
+.gallery__row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap}
+.gallery__col{display:flex;flex-direction:column;gap:10px}
+.gallery__note{font-size:12px;color:var(--muted);font-family:ui-monospace,Menlo,Consolas,monospace}
+
+/* ---------- Экран / контейнеры -------- */
+.screen{background:#fff;border:.5px solid var(--line)}
+.screen--desktop{padding:56px 0 72px}
+.screen--auth{width:560px;padding:72px 0;display:flex;justify-content:center}
+.screen--mobile{width:var(--mobile);padding:28px 20px 32px}
+.screen--mobile-bleed{width:var(--mobile);padding:24px 0 28px}
+.screen--pad{padding:40px 30px}
+
+.container{max-width:var(--container);margin:0 auto}
+.container--pad{padding:0 20px}
+.card{width:420px;display:flex;flex-direction:column}
+
+/* ---------- Типографика -------- */
+.logo{width:132px;height:34px;background:var(--chip);border-radius:var(--r-btn);
+  display:flex;align-items:center;justify-content:center;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;color:var(--muted);letter-spacing:.04em}
+.logo--sm{width:120px;height:32px}
+
+.h1{font-size:26px;font-weight:700;letter-spacing:.02em}
+.h2{font-size:18px;font-weight:500}
+.h3{font-size:20px;font-weight:700;letter-spacing:.01em}
+.sub{font-size:15px;color:var(--muted)}
+.lead{font-size:14px;color:var(--muted);line-height:1.55;max-width:640px;text-wrap:pretty}
+.text{font-size:14px;line-height:1.55}
+.text strong,.strong{font-weight:500}
+.note{font-size:12px;color:var(--muted);line-height:1.55}
+.note--error{color:var(--error)}
+.note--warn{color:var(--warn)}
+.note--md{font-size:13px}
+.group-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+.divider{height:.5px;background:var(--line);border:0;margin:28px 0}
+.divider--tight{margin:16px 0}
+.divider--md{margin:22px 0}
+
+.stack{display:flex;flex-direction:column}
+.stack--8{gap:8px}
+.stack--10{gap:10px}
+.stack--26{gap:26px}
+.stack--28{gap:28px}
+.mt-6{margin-top:6px}.mt-10{margin-top:10px}.mt-12{margin-top:12px}
+.mt-14{margin-top:14px}.mt-18{margin-top:18px}.mt-20{margin-top:20px}
+.mt-24{margin-top:24px}.mt-26{margin-top:26px}.mt-28{margin-top:28px}
+.mb-10{margin-bottom:10px}.mb-12{margin-bottom:12px}.mb-20{margin-bottom:20px}
+
+/* ---------- Поля -------- */
+.label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.label--lg{font-size:15px;color:var(--text)}
+
+.input{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:var(--r-chip);
+  font-size:15px;outline:none;background:#fff}
+.input--lg{height:52px;padding:0 14px;font-size:17px}
+.input--error{border-color:var(--error)}
+.input--placeholder{color:#bbb}
+.input::placeholder,.textarea::placeholder{color:#bbb}
+
+.textarea{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:var(--r-chip);
+  font-size:14px;line-height:1.5;outline:none;resize:vertical}
+.textarea--lg{font-size:15px}
+
+/* поле с суффиксом (₽/мес) */
+.money{display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--r-chip);overflow:hidden}
+.money--lg{height:52px}
+.money--warn{border-color:var(--warn)}
+.money--focus{border-color:var(--text)}
+.money__input{flex:1;min-width:0;border:0;outline:none;padding:13px 14px;font-size:16px;background:transparent}
+.money--lg .money__input{height:100%;padding:0 14px;font-size:17px}
+.money__value{flex:1;padding:13px 14px;font-size:16px}
+.money__suffix{padding:0 14px;font-size:13px;color:var(--muted)}
+.money--lg .money__suffix{font-size:14px}
+
+/* ---------- Чекбокс -------- */
+.check{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.check--tap{gap:12px;padding:12px 0}
+.check__box{flex-shrink:0;width:20px;height:20px;border-radius:4px;border:1.5px solid #c4c4c4;margin-top:1px;
+  display:flex;align-items:center;justify-content:center}
+.check--tap .check__box{width:24px;height:24px;margin-top:0}
+.check__mark{width:10px;height:10px;border-radius:2px;background:transparent}
+.check--tap .check__mark{width:12px;height:12px}
+.check--on .check__box{border-color:var(--accent)}
+.check--on .check__mark{background:var(--accent)}
+.check--error .check__box{border-color:var(--error)}
+.check__text{font-size:12px;line-height:1.55;color:var(--muted)}
+.check--tap .check__text{font-size:13px}
+.check--error .check__text{color:var(--error)}
+
+/* ---------- Плитки выбора (радио) -------- */
+.tiles{display:grid;gap:8px}
+.tiles--1{grid-template-columns:1fr}
+.tiles--2{grid-template-columns:repeat(2,1fr)}
+.tiles--4{grid-template-columns:repeat(4,1fr)}
+.tiles--col{display:flex;flex-direction:column;gap:8px}
+
+.tile{border:1px solid var(--border);border-radius:var(--r-chip);padding:13px 14px;font-size:14px;
+  cursor:pointer;text-wrap:pretty;background:#fff}
+.tile--on{border-color:var(--accent)}
+.tile--rich{padding:14px 16px}
+.tile--tap{min-height:52px;padding:15px 16px;font-size:15px}
+.tile--error{border-color:var(--error-soft)}
+.tile--ro{cursor:not-allowed;color:#aaa;border-color:var(--line)}
+.tile--ro-on{cursor:not-allowed;color:var(--text);background:var(--field);border-color:#bbb}
+.tile__title{font-size:15px;font-weight:500}
+.tile__desc{font-size:12px;color:var(--muted);line-height:1.5;margin-top:4px;text-wrap:pretty}
+.tile--tap .tile__desc{font-size:13px}
+.tile__hint{font-size:12px;color:var(--muted);margin-top:3px}
+.tile--tap .tile__hint{font-size:13px}
+
+/* ---------- Кнопки / ссылки -------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;
+  padding:14px 40px;border:0;border-radius:var(--r-btn);background:var(--accent);color:#fff;
+  font-size:13px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.btn:hover{background:#333}
+.btn--block{width:100%;padding:14px 0}
+.btn--tap{width:100%;height:52px;padding:0}
+.btn--sm{padding:13px 32px}
+.btn--disabled,.btn:disabled{background:var(--chip);color:#bbb;cursor:not-allowed}
+.btn--disabled:hover,.btn:disabled:hover{background:var(--chip)}
+
+.link{font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.link--tap{font-size:14px;padding:14px 0;display:inline-block}
+.link--sm{font-size:12px}
+
+.actions{display:flex;align-items:center;gap:20px}
+
+/* ---------- Чипы характеристик -------- */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips--scroll{flex-wrap:nowrap;white-space:nowrap;overflow-x:auto;padding:0 20px}
+.chip{background:var(--chip);border-radius:var(--r-chip);padding:8px 14px;flex:0 0 auto}
+.chip__value{font-size:16px;font-weight:500;margin-bottom:2px}
+.chip__label{font-size:12px;color:var(--muted)}
+
+/* ---------- Галерея фото -------- */
+.photo{position:relative;aspect-ratio:3/2;overflow:hidden;
+  background:repeating-linear-gradient(135deg,#f7f7f7 0 10px,#f1f1f1 10px 20px);
+  display:flex;align-items:center;justify-content:center}
+.photo--desktop{width:80%;margin:0 auto;border-radius:var(--r-photo)}
+.photo--bleed{width:100%;margin-top:20px}
+.photo__ph{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--muted);letter-spacing:.06em}
+.photo__nav{position:absolute;top:50%;transform:translateY(-50%);
+  width:32px;height:40px;border-radius:var(--r-chip);border:.5px solid rgba(255,255,255,.6);
+  background:rgba(17,17,17,.15);color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;user-select:none}
+.photo__nav--prev{left:12px}
+.photo__nav--next{right:12px}
+.photo--bleed .photo__nav{width:44px;height:44px;font-size:18px}
+.photo--bleed .photo__nav--prev{left:8px}
+.photo--bleed .photo__nav--next{right:8px}
+
+.thumbs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;width:80%;margin:6px auto 0}
+.thumbs--scroll{display:flex;grid-template-columns:none;width:auto;margin:6px 0 0;overflow-x:auto;padding:0 20px}
+.thumb{aspect-ratio:3/2;border-radius:var(--r-thumb);border:.5px solid #e0e0e0;cursor:pointer;
+  background:repeating-linear-gradient(135deg,#f7f7f7 0 6px,#f1f1f1 6px 12px)}
+.thumbs--scroll .thumb{flex:0 0 84px}
+
+/* ---------- Ввод кода -------- */
+.code{display:grid;grid-template-columns:repeat(4,68px);gap:10px}
+.code--tap{grid-template-columns:repeat(4,1fr)}
+.code__cell{width:68px;height:68px;text-align:center;font-size:24px;
+  border:1px solid var(--border);border-radius:var(--r-chip);outline:none;background:#fff;
+  display:flex;align-items:center;justify-content:center}
+.code--tap .code__cell{width:100%;height:72px;font-size:26px}
+.code__cell--active{border-color:var(--text)}
+.code__cell--error{border-color:var(--error)}
+.code__cell--locked{background:var(--chip);border-color:var(--line)}
+
+/* ---------- Ползунки -------- */
+.slider{-webkit-appearance:none;appearance:none;width:100%;background:transparent;margin:14px 0 4px}
+.slider--tap{height:44px;margin:0}
+.slider::-webkit-slider-runnable-track{height:2px;background:var(--border);border-radius:2px}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-7px;
+  border-radius:50%;background:var(--accent);cursor:pointer}
+.slider::-moz-range-track{height:2px;background:var(--border);border-radius:2px}
+.slider::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:var(--accent);cursor:pointer}
+
+.slider-head{display:flex;justify-content:space-between;align-items:baseline}
+.slider-head--tap{margin-top:8px}
+.slider-head__value{font-size:16px;font-weight:500}
+.slider-head--tap .slider-head__value{font-size:18px}
+.bounds{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+
+/* статичная шкала для демонстрации состояний */
+.range{position:relative;height:16px;margin:16px 0 6px}
+.range__rail{position:absolute;top:7px;left:0;right:0;height:2px;background:var(--border);border-radius:2px}
+.range__blocked{position:absolute;top:4px;height:8px;border-radius:4px;background:var(--blocked)}
+.range__thumb{position:absolute;top:0;width:16px;height:16px;border-radius:50%;background:var(--accent)}
+.range__thumb--ro{background:#bbb}
+
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.duo--32{gap:32px}
+.duo--start{align-items:start}
+.duo--muted{opacity:.4}
+
+/* ---------- Блок «Ваш автомобиль» -------- */
+.own{display:flex;gap:28px;align-items:flex-start;background:var(--field);
+  border-radius:var(--r-chip);padding:20px}
+.own__photo{flex-shrink:0;width:200px;height:200px;border-radius:var(--r-chip);overflow:hidden;cursor:pointer}
+.own__photo--bleed{width:100%;height:auto;aspect-ratio:3/2;border-radius:0;margin-top:14px}
+.own__img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  background:repeating-linear-gradient(135deg,#f2f2f2 0 8px,#ececec 8px 16px)}
+.own__img-label{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10px;color:var(--muted);letter-spacing:.06em}
+.own__empty{width:100%;height:100%;background:#f2f2f2;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px}
+.own__empty-icon{width:56px;height:30px;border-radius:6px 6px 3px 3px;border:1.5px solid #c4c4c4}
+.own__empty-text{font-size:12px;color:var(--muted)}
+.own__grid{display:grid;grid-template-columns:repeat(2,minmax(0,180px));gap:20px 40px;padding-top:4px}
+.own__grid--tap{grid-template-columns:1fr 1fr;gap:18px 20px;background:var(--field);
+  border-radius:var(--r-chip);padding:18px;margin-top:14px}
+.fact__label{font-size:12px;color:var(--muted);margin-bottom:4px}
+.fact__value{font-size:16px;font-weight:500}
+
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,220px));gap:32px}
+
+/* ---------- Баннеры / статусы -------- */
+.banner{border-radius:var(--r-chip);padding:14px 16px;font-size:14px}
+.banner--ok{background:var(--ok-bg);color:var(--ok)}
+.banner--info{background:var(--chip);color:var(--muted);font-size:13px;line-height:1.55}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.status__ok{color:var(--ok)}
+.readonly{opacity:.55}
+
+/* ---------- Скелетон -------- */
+.skeleton{display:flex;flex-direction:column;gap:14px}
+.sk{background:var(--chip);border-radius:var(--r-chip)}
+.sk--text{height:14px;border-radius:4px}
+.sk--title{height:26px;width:240px}
+.sk--field{height:46px}
+.sk--tile{height:34px}
+.sk--btn{height:46px;border-radius:var(--r-btn)}
+.sk--w160{width:160px}
+.sk--w260{width:260px}
+
+/* ---------- Шапка раздела: заголовок + выбранный автомобиль -------- */
+.page-head{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.page-title{font-size:26px;font-weight:700;letter-spacing:.05em;color:#111}
+.page-title--mobile{font-size:24px}
+.car-pick{display:flex;align-items:center;gap:12px;border:1px solid var(--border);
+  border-radius:var(--r-chip);padding:10px 16px;background:#fff;cursor:pointer;text-align:left;
+  font-family:inherit;color:inherit}
+.car-pick:hover{border-color:#bbb}
+.car-pick--row{width:100%;padding:14px 16px;min-height:44px;box-sizing:border-box;margin-top:20px}
+.car-pick__body{flex:1;min-width:0}
+.car-pick__body,.car-pick__name,.car-pick__hint{display:block}
+.car-pick__name{font-size:16px;font-weight:500;color:#111}
+.car-pick__hint{font-size:12px;color:var(--muted);margin-top:2px}
+.car-pick__chevron{font-size:18px;color:var(--muted)}
+.car-icon{position:relative;flex-shrink:0;width:34px;height:18px}
+.car-icon i{position:absolute;background:#111;display:block}
+.car-icon__body{left:0;bottom:3px;width:34px;height:8px;border-radius:3px 4px 3px 3px}
+.car-icon__roof{left:8px;top:0;width:18px;height:9px;border-radius:5px 5px 0 0}
+.car-icon__wheel{bottom:0;width:7px;height:7px;border-radius:50%}
+.car-icon__wheel--l{left:4px}
+.car-icon__wheel--r{right:4px}
+
+/* ============================================================
+   ПОПАП — независимый компонент.
+   Скрыт по умолчанию, показывается классом .popup--visible
+   ============================================================ */
+.popup{display:none;position:fixed;inset:0;z-index:100}
+.popup--visible{display:block}
+.popup__overlay{position:absolute;inset:0;background:rgba(17,17,17,.18)}
+.popup__dialog{position:relative;width:400px;max-width:calc(100% - 32px);margin:0 auto;top:50%;
+  transform:translateY(-50%);background:#fff;border-radius:var(--r-chip);padding:28px}
+.popup__title{font-size:20px;font-weight:700;letter-spacing:.01em}
+.popup__text{font-size:14px;color:var(--muted);line-height:1.6;margin-top:10px;text-wrap:pretty}
+.popup__actions{display:flex;align-items:center;gap:20px;margin-top:22px}
+/* широкий диалог — данные об автомобиле */
+.popup--wide .popup__dialog{width:720px;max-height:calc(100vh - 96px);overflow:auto;padding:32px}
+.popup__head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}
+.popup__subtitle{font-size:16px;font-weight:500;margin-top:10px}
+.popup__close{flex-shrink:0;width:44px;height:44px;margin:-8px -8px 0 0;border:none;background:none;
+  border-radius:var(--r-chip);display:flex;align-items:center;justify-content:center;
+  font-size:18px;color:var(--muted);cursor:pointer}
+.popup__close:hover{background:var(--chip);color:#111}
+/* мобильный вариант — шторка снизу */
+.popup--sheet .popup__dialog{position:absolute;left:0;right:0;bottom:0;top:auto;width:auto;max-width:none;
+  transform:none;margin:0;max-height:88%;overflow:auto;border-radius:16px 16px 0 0;padding:20px 20px 28px}
+.popup__grabber{width:44px;height:4px;border-radius:2px;background:#e0e0e0;margin:0 auto 18px}
+/* демонстрационный вариант — внутри карточки макета, не fixed */
+.popup--inline{display:none;position:absolute;inset:0}
+.popup--inline.popup--visible{display:block}
+
+.demo-frame{position:relative;border:.5px solid var(--line);border-radius:var(--r-chip);overflow:hidden}
+.demo-frame__body{padding:24px;opacity:.35;display:flex;flex-direction:column;gap:12px}
+
+/* ---------- Реальный мобильный вьюпорт -------- */
+@media (max-width:600px){
+  .gallery{padding:16px 0 40px;gap:32px}
+  .gallery__head,.gallery__note{padding:0 16px}
+  .gallery__row{gap:16px}
+  .screen--auth,.screen--mobile,.screen--mobile-bleed{width:100%}
+  .card{width:100%}
+  .container{padding:0 16px}
+  .duo{grid-template-columns:1fr;gap:24px}
+  .tiles--2,.tiles--4{grid-template-columns:1fr}
+  .photo--desktop{width:100%;border-radius:0}
+  .thumbs{width:100%}
+  .own{flex-direction:column}
+  .own__photo{width:100%;height:auto;aspect-ratio:3/2}
+  .own__grid{grid-template-columns:1fr 1fr}
+  .facts{grid-template-columns:1fr}
+}
+
+/* ===== Сброс ===== */
+body{margin:0;background:#fbfbfb;font-family:Arial,Helvetica,sans-serif;color:#111111}
+a{color:#111111}a:hover{color:#888888}
+input,textarea,button{font-family:Arial,Helvetica,sans-serif}
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:#e6e6e6;border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-7px;border-radius:50%;background:var(--accent,#1a1a1a);cursor:pointer}
+input[type=range]::-moz-range-track{height:2px;background:#e6e6e6}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:none;border-radius:50%;background:var(--accent,#1a1a1a)}
+/* ===== Макеты ===== */
+.s1{padding: 56px 48px 96px; display: flex; flex-direction: column; gap: 64px; --accent: #1a1a1a;}
+.s2{display: flex; flex-direction: column; gap: 16px;}
+.s3{display: flex; align-items: baseline; gap: 12px;}
+.s4{font-size: 13px; color: rgb(136, 136, 136);}
+.s5{display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap;}
+.s6{display: flex; flex-direction: column; gap: 12px; width: 1280px;}
+.s7{background: rgb(245, 245, 245); border-radius: 8px; padding: 8px 14px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(17, 17, 17);}
+.s8{position: relative; background: rgb(255, 255, 255); border: 0.5px solid rgb(239, 239, 239); padding: 56px 140px 72px; width: 1280px; box-sizing: border-box;}
+.s9{max-width: 1000px; margin: 0px auto;}
+.s10{display: flex; align-items: flex-start; justify-content: space-between; gap: 24px;}
+.s11{display: flex; flex-direction: column; gap: 6px;}
+.s12{font-size: 26px; font-weight: 700; letter-spacing: 0.05em; color: rgb(17, 17, 17);}
+.s13{font-size: 15px; color: rgb(136, 136, 136);}
+.s14{display: flex; align-items: center; gap: 14px; border: 1px solid rgb(230, 230, 230); border-radius: 8px; padding: 8px 14px 8px 8px; cursor: pointer; background: rgb(255, 255, 255);}
+.s15{flex-shrink: 0; width: 96px; height: 64px; border-radius: 6px; background: repeating-linear-gradient(135deg, rgb(242, 242, 242) 0px, rgb(242, 242, 242) 6px, rgb(236, 236, 236) 6px, rgb(236, 236, 236) 12px); display: flex; align-items: center; justify-content: center;}
+.s16{font-family: ui-monospace, Menlo, monospace; font-size: 9px; color: rgb(136, 136, 136);}
+.s17{display: flex; flex-direction: column; gap: 4px;}
+.s18{font-size: 16px; font-weight: 500; color: rgb(17, 17, 17); white-space: nowrap;}
+.s19{display: flex; align-items: baseline; gap: 5px; white-space: nowrap;}
+.s20{font-size: 18px; font-weight: 700; color: rgb(17, 17, 17);}
+.s21{font-size: 22px; color: rgb(136, 136, 136); margin-left: 10px;}
+.s22{height: 0.5px; background: rgb(239, 239, 239); margin: 32px 0px 28px;}
+.s23{font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(136, 136, 136);}
+.s24{margin-top: 12px;}
+.s25{font-size: 15px; margin-bottom: 6px;}
+.s26{display: flex; align-items: center; height: 52px; border: 1px solid rgb(230, 230, 230); border-radius: 8px; overflow: hidden;}
+.s27{flex: 1 1 0%; min-width: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; outline: none; height: 100%; padding: 0px 14px; font-size: 17px; color: rgb(17, 17, 17);}
+.s28{padding: 0px 14px; font-size: 13px; color: rgb(136, 136, 136);}
+.s29{display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 28px;}
+.s30{display: flex; justify-content: space-between; align-items: baseline;}
+.s31{font-size: 14px;}
+.s32{font-size: 16px; font-weight: 500;}
+.s33{width: 100%; margin: 14px 0px 4px;}
+.s34{display: flex; justify-content: space-between; font-size: 12px; color: rgb(136, 136, 136);}
+.s35{background: rgb(250, 250, 250); border-radius: 8px; padding: 20px 24px; margin-bottom: 24px; font-size: 17px; font-weight: 500; line-height: 1.45; text-wrap: pretty;}
+.s36{display: flex; flex-direction: column; gap: 14px;}
+.s37{font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(136, 136, 136); margin-bottom: 12px;}
+.s38{display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;}
+.s39{border: 1px solid rgb(230, 230, 230); border-radius: 8px; min-height: 52px; box-sizing: border-box; padding: 15px 16px; font-size: 15px; cursor: pointer; text-wrap: pretty;}
+.s40{border: 1px solid rgb(26, 26, 26); border-radius: 8px; min-height: 52px; box-sizing: border-box; padding: 15px 16px; font-size: 15px; cursor: pointer; text-wrap: pretty;}
+.s41{height: 0.5px; background: rgb(239, 239, 239); margin: 36px 0px 24px;}
+.s42{display: flex; align-items: center; gap: 20px;}
+.s43{display: flex; flex-direction: column; gap: 16px; width: 100%;}
+.s44{width: 100%; height: 46px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 6px; background: var(--accent, #1a1a1a); color: rgb(255, 255, 255); font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;}
+.s45{display: flex; flex-wrap: wrap; column-gap: 28px; align-items: flex-start; background: rgb(250, 250, 250); border-radius: 8px; padding: 20px; margin-top: 12px;}
+.s46{flex-shrink: 0; width: 356px; height: 200px; border-radius: 8px; cursor: pointer; overflow: hidden; background: repeating-linear-gradient(135deg, rgb(242, 242, 242) 0px, rgb(242, 242, 242) 8px, rgb(236, 236, 236) 8px, rgb(236, 236, 236) 16px);}
+.s47{width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;}
+.s48{font-family: ui-monospace, Menlo, monospace; font-size: 10px; color: rgb(136, 136, 136); letter-spacing: 0.06em;}
+.s49{display: grid; grid-template-columns: repeat(2, minmax(0px, 180px)); gap: 20px 40px; padding-top: 4px;}
+.s50{font-size: 12px; color: rgb(136, 136, 136); margin-bottom: 4px;}
+.s51{flex-basis: 100%; min-width: 0px; padding-top: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: rgb(136, 136, 136); line-height: 1.55;}
+.s52{flex-basis: 100%; min-width: 0px; margin-top: 16px; padding-top: 16px; border-top: 0.5px solid rgb(230, 230, 230); display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 16px;}
+.s53{display: flex; align-items: baseline; gap: 8px; white-space: nowrap;}
+.s54{font-size: 22px; font-weight: 700; color: rgb(17, 17, 17);}
+.s55{font-size: 12px; color: rgb(136, 136, 136); line-height: 1.55;}
+.s56{margin-top: 20px;}
+.s57{font-size: 12px; color: rgb(136, 136, 136); margin-bottom: 6px;}
+.s58{width: 100%; box-sizing: border-box; resize: vertical; font-family: Arial, Helvetica, sans-serif; padding: 13px 14px; border: 1px solid rgb(230, 230, 230); border-radius: 8px; font-size: 14px; line-height: 1.5; color: rgb(17, 17, 17); outline: none;}
+.s59{display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px;}
+.s60{border: 1px solid rgb(230, 230, 230); border-radius: 8px; padding: 14px 16px; cursor: pointer;}
+.s61{font-size: 15px; font-weight: 500;}
+.s62{font-size: 13px; color: rgb(136, 136, 136); line-height: 1.5; margin-top: 4px; text-wrap: pretty;}
+.s63{border: 1px solid rgb(26, 26, 26); border-radius: 8px; padding: 14px 16px; cursor: pointer;}
+.s64{display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
+.s65{height: 52px; box-sizing: border-box; background: rgb(250, 250, 250); border-radius: 8px; padding: 0px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px;}
+.s66{font-size: 17px; font-weight: 500; white-space: nowrap;}
+.s67{padding-left: 14px; font-size: 13px; color: rgb(136, 136, 136); white-space: nowrap;}
+.s68{flex: 1 1 0%; min-width: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; outline: none; height: 100%; padding: 0px 14px; font-size: 17px; color: rgb(17, 17, 17); text-align: right; background: transparent;}
+.s69{padding-right: 14px; font-size: 13px; color: rgb(136, 136, 136);}
+.s70{font-size: 12px; color: rgb(136, 136, 136); line-height: 1.55; margin-top: 6px;}
+.s71{display: flex; flex-direction: column; gap: 12px;}
+.s72{display: flex; align-items: center; height: 52px; border: 1px solid rgb(230, 230, 230); border-radius: 8px; overflow: hidden; background: rgb(255, 255, 255);}
+.s73{flex: 1 1 0%; min-width: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; outline: none; height: 100%; padding: 0px 14px; font-size: 17px; color: rgb(17, 17, 17); background: transparent;}
+.s74{margin-top: 14px;}
+.s75{display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;}
+.s76{display: flex; flex-direction: column; gap: 10px;}
+.s77{font-size: 12px; color: rgb(136, 136, 136); font-family: ui-monospace, Menlo, monospace;}
+.s78{width: 390px; background: rgb(255, 255, 255); border: 0.5px solid rgb(239, 239, 239); padding: 28px 20px 32px; box-sizing: border-box;}
+.s79{width: 100%; display: flex; flex-direction: column; gap: 16px;}
+.s80{font-size: 26px; font-weight: 700; letter-spacing: 0.02em;}
+.s81{height: 0.5px; background: rgb(239, 239, 239); margin: 2px 0px;}
+.s82{width: 100%; box-sizing: border-box; height: 52px; padding: 0px 14px; border: 1px solid rgb(230, 230, 230); border-radius: 8px; font-size: 17px; color: rgb(17, 17, 17); outline: none;}
+.s83{display: flex; align-items: flex-start; gap: 12px; padding: 12px 0px; cursor: pointer;}
+.s84{flex-shrink: 0; width: 24px; height: 24px; box-sizing: border-box; border-radius: 4px; border: 1.5px solid rgb(26, 26, 26); background: rgb(26, 26, 26); color: rgb(255, 255, 255); font-size: 14px; display: flex; align-items: center; justify-content: center;}
+.s85{font-size: 13px; line-height: 1.55; color: rgb(136, 136, 136);}
+.s86{font-size: 13px; color: rgb(136, 136, 136); text-decoration: underline; text-underline-offset: 3px;}
+.s87{display: grid; grid-template-columns: 1fr; gap: 8px;}
+.s88{border: 1px solid rgb(26, 26, 26); border-radius: 8px; padding: 14px 16px; min-height: 52px; box-sizing: border-box; cursor: pointer;}
+.s89{font-size: 13px; color: rgb(136, 136, 136); margin-top: 3px;}
+.s90{border: 1px solid rgb(230, 230, 230); border-radius: 8px; padding: 14px 16px; min-height: 52px; box-sizing: border-box; cursor: pointer;}
+.s91{width: 100%; height: 52px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 6px; background: var(--accent, #1a1a1a); color: rgb(255, 255, 255); font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;}
+.s92{border-radius: 8px; padding: 14px 16px; font-size: 15px; font-weight: 500; line-height: 1.5; background: rgb(255, 247, 224); border: 1px solid rgb(230, 201, 106); color: rgb(107, 83, 16);}
+.s93{font-size: 14px; line-height: 1.55;}
+.s94{font-weight: 500;}
+.s95{font-size: 13px; color: rgb(136, 136, 136); line-height: 1.55;}
+.s96{display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;}
+.s97{width: 100%; box-sizing: border-box; height: 72px; text-align: center; font-size: 26px; color: rgb(17, 17, 17); border: 1px solid rgb(17, 17, 17); border-radius: 8px; outline: none; background: rgb(255, 255, 255);}
+.s98{width: 100%; box-sizing: border-box; height: 72px; text-align: center; font-size: 26px; color: rgb(17, 17, 17); border: 1px solid rgb(230, 230, 230); border-radius: 8px; outline: none; background: rgb(255, 255, 255);}
+.s99{display: flex;}
+.s100{font-size: 14px; color: rgb(136, 136, 136); text-decoration: underline; text-underline-offset: 3px; padding: 14px 0px;}
+.s101{width: 390px; background: rgb(255, 255, 255); border: 0.5px solid rgb(239, 239, 239); padding: 24px 20px 28px; box-sizing: border-box;}
+.s102{font-size: 24px; font-weight: 700; letter-spacing: 0.05em; color: rgb(17, 17, 17);}
+.s103{display: flex; align-items: center; gap: 12px; border: 1px solid rgb(230, 230, 230); border-radius: 8px; padding: 8px 14px 8px 8px; margin-top: 20px; background: rgb(255, 255, 255); cursor: pointer;}
+.s104{flex-shrink: 0; width: 84px; height: 56px; border-radius: 6px; background: repeating-linear-gradient(135deg, rgb(242, 242, 242) 0px, rgb(242, 242, 242) 6px, rgb(236, 236, 236) 6px, rgb(236, 236, 236) 12px); display: flex; align-items: center; justify-content: center;}
+.s105{flex: 1 1 0%; min-width: 0px; display: flex; flex-direction: column; gap: 4px;}
+.s106{font-size: 16px; font-weight: 500; color: rgb(17, 17, 17); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.s107{font-size: 22px; color: rgb(136, 136, 136);}
+.s108{height: 0.5px; background: rgb(239, 239, 239); margin: 22px 0px 20px;}
+.s109{font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(136, 136, 136); margin-bottom: 0px;}
+.s110{position: relative; width: 390px; height: 620px; background: rgb(255, 255, 255); border: 0.5px solid rgb(239, 239, 239); padding: 24px 20px; box-sizing: border-box; overflow: hidden;}
+.s111{opacity: 0.4;}
+.s112{position: absolute; inset: 0px; background: rgba(17, 17, 17, 0.28);}
+.s113{position: absolute; left: 0px; right: 0px; bottom: 0px; max-height: 88%; overflow: auto; background: rgb(255, 255, 255); border-radius: 16px 16px 0px 0px; padding: 20px 20px 28px;}
+.s114{width: 44px; height: 4px; border-radius: 2px; background: rgb(224, 224, 224); margin: 0px auto 18px;}
+.s115{display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;}
+.s116{font-size: 20px; font-weight: 700; letter-spacing: 0.02em;}
+.s117{font-size: 15px; font-weight: 500; margin-top: 8px;}
+.s118{flex-shrink: 0; width: 44px; height: 44px; margin: -10px -10px 0px 0px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: rgb(136, 136, 136); cursor: pointer;}
+.s119{display: flex; gap: 8px; margin-top: 14px; overflow-x: auto; white-space: nowrap;}
+.s120{flex: 0 0 auto; background: rgb(245, 245, 245); border-radius: 8px; padding: 8px 14px;}
+.s121{font-size: 16px; font-weight: 500; margin-bottom: 2px;}
+.s122{font-size: 12px; color: rgb(136, 136, 136);}
+.s123{height: 0.5px; background: rgb(239, 239, 239); margin: 18px 0px;}
+.s124{position: relative; width: 100%; aspect-ratio: 3 / 2; border-radius: 10px; background: repeating-linear-gradient(135deg, rgb(247, 247, 247) 0px, rgb(247, 247, 247) 10px, rgb(241, 241, 241) 10px, rgb(241, 241, 241) 20px); display: flex; align-items: center; justify-content: center; overflow: hidden;}
+.s125{font-family: ui-monospace, Menlo, monospace; font-size: 11px; color: rgb(136, 136, 136); letter-spacing: 0.06em;}
+.s126{position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 8px; border: 0.5px solid rgba(255, 255, 255, 0.6); background: rgba(17, 17, 17, 0.15); color: rgb(255, 255, 255); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer;}
+.s127{position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 8px; border: 0.5px solid rgba(255, 255, 255, 0.6); background: rgba(17, 17, 17, 0.15); color: rgb(255, 255, 255); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer;}
+.s128{display: flex; gap: 6px; margin-top: 6px; overflow-x: auto;}
+.s129{flex: 0 0 84px; aspect-ratio: 3 / 2; border-radius: 6px; border: 0.5px solid rgb(224, 224, 224); background: repeating-linear-gradient(135deg, rgb(247, 247, 247) 0px, rgb(247, 247, 247) 6px, rgb(241, 241, 241) 6px, rgb(241, 241, 241) 12px); cursor: pointer;}
+.s130{margin-top: 18px;}
+.s131{display: flex; align-items: center; border: 1px solid rgb(230, 230, 230); border-radius: 8px; overflow: hidden; height: 52px;}
+.s132{padding: 0px 14px; font-size: 14px; color: rgb(136, 136, 136);}
+.s133{margin-top: 26px;}
+.s134{font-size: 15px;}
+.s135{display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px;}
+.s136{font-size: 18px; font-weight: 500;}
+.s137{width: 100%; height: 44px; margin: 0px;}
+.s138{background: rgb(250, 250, 250); border-radius: 8px; padding: 16px 18px; margin-bottom: 20px; font-size: 16px; font-weight: 500; line-height: 1.45; text-wrap: pretty;}
+.s139{display: flex; flex-direction: column; gap: 8px;}
+.s140{font-size: 13px; color: rgb(136, 136, 136); margin-top: 28px;}
+.s141{margin-top: 16px; width: 100%; height: 52px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 6px; background: var(--accent, #1a1a1a); color: rgb(255, 255, 255); font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;}
+.s142{height: 0.5px; background: rgb(239, 239, 239); margin: 22px 0px;}
+.s143{display: flex; flex-direction: column; background: rgb(250, 250, 250); border-radius: 8px; overflow: hidden; margin-top: 12px;}
+.s144{width: 100%; aspect-ratio: 3 / 2; cursor: pointer; overflow: hidden; background: repeating-linear-gradient(135deg, rgb(242, 242, 242) 0px, rgb(242, 242, 242) 8px, rgb(236, 236, 236) 8px, rgb(236, 236, 236) 16px);}
+.s145{display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; padding: 16px;}
+.s146{padding: 0px 16px 16px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: rgb(136, 136, 136); line-height: 1.55;}
+.s147{margin: 0px 16px; padding: 14px 0px 16px; border-top: 0.5px solid rgb(230, 230, 230); display: flex; flex-direction: column; gap: 4px;}
+.s148{margin-top: 22px;}
+.s149{background: rgb(238, 245, 240); border-radius: 8px; padding: 14px 16px; font-size: 14px; line-height: 1.5; color: rgb(46, 107, 79); text-wrap: pretty;}
+.s150{opacity: 0.55;}
+.s151{display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;}
+.s152{width: 480px; background: rgb(255, 255, 255); border: 0.5px solid rgb(239, 239, 239); padding: 48px 30px;}
+.s153{font-size: 12px; color: rgb(136, 136, 136); font-family: ui-monospace, Menlo, monospace; margin-bottom: 24px;}
+.s154{width: 420px; display: flex; flex-direction: column; gap: 16px; margin: 0px auto;}
+.s155{height: 0.5px; background: rgb(239, 239, 239); margin: 16px 0px;}
+.s156{font-size: 14px; color: rgb(136, 136, 136); line-height: 1.55; text-wrap: pretty;}
+.s157{font-size: 13px; color: rgb(179, 38, 30); line-height: 1.55;}
+.s158{height: 72px; border-radius: 8px; border: 1px solid rgb(179, 38, 30); background: rgb(255, 255, 255);}
+.s159{width: 100%; height: 52px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; border-radius: 6px; background: rgb(245, 245, 245); color: rgb(187, 187, 187); font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: not-allowed;}
+.s160{font-size: 14px; color: rgb(179, 38, 30); line-height: 1.55;}
+.s161{height: 72px; border-radius: 8px; border: 1px solid rgb(239, 239, 239); background: rgb(245, 245, 245);}
+.s162{border-radius: 8px; padding: 14px 16px; font-size: 15px; font-weight: 500; line-height: 1.5; background: rgb(238, 243, 251); border: 1px solid rgb(185, 205, 236); color: rgb(43, 74, 122);}
+.s163{height: 72px; border-radius: 8px; border: 1px solid rgb(17, 17, 17); background: rgb(255, 255, 255);}
+.s164{height: 72px; border-radius: 8px; border: 1px solid rgb(230, 230, 230); background: rgb(255, 255, 255);}
+.s165{border: 1px solid var(--accent, #1a1a1a); border-radius: 8px; padding: 14px 16px; min-height: 52px; box-sizing: border-box; cursor: pointer;}
+.s166{width: 420px; margin: 0px auto; display: flex; flex-direction: column; gap: 14px;}
+.s167{width: 240px; height: 26px; background: rgb(245, 245, 245); border-radius: 6px; margin-top: 18px;}
+.s168{width: 160px; height: 14px; background: rgb(245, 245, 245); border-radius: 4px;}
+.s169{height: 0.5px; background: rgb(239, 239, 239); margin: 6px 0px;}
+.s170{width: 100%; height: 46px; background: rgb(245, 245, 245); border-radius: 8px;}
+.s171{width: 100%; height: 34px; background: rgb(245, 245, 245); border-radius: 8px;}
+.s172{width: 100%; height: 46px; background: rgb(245, 245, 245); border-radius: 6px; margin-top: 8px;}
+.s173{width: 820px; background: rgb(255, 255, 255); border: 0.5px solid rgb(239, 239, 239); padding: 48px 30px;}
+.s174{position: relative; height: 560px; border: 0.5px solid rgb(239, 239, 239); border-radius: 8px; overflow: hidden;}
+.s175{padding: 32px; opacity: 0.35; display: flex; flex-direction: column; gap: 12px;}
+.s176{width: 240px; height: 26px; background: rgb(245, 245, 245); border-radius: 6px;}
+.s177{width: 100%; height: 52px; background: rgb(245, 245, 245); border-radius: 8px;}
+.s178{position: absolute; inset: 0px; background: rgba(17, 17, 17, 0.18); display: flex; align-items: center; justify-content: center; padding: 24px;}
+.s179{width: 720px; max-width: 100%; max-height: 480px; box-sizing: border-box; background: rgb(255, 255, 255); border-radius: 8px; padding: 24px 28px; display: flex; flex-direction: column;}
+.s180{display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;}
+.s181{font-size: 20px; font-weight: 700; letter-spacing: 0.01em;}
+.s182{flex-shrink: 0; width: 44px; height: 44px; margin: -8px -12px 0px 0px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: rgb(136, 136, 136); cursor: pointer;}
+.s183{overflow-y: auto; margin-top: 12px; font-size: 14px; line-height: 1.6; white-space: pre-wrap;}
+.s184{display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap;}
+.s185{width: 560px; background: rgb(255, 255, 255); border: 0.5px solid rgb(239, 239, 239); padding: 72px 0px; display: flex; justify-content: center;}
+.s186{width: 420px; display: flex; flex-direction: column; gap: 16px;}
+/* ===== Вход с сайта — состояния 8a–8h ===== */
+.w1{display: flex; flex-direction: column; gap: 28px;}
+.w2{display: flex; flex-direction: column; gap: 6px;}
+.w3{font-size: 20px; font-weight: 700; letter-spacing: 0.01em; color: #111111;}
+.w4{font-size: 13px; color: #888888; display: flex; align-items: baseline; gap: 8px;}
+.w5{text-decoration: underline dotted #c9a24a; text-underline-offset: 4px; color: #111111;}
+.w6{color: #888888;}
+.w7{display: flex; flex-direction: column; gap: 12px;}
+.w8{display: flex; align-items: baseline; gap: 12px;}
+.w9{background: #f5f5f5; border-radius: 8px; padding: 8px 14px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #111111;}
+.w10{font-size: 13px; color: #888888;}
+.w11{display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap;}
+.w12{display: flex; flex-direction: column; gap: 10px;}
+.w13{font-size: 12px; color: #888888; font-family: ui-monospace, Menlo, monospace;}
+.w14{background: #ffffff; border: 0.5px solid #efefef; padding: 56px 140px 72px; width: 1280px; box-sizing: border-box;}
+.w15{max-width: 1000px; margin: 0 auto;}
+.w16{display: flex; align-items: flex-start; justify-content: space-between; gap: 24px;}
+.w17{font-size: 26px; font-weight: 700; letter-spacing: 0.05em; color: #111111;}
+.w18{font-size: 15px; color: #888888;}
+.w19{display: flex; align-items: center; gap: 14px; border: 1px solid #e6e6e6; border-radius: 8px; padding: 8px 14px 8px 8px; background: #ffffff; cursor: pointer;}
+.w20{flex-shrink: 0; width: 96px; height: 64px; border-radius: 6px; background: repeating-linear-gradient(135deg, #f2f2f2 0px, #f2f2f2 6px, #ececec 6px, #ececec 12px); display: flex; align-items: center; justify-content: center;}
+.w21{font-family: ui-monospace, Menlo, monospace; font-size: 9px; color: #888888;}
+.w22{display: flex; flex-direction: column; gap: 4px;}
+.w23{font-size: 16px; font-weight: 500; color: #111111; white-space: nowrap;}
+.w24{display: flex; align-items: baseline; gap: 5px; white-space: nowrap;}
+.w25{font-size: 18px; font-weight: 700; color: #111111;}
+.w26{font-size: 22px; color: #888888; margin-left: 10px;}
+.w27{height: 0.5px; background: #efefef; margin: 32px 0 28px;}
+.w28{font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #888888;}
+.w29{display: flex; flex-wrap: wrap; column-gap: 28px; align-items: flex-start; background: #fafafa; border-radius: 8px; padding: 20px; margin-top: 12px;}
+.w30{flex-shrink: 0; width: 356px; height: 200px; border-radius: 8px; overflow: hidden;}
+.w31{width: 100%; height: 100%; background: #f2f2f2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;}
+.w32{width: 56px; height: 30px; border-radius: 6px 6px 3px 3px; border: 1.5px solid #c4c4c4;}
+.w33{font-size: 12px; color: #888888; text-align: center; padding: 0 12px;}
+.w34{text-decoration: underline dotted #c9a24a; text-underline-offset: 4px;}
+.w35{display: grid; grid-template-columns: repeat(2, minmax(0, 180px)); gap: 20px 40px; padding-top: 4px;}
+.w36{font-size: 12px; color: #888888; margin-bottom: 4px;}
+.w37{font-size: 16px; font-weight: 500;}
+.w38{width: 90px; height: 16px; margin-top: 3px; border-radius: 4px; background: #ececec;}
+.w39{width: 110px; height: 16px; margin-top: 3px; border-radius: 4px; background: #ececec;}
+.w40{width: 50px; height: 16px; margin-top: 3px; border-radius: 4px; background: #ececec;}
+.w41{width: 70px; height: 16px; margin-top: 3px; border-radius: 4px; background: #ececec;}
+.w42{flex-basis: 100%; min-width: 0; padding-top: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #888888; line-height: 1.55;}
+.w43{flex-basis: 100%; min-width: 0; margin-top: 16px; padding-top: 16px; border-top: 0.5px solid #e6e6e6;}
+.w44{display: flex; align-items: center; gap: 10px;}
+.w45{position: relative; flex-shrink: 0; width: 18px; height: 18px; border: 1.5px solid #111111; border-radius: 50%; box-sizing: border-box;}
+.w46{position: absolute; left: 6.75px; top: 2.5px; width: 1.5px; height: 5.5px; background: #111111;}
+.w47{position: absolute; left: 6.75px; top: 6.5px; width: 4.5px; height: 1.5px; background: #111111;}
+.w48{font-size: 13px; color: #888888; margin-left: auto;}
+.w49{position: relative; height: 2px; background: #e6e6e6; border-radius: 2px; overflow: hidden;}
+.w50{position: absolute; left: 0; top: 0; bottom: 0; width: 45%; background: var(--accent, #1a1a1a);}
+.w51{font-size: 12px; color: #888888; line-height: 1.55;}
+.w52{margin-top: 20px;}
+.w53{font-size: 12px; color: #888888; margin-bottom: 6px;}
+.w54{width: 100%; box-sizing: border-box; resize: vertical; font-family: Arial, Helvetica, sans-serif; padding: 13px 14px; border: 1px solid #e6e6e6; border-radius: 8px; font-size: 14px; line-height: 1.5; color: #111111; outline: none;}
+.w55{background: #fafafa; border-radius: 8px; padding: 20px 24px; margin-bottom: 24px; font-size: 17px; font-weight: 500; line-height: 1.45;}
+.w56{font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #888888; margin-bottom: 12px;}
+.w57{display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;}
+.w58{border: 1px solid #e6e6e6; border-radius: 8px; padding: 14px 16px; cursor: pointer;}
+.w59{font-size: 15px; font-weight: 500;}
+.w60{font-size: 13px; color: #888888; line-height: 1.5; margin-top: 4px;}
+.w61{border: 1px solid #1a1a1a; border-radius: 8px; padding: 14px 16px; cursor: pointer;}
+.w62{margin-top: 28px; border: 1px dashed #e6e6e6; border-radius: 8px; padding: 16px; font-size: 13px; color: #888888; line-height: 1.55; text-align: center;}
+.w63{height: 0.5px; background: #efefef; margin: 36px 0 24px;}
+.w64{display: flex; flex-direction: column; gap: 16px;}
+.w65{width: 100%; height: 46px; border: none; border-radius: 6px; background: var(--accent, #1a1a1a); color: #ffffff; font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;}
+.w66{margin-top: 14px;}
+.w67{font-size: 15px; margin-bottom: 6px;}
+.w68{display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
+.w69{height: 52px; box-sizing: border-box; background: #fafafa; border-radius: 8px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px;}
+.w70{display: flex; align-items: center; gap: 8px; font-size: 15px; color: #888888; white-space: nowrap;}
+.w71{position: relative; flex-shrink: 0; width: 18px; height: 18px; border: 1.5px solid #888888; border-radius: 50%; box-sizing: border-box;}
+.w72{position: absolute; left: 6.75px; top: 2.5px; width: 1.5px; height: 5.5px; background: #888888;}
+.w73{position: absolute; left: 6.75px; top: 6.5px; width: 4.5px; height: 1.5px; background: #888888;}
+.w74{display: flex; align-items: center; height: 52px; border: 1px solid #e6e6e6; border-radius: 8px; overflow: hidden;}
+.w75{padding-left: 14px; font-size: 13px; color: #888888; white-space: nowrap;}
+.w76{flex: 1; min-width: 0; border: none; outline: none; height: 100%; padding: 0 14px; font-size: 17px; color: #111111; text-align: right; background: transparent;}
+.w77{padding-right: 14px; font-size: 13px; color: #888888;}
+.w78{font-size: 12px; color: #888888; line-height: 1.55; margin-top: 6px;}
+.w79{flex: 1; min-width: 0; border: none; outline: none; height: 100%; padding: 0 14px; font-size: 17px; color: #111111;}
+.w80{padding: 0 14px; font-size: 13px; color: #888888;}
+.w81{width: 390px; background: #ffffff; border: 0.5px solid #efefef; padding: 24px 20px 28px; box-sizing: border-box;}
+.w82{font-size: 24px; font-weight: 700; letter-spacing: 0.05em; color: #111111;}
+.w83{display: flex; align-items: center; gap: 12px; border: 1px solid #e6e6e6; border-radius: 8px; padding: 8px 14px 8px 8px; margin-top: 20px; background: #ffffff; cursor: pointer;}
+.w84{flex-shrink: 0; width: 84px; height: 56px; border-radius: 6px; background: repeating-linear-gradient(135deg, #f2f2f2 0px, #f2f2f2 6px, #ececec 6px, #ececec 12px); display: flex; align-items: center; justify-content: center;}
+.w85{flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;}
+.w86{font-size: 16px; font-weight: 500; color: #111111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.w87{font-size: 22px; color: #888888;}
+.w88{height: 0.5px; background: #efefef; margin: 22px 0;}
+.w89{display: flex; flex-direction: column; background: #fafafa; border-radius: 8px; overflow: hidden; margin-top: 12px;}
+.w90{width: 100%; aspect-ratio: 3 / 2; overflow: hidden;}
+.w91{display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; padding: 16px;}
+.w92{padding: 0 16px 16px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #888888; line-height: 1.55;}
+.w93{margin: 0 16px; padding: 14px 0 16px; border-top: 0.5px solid #e6e6e6;}
+.w94{margin-top: 18px;}
+.w95{display: flex; flex-direction: column; gap: 8px;}
+.w96{width: 320px; display: flex; flex-direction: column; gap: 10px; padding-top: 22px;}
+.w97{font-size: 13px; line-height: 1.55; color: #111111; text-wrap: pretty;}
+.w98{font-weight:500}
+.w99{width: 100%; height: 100%; background: repeating-linear-gradient(135deg, #f2f2f2 0px, #f2f2f2 8px, #ececec 8px, #ececec 16px); display: flex; align-items: center; justify-content: center;}
+.w100{font-family: ui-monospace, Menlo, monospace; font-size: 10px; color: #888888; letter-spacing: 0.06em;}
+.w101{display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; background: #eef5f0; border-radius: 8px; padding: 12px 14px; margin: -4px -14px 0;}
+.w102{font-size: 22px; font-weight: 700; color: #111111; white-space: nowrap;}
+.w103{font-size: 13px; color: #2e6b4f;}
+.w104{flex-basis: 100%; font-size: 12px; color: #555555; line-height: 1.55;}
+.w105{font-size: 17px; font-weight: 500; white-space: nowrap; background: #eef5f0; color: #111111; border-radius: 6px; padding: 4px 8px; margin-right: -8px;}
+.w106{display: flex; flex-direction: column; gap: 4px; background: #eef5f0; border-radius: 8px; padding: 12px 14px; margin: 0 -14px;}
+.w107{display: flex; align-items: baseline; justify-content: space-between; gap: 12px;}
+.w108{font-size: 22px; font-weight: 700; color: #111111;}
+.w109{font-size: 12px; color: #555555; line-height: 1.55;}
+.w110{margin-top: 12px;}
+.w111{background: #f5f5f5; border-radius: 8px; padding: 14px 16px; font-size: 14px; line-height: 1.55; color: #111111; text-wrap: pretty;}
+.w112{display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 20px; margin-top: 16px;}
+.w113{width: 100%; box-sizing: border-box; height: 52px; padding: 0 14px; border: 1px solid #e6e6e6; border-radius: 8px; font-size: 17px; color: #111111; outline: none; background: #ffffff;}
+.w114{border: 1px solid #1a1a1a; border-radius: 8px; height: 52px; box-sizing: border-box; display: flex; align-items: center; padding: 0 16px; font-size: 15px; cursor: pointer;}
+.w115{border: 1px solid #e6e6e6; border-radius: 8px; height: 52px; box-sizing: border-box; display: flex; align-items: center; padding: 0 16px; font-size: 15px; cursor: pointer;}
+.w116{display: flex; align-items: center; height: 52px; border: 1px solid #e6e6e6; border-radius: 8px; overflow: hidden; background: #ffffff;}
+.w117{flex: 1; min-width: 0; border: none; outline: none; height: 100%; padding: 0 14px; font-size: 17px; color: #111111; background: transparent;}
+.w118{margin-top: 20px; padding-top: 16px; border-top: 0.5px solid #e6e6e6;}
+.w119{font-size: 18px; font-weight: 700;}
+.w120{font-size: 15px; color: #888888; white-space: nowrap;}
+.w121{display: grid; grid-template-columns: 1fr; gap: 16px 20px; margin-top: 16px;}
+.w122{margin-top: 20px; padding-top: 14px; border-top: 0.5px solid #e6e6e6;}
+.w123{width: 560px; background: #ffffff; border: 0.5px solid #efefef; padding: 72px 0; display: flex; justify-content: center;}
+.w124{width: 420px; display: flex; flex-direction: column; gap: 16px;}
+.w125{font-size: 26px; font-weight: 700; letter-spacing: 0.02em;}
+.w126{height: 0.5px; background: #efefef; margin: 2px 0;}
+.w127{font-size: 14px; color: #888888; line-height: 1.55; text-wrap: pretty;}
+.w128{width: 100%; height: 52px; border: none; border-radius: 6px; background: var(--accent, #1a1a1a); color: #ffffff; font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;}
+.w129{width: 390px; background: #ffffff; border: 0.5px solid #efefef; padding: 28px 20px 32px; box-sizing: border-box;}
+.w130{font-size: 20px; font-weight: 700; letter-spacing: 0.01em;}
+.w131{font-size: 14px; line-height: 1.55; text-wrap: pretty;}
+.w132{font-weight: 500;}
+.w133{background: #f5f5f5; border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; gap: 12px;}
+.w134{display: flex; flex-direction: column; gap: 2px;}
+.w135{width: 100%; height: 52px; border: none; border-radius: 6px; background: #f5f5f5; color: #bbbbbb; font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; cursor: not-allowed;}
+.w136{display: flex;}
+.w137{font-size: 14px; color: #888888; text-decoration: underline; text-underline-offset: 3px; padding: 14px 0;}
+.w138{width: 100%; box-sizing: border-box; height: 52px; padding: 0 14px; border: 1px solid #e6e6e6; border-radius: 8px; font-size: 17px; color: #111111; outline: none;}
+.w139{display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; cursor: pointer;}
+.w140{flex-shrink: 0; width: 24px; height: 24px; box-sizing: border-box; border-radius: 4px; border: 1.5px solid #1a1a1a; background: #1a1a1a; color: #ffffff; font-size: 14px; display: flex; align-items: center; justify-content: center;}
+.w141{font-size: 13px; line-height: 1.55; color: #888888;}
+.w142{font-size: 13px; color: #888888; text-decoration: underline; text-underline-offset: 3px;}
+.w143{font-size: 13px; color: #888888; line-height: 1.55;}
+.w144{border-radius: 8px; padding: 14px 16px; font-size: 15px; font-weight: 500; line-height: 1.5; background: #fff7e0; border: 1px solid #e6c96a; color: #6b5310;}
+.w145{font-size: 14px; line-height: 1.55;}
+.w146{display: flex; flex-direction: column; gap: 14px;}
+.w147{display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;}
+.w148{width: 100%; box-sizing: border-box; height: 72px; text-align: center; font-size: 26px; color: #111111; border: 1px solid #111111; border-radius: 8px; outline: none; background: #ffffff;}
+.w149{width: 100%; box-sizing: border-box; height: 72px; text-align: center; font-size: 26px; color: #111111; border: 1px solid #e6e6e6; border-radius: 8px; outline: none; background: #ffffff;}
+.w150{font-size: 14px; color: #111111; text-decoration: underline; text-underline-offset: 3px; padding: 8px 0;}
+/* ===== Состояния hover ===== */
+.scp0:hover { border-color: rgb(187, 187, 187) !important; }
+.scp1:hover { background: rgb(51, 51, 51) !important; }
+.scp2:hover { background: rgb(245, 245, 245) !important; color: rgb(17, 17, 17) !important; }
+
+</style>
+</head>
+<body>
+<section class="s1">
+
+  <div id="8" class="w1">
+    <div class="w2"><div class="w3">Вход с сайта — новые состояния</div><div class="w4"><span class="w5">Пунктирное подчёркивание</span><span>— предлагаемый текст, черновик. Анкета под карточкой не меняется — см. <a href="#4b" class="w6">4b</a> / <a href="#4c" class="w6">4c</a>.</span></div></div>
+<div id="8a" class="w7"><div class="w8"><span class="w9">8a</span><span class="w10">Оценка идёт — сразу после авторизации, трейд-ин и комбо</span></div><div class="w11"><div class="w12"><div class="w13">трейд-ин · десктоп</div><div class="w14"><div class="w15"><div class="w16"><div class="w2"><div class="w17">Личный кабинет</div><div class="w18">Покупка в трейд-ин</div></div><div class="w19"><div class="w20"><span class="w21">фото</span></div><div class="w22"><div class="w23">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w26">›</div></div></div><div class="w27"></div><div class="w28">Ваш автомобиль</div><div class="w29"><div class="w30"><div class="w31"><div class="w32"></div><div class="w33"><span class="w34">Фото появится после оценки</span></div></div></div><div class="w35"><div><div class="w36">Марка</div><div class="w37"><div class="w38"></div></div></div><div><div class="w36">Модель</div><div class="w37"><div class="w39"></div></div></div><div><div class="w36">Год</div><div class="w37"><div class="w40"></div></div></div><div><div class="w36">Руль</div><div class="w37"><div class="w41"></div></div></div><div><div class="w36">Пробег</div><div class="w37">66 000 км</div></div><div><div class="w36">Гос. номер</div><div class="w37">А123ВС 154</div></div></div><div class="w42"><div><span class="w34">Госномер и пробег — из заявки на сайте. Остальные данные подтянем по госномеру.</span></div></div><div class="w43"><div class="w12"><div class="w44"><div class="w45"><span class="w46"></span><span class="w47"></span></div><span class="w37"><span class="w34">Оцениваем автомобиль</span></span><span class="w48"><span class="w34">около 1 мин</span></span></div><div class="w49"><div class="w50"></div></div><div class="w51"><span class="w34">Подбираем похожие сделки — обычно это занимает не более 1 минуты. Пока можно заполнять анкету ниже: всё сохранится.</span></div></div></div></div><div class="w52"><div class="w53">Комментарий</div><textarea rows="3" placeholder="Если данные указаны неверно или есть что добавить об автомобиле — напишите здесь" class="w54"></textarea></div><div class="w27"></div><div class="w55">Расскажите о своём автомобиле, и мы рассчитаем&nbsp;условия его приема в зачёт.</div><div class="w56">Общее техническое состояние</div><div class="w57"><div class="w58"><div class="w59">Отличное</div><div class="w60">Без повреждений, все узлы и агрегаты исправны, кузовной ремонт не производился</div></div><div class="w61"><div class="w59">Хорошее</div><div class="w60">Технически исправен, возможны мелкие дефекты ЛКП и окраска отдельных элементов</div></div></div><div class="w62">… остальные группы анкеты — активны, как в 4b</div><div class="w63"></div><div class="w64"><div class="w10">Все изменения сохраняются автоматически · <span class="w34">Отправить можно и сейчас — оценку добавим к заявке, когда она будет готова</span></div><button type="button" class="w65">Отправить</button></div></div></div></div><div class="w12"><div class="w13">комбо · десктоп</div><div class="w14"><div class="w15"><div class="w16"><div class="w2"><div class="w17">Личный кабинет</div><div class="w18">Покупка в кредит и трейд-ин</div></div><div class="w19"><div class="w20"><span class="w21">фото</span></div><div class="w22"><div class="w23">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w26">›</div></div></div><div class="w27"></div><div class="w28">Ваш автомобиль</div><div class="w29"><div class="w30"><div class="w31"><div class="w32"></div><div class="w33"><span class="w34">Фото появится после оценки</span></div></div></div><div class="w35"><div><div class="w36">Марка</div><div class="w37"><div class="w38"></div></div></div><div><div class="w36">Модель</div><div class="w37"><div class="w39"></div></div></div><div><div class="w36">Год</div><div class="w37"><div class="w40"></div></div></div><div><div class="w36">Руль</div><div class="w37"><div class="w41"></div></div></div><div><div class="w36">Пробег</div><div class="w37">66 000 км</div></div><div><div class="w36">Гос. номер</div><div class="w37">А123ВС 154</div></div></div><div class="w42"><div><span class="w34">Госномер и пробег — из заявки на сайте. Остальные данные подтянем по госномеру.</span></div></div><div class="w43"><div class="w12"><div class="w44"><div class="w45"><span class="w46"></span><span class="w47"></span></div><span class="w37"><span class="w34">Оцениваем автомобиль</span></span><span class="w48"><span class="w34">около 1 мин</span></span></div><div class="w49"><div class="w50"></div></div><div class="w51"><span class="w34">Подбираем похожие сделки — обычно это занимает не более 1 минуты. Пока можно заполнять анкету ниже: всё сохранится.</span></div></div></div></div><div class="w27"></div><div class="w28">Условия кредита</div><div class="w66"><div class="w67">Первоначальный взнос</div><div class="w68"><div class="w69"><span class="w10">Зачёт вашего автомобиля</span><span class="w70"><div class="w71"><span class="w72"></span><span class="w73"></span></div><span class="w34">оцениваем…</span></span></div><div class="w74"><span class="w75">+ доплата</span><input placeholder="0" value="" inputmode="numeric" class="w76"><span class="w77">₽</span></div></div><div class="w78"><span class="w34">Сумма зачёта появится после оценки. Доплату, платёж и срок можно указать уже сейчас.</span></div></div><div class="w52"><div class="w67">Желаемый ежемесячный платёж</div><div class="w74"><input value="45 000" class="w79"><span class="w80">₽/мес</span></div></div><div class="w62">… срок кредита и анкета — активны, как в 4c</div></div></div></div><div class="w12"><div class="w13">трейд-ин · 390</div><div class="w81"><div class="w2"><div class="w82">Личный кабинет</div><div class="w18">Покупка в трейд-ин</div></div><div class="w83"><div class="w84"><span class="w21">фото</span></div><div class="w85"><div class="w86">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w87">›</div></div><div class="w88"></div><div class="w28">Ваш автомобиль</div><div class="w89"><div class="w90"><div class="w31"><div class="w32"></div><div class="w33"><span class="w34">Фото появится после оценки</span></div></div></div><div class="w91"><div><div class="w36">Марка</div><div class="w37"><div class="w38"></div></div></div><div><div class="w36">Модель</div><div class="w37"><div class="w39"></div></div></div><div><div class="w36">Год</div><div class="w37"><div class="w40"></div></div></div><div><div class="w36">Руль</div><div class="w37"><div class="w41"></div></div></div><div><div class="w36">Пробег</div><div class="w37">66 000 км</div></div><div><div class="w36">Гос. номер</div><div class="w37">А123ВС 154</div></div></div><div class="w92"><div><span class="w34">Госномер и пробег — из заявки на сайте. Остальные данные подтянем по госномеру.</span></div></div><div class="w93"><div class="w12"><div class="w44"><div class="w45"><span class="w46"></span><span class="w47"></span></div><span class="w37"><span class="w34">Оцениваем автомобиль</span></span><span class="w48"><span class="w34">около 1 мин</span></span></div><div class="w49"><div class="w50"></div></div><div class="w51"><span class="w34">Подбираем похожие сделки — обычно это занимает не более 1 минуты. Пока можно заполнять анкету ниже: всё сохранится.</span></div></div></div></div><div class="w66"><div class="w53">Комментарий</div><textarea rows="3" placeholder="Если данные указаны неверно или есть что добавить об автомобиле — напишите здесь" class="w54"></textarea></div><div class="w62">… анкета — активна</div></div></div><div class="w12"><div class="w13">комбо · 390</div><div class="w81"><div class="w2"><div class="w82">Личный кабинет</div><div class="w18">Покупка в кредит и трейд-ин</div></div><div class="w83"><div class="w84"><span class="w21">фото</span></div><div class="w85"><div class="w86">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w87">›</div></div><div class="w88"></div><div class="w28">Ваш автомобиль</div><div class="w89"><div class="w90"><div class="w31"><div class="w32"></div><div class="w33"><span class="w34">Фото появится после оценки</span></div></div></div><div class="w91"><div><div class="w36">Марка</div><div class="w37"><div class="w38"></div></div></div><div><div class="w36">Модель</div><div class="w37"><div class="w39"></div></div></div><div><div class="w36">Год</div><div class="w37"><div class="w40"></div></div></div><div><div class="w36">Руль</div><div class="w37"><div class="w41"></div></div></div><div><div class="w36">Пробег</div><div class="w37">66 000 км</div></div><div><div class="w36">Гос. номер</div><div class="w37">А123ВС 154</div></div></div><div class="w92"><div><span class="w34">Госномер и пробег — из заявки на сайте. Остальные данные подтянем по госномеру.</span></div></div><div class="w93"><div class="w12"><div class="w44"><div class="w45"><span class="w46"></span><span class="w47"></span></div><span class="w37"><span class="w34">Оцениваем автомобиль</span></span><span class="w48"><span class="w34">около 1 мин</span></span></div><div class="w49"><div class="w50"></div></div><div class="w51"><span class="w34">Подбираем похожие сделки — обычно это занимает не более 1 минуты. Пока можно заполнять анкету ниже: всё сохранится.</span></div></div></div></div><div class="w88"></div><div class="w28">Условия кредита</div><div class="w94"><div class="w67">Первоначальный взнос</div><div class="w95"><div class="w69"><span class="w10">Зачёт вашего автомобиля</span><span class="w70"><div class="w71"><span class="w72"></span><span class="w73"></span></div><span class="w34">оцениваем…</span></span></div><div class="w74"><span class="w75">+ доплата</span><input placeholder="0" value="" inputmode="numeric" class="w76"><span class="w77">₽</span></div></div><div class="w78"><span class="w34">Сумма зачёта появится после оценки. Доплату можно указать уже сейчас.</span></div></div><div class="w52"><div class="w67">Желаемый ежемесячный платёж</div><div class="w74"><input value="45 000" class="w79"><span class="w80">₽/мес</span></div></div></div></div><div class="w96"><div class="w28">Логика</div><div class="w97"><b class="w98">Можно заполнять:</b> комментарий, техсостояние, владельцы, ПТС, ключи; в комбо — доплата, ежемесячный платёж, срок.</div><div class="w97"><b class="w98">Ждёт оценки:</b> марка/модель/год/руль (скелетон), фото, сумма и зачёт.</div><div class="w97">Госномер и пробег — из формы на сайте, показываем сразу.</div><div class="w97">Прогресс — неопределённый (бегущая полоса), «около 1 мин» — по среднему времени. Таймаут задаёт разработка → <a href="#8e">8e</a>.</div><div class="w97">Отправка не блокируется: заявка уходит, оценка догружается в CRM.</div></div></div></div>
+<div id="8b" class="w7"><div class="w8"><span class="w9">8b</span><span class="w10">Отчет готов — переход к обычному виду 4b / 4c</span></div><div class="w11"><div class="w12"><div class="w13">комбо · десктоп, момент появления</div><div class="w14"><div class="w15"><div class="w16"><div class="w2"><div class="w17">Личный кабинет</div><div class="w18">Покупка в кредит и трейд-ин</div></div><div class="w19"><div class="w20"><span class="w21">фото</span></div><div class="w22"><div class="w23">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w26">›</div></div></div><div class="w27"></div><div class="w28">Ваш автомобиль</div><div class="w29"><div class="w30"><div class="w99"><span class="w100">фото модели 16:9</span></div></div><div class="w35"><div><div class="w36">Марка</div><div class="w37">NISSAN</div></div><div><div class="w36">Модель</div><div class="w37">ALMERA</div></div><div><div class="w36">Год</div><div class="w37">2014</div></div><div><div class="w36">Руль</div><div class="w37">Левый</div></div><div><div class="w36">Пробег</div><div class="w37">66 000 км</div></div><div><div class="w36">Гос. номер</div><div class="w37">А123ВС 154</div></div></div><div class="w42"><div>Фото модели. Изображение носит справочный характер</div><div>Данные получены на основе предоставленного номера автомобиля.</div></div><div class="w43"><div class="w101"><span class="w102">~ 890 000 ₽</span><span class="w103">✓ <span class="w34">Отчет готов</span></span><div class="w104">Расчёт по сделкам с похожими автомобилями. Финальная оценка — после осмотра.</div></div></div></div><div class="w27"></div><div class="w28">Условия кредита</div><div class="w66"><div class="w67">Первоначальный взнос</div><div class="w68"><div class="w69"><span class="w10">Зачёт вашего автомобиля</span><span class="w105">~ 890 000 ₽</span></div><div class="w74"><span class="w75">+ доплата</span><input placeholder="0" value="" inputmode="numeric" class="w76"><span class="w77">₽</span></div></div><div class="w78">Взнос складывается из оценки вашего автомобиля и доплаты — её можно не указывать.</div></div></div></div></div><div class="w12"><div class="w13">комбо · 390</div><div class="w81"><div class="w2"><div class="w82">Личный кабинет</div><div class="w18">Покупка в кредит и трейд-ин</div></div><div class="w83"><div class="w84"><span class="w21">фото</span></div><div class="w85"><div class="w86">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w87">›</div></div><div class="w88"></div><div class="w28">Ваш автомобиль</div><div class="w89"><div class="w90"><div class="w99"><span class="w100">фото модели 3:2</span></div></div><div class="w91"><div><div class="w36">Марка</div><div class="w37">NISSAN</div></div><div><div class="w36">Модель</div><div class="w37">ALMERA</div></div><div><div class="w36">Год</div><div class="w37">2014</div></div><div><div class="w36">Руль</div><div class="w37">Левый</div></div><div><div class="w36">Пробег</div><div class="w37">66 000 км</div></div><div><div class="w36">Гос. номер</div><div class="w37">А123ВС 154</div></div></div><div class="w92"><div>Фото модели. Изображение носит справочный характер</div><div>Данные получены на основе предоставленного номера автомобиля.</div></div><div class="w93"><div class="w106"><div class="w107"><span class="w108">~ 890 000 ₽</span><span class="w103">✓ <span class="w34">Отчет готов</span></span></div><div class="w109">Расчёт по сделкам с похожими автомобилями. Финальная оценка — после осмотра.</div></div></div></div><div class="w88"></div><div class="w28">Условия кредита</div><div class="w94"><div class="w67">Первоначальный взнос</div><div class="w95"><div class="w69"><span class="w10">Зачёт вашего автомобиля</span><span class="w105">~ 890 000 ₽</span></div><div class="w74"><span class="w75">+ доплата</span><input placeholder="0" value="" inputmode="numeric" class="w76"><span class="w77">₽</span></div></div><div class="w78">Взнос складывается из оценки вашего автомобиля и доплаты — её можно не указывать.</div></div></div></div><div class="w96"><div class="w28">Логика</div><div class="w97">Скелетоны и фото сменяются данными плавно (fade 200 мс), без сдвига вёрстки — размеры блоков те же.</div><div class="w97">Сумма и зачёт подсвечиваются фоном #eef5f0; подсветка и метка «✓ Отчет готов» гаснут через 3 с → вид 4b / 4c.</div><div class="w97">В трейд-ине — то же, без строки взноса.</div><div class="w97">Если клиент в этот момент ниже по анкете — страницу не прокручиваем.</div></div></div></div>
+<div id="8c" class="w7"><div class="w8"><span class="w9">8c</span><span class="w10">Автомобиль не найден по госномеру — клиент вводит данные сам</span></div><div class="w11"><div class="w12"><div class="w13">трейд-ин · десктоп</div><div class="w14"><div class="w15"><div class="w16"><div class="w2"><div class="w17">Личный кабинет</div><div class="w18">Покупка в трейд-ин</div></div><div class="w19"><div class="w20"><span class="w21">фото</span></div><div class="w22"><div class="w23">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w26">›</div></div></div><div class="w27"></div><div class="w28">Ваш автомобиль</div><div class="w110"><div class="w111"><span class="w34">Не нашли автомобиль по госномеру А123ВС 154. Укажите данные сами — оценку проведёт менеджер дилерского центра.</span></div></div><div class="w112"><div><div class="w53">Марка</div><input value="" placeholder="Например, NISSAN" class="w113"></div><div><div class="w53">Модель</div><input value="" placeholder="Например, ALMERA" class="w113"></div><div><div class="w53">Год выпуска</div><input value="" placeholder="ГГГГ" class="w113"></div><div><div class="w53">Руль</div><div class="w68"><div class="w114">Левый</div><div class="w115">Правый</div></div></div><div><div class="w53">Пробег</div><div class="w116"><input value="66 000" class="w117"><span class="w80">км</span></div></div><div><div class="w53">Гос. номер</div><input value="А123ВС 154" placeholder="" class="w113"></div></div><div class="w118"><div class="w22"><div class="w119"><span class="w34">Оценку проведёт менеджер</span></div><div class="w51"><span class="w34">После отправки заявки менеджер свяжется с вами, уточнит детали и договорится об осмотре.</span></div></div></div><div class="w52"><div class="w53">Комментарий</div><textarea rows="3" placeholder="Если данные указаны неверно или есть что добавить об автомобиле — напишите здесь" class="w54"></textarea></div><div class="w62">… анкета — как в 4b</div></div></div></div><div class="w12"><div class="w13">комбо · десктоп, строка взноса</div><div class="w14"><div class="w15"><div class="w28">Условия кредита</div><div class="w66"><div class="w67">Первоначальный взнос</div><div class="w68"><div class="w69"><span class="w10">Зачёт вашего автомобиля</span><span class="w120"><span class="w34">после осмотра</span></span></div><div class="w74"><span class="w75">+ доплата</span><input placeholder="0" value="" inputmode="numeric" class="w76"><span class="w77">₽</span></div></div><div class="w78"><span class="w34">Сумму зачёта назовёт менеджер после осмотра. Кредит рассчитаем на сумму доплаты — её можно не указывать.</span></div></div><div class="w52"><div class="w67">Желаемый ежемесячный платёж</div><div class="w74"><input value="45 000" class="w79"><span class="w80">₽/мес</span></div></div></div></div></div><div class="w12"><div class="w13">трейд-ин · 390</div><div class="w81"><div class="w2"><div class="w82">Личный кабинет</div><div class="w18">Покупка в трейд-ин</div></div><div class="w83"><div class="w84"><span class="w21">фото</span></div><div class="w85"><div class="w86">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w87">›</div></div><div class="w88"></div><div class="w28">Ваш автомобиль</div><div class="w110"><div class="w111"><span class="w34">Не нашли автомобиль по госномеру А123ВС 154. Укажите данные сами — оценку проведёт менеджер дилерского центра.</span></div></div><div class="w121"><div><div class="w53">Марка</div><input value="" placeholder="Например, NISSAN" class="w113"></div><div><div class="w53">Модель</div><input value="" placeholder="Например, ALMERA" class="w113"></div><div><div class="w53">Год выпуска</div><input value="" placeholder="ГГГГ" class="w113"></div><div><div class="w53">Руль</div><div class="w68"><div class="w114">Левый</div><div class="w115">Правый</div></div></div><div><div class="w53">Пробег</div><div class="w116"><input value="66 000" class="w117"><span class="w80">км</span></div></div><div><div class="w53">Гос. номер</div><input value="А123ВС 154" placeholder="" class="w113"></div></div><div class="w122"><div class="w22"><div class="w119"><span class="w34">Оценку проведёт менеджер</span></div><div class="w51"><span class="w34">После отправки заявки менеджер свяжется с вами, уточнит детали и договорится об осмотре.</span></div></div></div><div class="w62">… анкета — как в 6</div></div></div><div class="w12"><div class="w13">комбо · 390, строка взноса</div><div class="w81"><div class="w28">Условия кредита</div><div class="w94"><div class="w67">Первоначальный взнос</div><div class="w95"><div class="w69"><span class="w10">Зачёт вашего автомобиля</span><span class="w120"><span class="w34">после осмотра</span></span></div><div class="w74"><span class="w75">+ доплата</span><input placeholder="0" value="" inputmode="numeric" class="w76"><span class="w77">₽</span></div></div><div class="w78"><span class="w34">Сумму зачёта назовёт менеджер после осмотра. Кредит рассчитаем на сумму доплаты.</span></div></div><div class="w52"><div class="w67">Желаемый ежемесячный платёж</div><div class="w74"><input value="45 000" class="w79"><span class="w80">₽/мес</span></div></div></div></div><div class="w96"><div class="w28">Логика</div><div class="w97">Пробег и госномер предзаполнены с сайта, редактируются.</div><div class="w97">Марка и модель — обычные текстовые поля; год — 4 цифры.</div><div class="w97">Поля необязательные для отправки — менеджер уточнит.</div></div></div></div>
+<div id="8d" class="w7"><div class="w8"><span class="w9">8d</span><span class="w10">Автомобиль найден, но оценки нет — нет похожих сделок</span></div><div class="w11"><div class="w12"><div class="w13">трейд-ин · десктоп</div><div class="w14"><div class="w15"><div class="w16"><div class="w2"><div class="w17">Личный кабинет</div><div class="w18">Покупка в трейд-ин</div></div><div class="w19"><div class="w20"><span class="w21">фото</span></div><div class="w22"><div class="w23">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w26">›</div></div></div><div class="w27"></div><div class="w28">Ваш автомобиль</div><div class="w29"><div class="w30"><div class="w99"><span class="w100">фото модели 16:9</span></div></div><div class="w35"><div><div class="w36">Марка</div><div class="w37">NISSAN</div></div><div><div class="w36">Модель</div><div class="w37">ALMERA</div></div><div><div class="w36">Год</div><div class="w37">2014</div></div><div><div class="w36">Руль</div><div class="w37">Левый</div></div><div><div class="w36">Пробег</div><div class="w37">66 000 км</div></div><div><div class="w36">Гос. номер</div><div class="w37">А123ВС 154</div></div></div><div class="w42"><div>Фото модели. Изображение носит справочный характер</div><div>Данные получены на основе предоставленного номера автомобиля.</div></div><div class="w43"><div class="w22"><div class="w119"><span class="w34">Оценка — после осмотра</span></div><div class="w51"><span class="w34">По этой модели пока мало похожих сделок, чтобы рассчитать сумму заранее. Менеджер оценит автомобиль при осмотре.</span></div></div></div></div><div class="w52"><div class="w53">Комментарий</div><textarea rows="3" placeholder="Если данные указаны неверно или есть что добавить об автомобиле — напишите здесь" class="w54"></textarea></div><div class="w62">… анкета — как в 4b</div></div></div></div><div class="w12"><div class="w13">комбо · десктоп, строка взноса</div><div class="w14"><div class="w15"><div class="w28">Условия кредита</div><div class="w66"><div class="w67">Первоначальный взнос</div><div class="w68"><div class="w69"><span class="w10">Зачёт вашего автомобиля</span><span class="w120"><span class="w34">после осмотра</span></span></div><div class="w74"><span class="w75">+ доплата</span><input placeholder="0" value="" inputmode="numeric" class="w76"><span class="w77">₽</span></div></div><div class="w78"><span class="w34">Сумма зачёта станет известна после осмотра. Кредит рассчитаем на сумму доплаты — её можно не указывать.</span></div></div><div class="w52"><div class="w67">Желаемый ежемесячный платёж</div><div class="w74"><input value="45 000" class="w79"><span class="w80">₽/мес</span></div></div></div></div></div><div class="w12"><div class="w13">трейд-ин · 390</div><div class="w81"><div class="w2"><div class="w82">Личный кабинет</div><div class="w18">Покупка в трейд-ин</div></div><div class="w83"><div class="w84"><span class="w21">фото</span></div><div class="w85"><div class="w86">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w87">›</div></div><div class="w88"></div><div class="w28">Ваш автомобиль</div><div class="w89"><div class="w90"><div class="w99"><span class="w100">фото модели 3:2</span></div></div><div class="w91"><div><div class="w36">Марка</div><div class="w37">NISSAN</div></div><div><div class="w36">Модель</div><div class="w37">ALMERA</div></div><div><div class="w36">Год</div><div class="w37">2014</div></div><div><div class="w36">Руль</div><div class="w37">Левый</div></div><div><div class="w36">Пробег</div><div class="w37">66 000 км</div></div><div><div class="w36">Гос. номер</div><div class="w37">А123ВС 154</div></div></div><div class="w92"><div>Фото модели. Изображение носит справочный характер</div><div>Данные получены на основе предоставленного номера автомобиля.</div></div><div class="w93"><div class="w22"><div class="w119"><span class="w34">Оценка — после осмотра</span></div><div class="w51"><span class="w34">По этой модели пока мало похожих сделок, чтобы рассчитать сумму заранее. Менеджер оценит автомобиль при осмотре.</span></div></div></div></div></div></div><div class="w12"><div class="w13">комбо · 390, строка взноса</div><div class="w81"><div class="w28">Условия кредита</div><div class="w94"><div class="w67">Первоначальный взнос</div><div class="w95"><div class="w69"><span class="w10">Зачёт вашего автомобиля</span><span class="w120"><span class="w34">после осмотра</span></span></div><div class="w74"><span class="w75">+ доплата</span><input placeholder="0" value="" inputmode="numeric" class="w76"><span class="w77">₽</span></div></div><div class="w78"><span class="w34">Сумма зачёта станет известна после осмотра.</span></div></div><div class="w52"><div class="w67">Желаемый ежемесячный платёж</div><div class="w74"><input value="45 000" class="w79"><span class="w80">₽/мес</span></div></div></div></div><div class="w96"><div class="w28">Логика</div><div class="w97">Данные и фото — как в 4b, вместо суммы — пояснение.</div><div class="w97">Строка зачёта остаётся на месте, чтобы структура взноса была понятна.</div></div></div></div>
+<div id="8e" class="w7"><div class="w8"><span class="w9">8e</span><span class="w10">Оценка не пришла — ошибка или таймаут</span></div><div class="w11"><div class="w12"><div class="w13">трейд-ин · десктоп</div><div class="w14"><div class="w15"><div class="w16"><div class="w2"><div class="w17">Личный кабинет</div><div class="w18">Покупка в трейд-ин</div></div><div class="w19"><div class="w20"><span class="w21">фото</span></div><div class="w22"><div class="w23">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w26">›</div></div></div><div class="w27"></div><div class="w28">Ваш автомобиль</div><div class="w110"><div class="w111"><span class="w34">Не удалось получить оценку по госномеру А123ВС 154. Укажите данные сами — оценку проведёт менеджер дилерского центра.</span></div></div><div class="w112"><div><div class="w53">Марка</div><input value="" placeholder="Например, NISSAN" class="w113"></div><div><div class="w53">Модель</div><input value="" placeholder="Например, ALMERA" class="w113"></div><div><div class="w53">Год выпуска</div><input value="" placeholder="ГГГГ" class="w113"></div><div><div class="w53">Руль</div><div class="w68"><div class="w114">Левый</div><div class="w115">Правый</div></div></div><div><div class="w53">Пробег</div><div class="w116"><input value="66 000" class="w117"><span class="w80">км</span></div></div><div><div class="w53">Гос. номер</div><input value="А123ВС 154" placeholder="" class="w113"></div></div><div class="w118"><div class="w22"><div class="w119"><span class="w34">Оценку проведёт менеджер</span></div><div class="w51"><span class="w34">После отправки заявки менеджер свяжется с вами, уточнит детали и договорится об осмотре.</span></div></div></div><div class="w52"><div class="w53">Комментарий</div><textarea rows="3" placeholder="Если данные указаны неверно или есть что добавить об автомобиле — напишите здесь" class="w54"></textarea></div><div class="w62">… анкета — как в 4b</div></div></div></div><div class="w12"><div class="w13">комбо · десктоп, строка взноса</div><div class="w14"><div class="w15"><div class="w28">Условия кредита</div><div class="w66"><div class="w67">Первоначальный взнос</div><div class="w68"><div class="w69"><span class="w10">Зачёт вашего автомобиля</span><span class="w120"><span class="w34">не получен</span></span></div><div class="w74"><span class="w75">+ доплата</span><input placeholder="0" value="" inputmode="numeric" class="w76"><span class="w77">₽</span></div></div><div class="w78"><span class="w34">Можно отправить заявку без зачёта — менеджер уточнит сумму. Кредит рассчитаем на сумму доплаты.</span></div></div><div class="w52"><div class="w67">Желаемый ежемесячный платёж</div><div class="w74"><input value="45 000" class="w79"><span class="w80">₽/мес</span></div></div></div></div></div><div class="w12"><div class="w13">трейд-ин · 390</div><div class="w81"><div class="w2"><div class="w82">Личный кабинет</div><div class="w18">Покупка в трейд-ин</div></div><div class="w83"><div class="w84"><span class="w21">фото</span></div><div class="w85"><div class="w86">HAVAL M6 · Family</div><div class="w24"><span class="w10">от</span><span class="w25">2 490 000 ₽</span></div></div><div class="w87">›</div></div><div class="w88"></div><div class="w28">Ваш автомобиль</div><div class="w110"><div class="w111"><span class="w34">Не удалось получить оценку по госномеру А123ВС 154. Укажите данные сами — оценку проведёт менеджер дилерского центра.</span></div></div><div class="w121"><div><div class="w53">Марка</div><input value="" placeholder="Например, NISSAN" class="w113"></div><div><div class="w53">Модель</div><input value="" placeholder="Например, ALMERA" class="w113"></div><div><div class="w53">Год выпуска</div><input value="" placeholder="ГГГГ" class="w113"></div><div><div class="w53">Руль</div><div class="w68"><div class="w114">Левый</div><div class="w115">Правый</div></div></div><div><div class="w53">Пробег</div><div class="w116"><input value="66 000" class="w117"><span class="w80">км</span></div></div><div><div class="w53">Гос. номер</div><input value="А123ВС 154" placeholder="" class="w113"></div></div><div class="w122"><div class="w22"><div class="w119"><span class="w34">Оценку проведёт менеджер</span></div><div class="w51"><span class="w34">После отправки заявки менеджер свяжется с вами, уточнит детали и договорится об осмотре.</span></div></div></div><div class="w62">… анкета — как в 6</div></div></div><div class="w12"><div class="w13">комбо · 390, строка взноса</div><div class="w81"><div class="w28">Условия кредита</div><div class="w94"><div class="w67">Первоначальный взнос</div><div class="w95"><div class="w69"><span class="w10">Зачёт вашего автомобиля</span><span class="w120"><span class="w34">не получен</span></span></div><div class="w74"><span class="w75">+ доплата</span><input placeholder="0" value="" inputmode="numeric" class="w76"><span class="w77">₽</span></div></div><div class="w78"><span class="w34">Можно отправить заявку без зачёта — менеджер уточнит сумму.</span></div></div><div class="w52"><div class="w67">Желаемый ежемесячный платёж</div><div class="w74"><input value="45 000" class="w79"><span class="w80">₽/мес</span></div></div></div></div><div class="w96"><div class="w28">Логика</div><div class="w97">Оценка запрашивается один раз, повторов нет.</div><div class="w97">Вид карточки — как в <a href="#8c">8c</a>: поля редактируемые, пробег и госномер предзаполнены с сайта. Отличается только текст сообщения.</div><div class="w97">Марка и модель — обычные текстовые поля; год — 4 цифры.</div><div class="w97">Анкета полностью доступна, отправка не блокируется. В заявку уходит флаг «оценка не получена».</div></div></div></div>
+<div id="8f" class="w7"><div class="w8"><span class="w9">8f</span><span class="w10">Сессия недоступна — открыли страницу без действующего входа</span></div><div class="w11"><div class="w12"><div class="w13">десктоп</div><div class="w123"><div class="w124"><div class="w125"><span class="w34">Сессия завершена</span></div><div class="w126"></div><div class="w127"><span class="w34">Вкладка была закрыта или истёк срок входа. Вернитесь на сайт дилера и оформите заявку заново — это займёт пару минут.</span></div><div class="w127"><span class="w34">Если вы уже отправили заявку, она у нас — менеджер свяжется с вами.</span></div><button type="button" class="w128"><span class="w34">Вернуться на сайт</span></button></div></div></div><div class="w12"><div class="w13">390</div><div class="w129"><div class="w64"><div class="w125"><span class="w34">Сессия завершена</span></div><div class="w126"></div><div class="w127"><span class="w34">Вкладка была закрыта или истёк срок входа. Вернитесь на сайт дилера и оформите заявку заново — это займёт пару минут.</span></div><div class="w127"><span class="w34">Если вы уже отправили заявку, она у нас — менеджер свяжется с вами.</span></div><button type="button" class="w128"><span class="w34">Вернуться на сайт</span></button></div></div></div><div class="w96"><div class="w28">Логика</div><div class="w97">Заменяет «Ссылка недействительна» (<a href="#2a">2a</a> · 1) для клиентов с сайта.</div><div class="w97">Кнопка ведёт на страницу автомобиля на сайте дилера, если она известна, иначе — на главную.</div></div></div></div>
+<div id="8g" class="w7"><div class="w8"><span class="w9">8g</span><span class="w10">Слишком много попыток — лимит звонков / входов исчерпан</span></div><div class="w11"><div class="w12"><div class="w13">десктоп</div><div class="w123"><div class="w124"><div class="w125">Личный кабинет</div><div class="w18">Авторизация</div><div class="w126"></div><div class="w130"><span class="w34">Слишком много попыток</span></div><div class="w131"><span class="w34">Лимит звонков с кодом для номера</span> <span class="w132">+7 912 345-67-89</span> <span class="w34">исчерпан.</span></div><div class="w133"><div class="w45"><span class="w46"></span><span class="w47"></span></div><div class="w134"><span class="w37"><span class="w34">Повторить можно в 15:02</span></span><span class="w10"><span class="w34">через 29 мин 59 с</span></span></div></div><button type="button" disabled="" class="w135"><span class="w34">Получить код</span></button><div class="w136"><a href="#8g" class="w137"><span class="w34">Вернуться на сайт</span></a></div></div></div></div><div class="w12"><div class="w13">390</div><div class="w129"><div class="w64"><div class="w125">Личный кабинет</div><div class="w18">Авторизация</div><div class="w126"></div><div class="w130"><span class="w34">Слишком много попыток</span></div><div class="w131"><span class="w34">Лимит звонков с кодом для номера</span> <span class="w132">+7 912 345-67-89</span> <span class="w34">исчерпан.</span></div><div class="w133"><div class="w45"><span class="w46"></span><span class="w47"></span></div><div class="w134"><span class="w37"><span class="w34">Повторить можно в 15:02</span></span><span class="w10"><span class="w34">через 29 мин 59 с</span></span></div></div><button type="button" disabled="" class="w135"><span class="w34">Получить код</span></button><div class="w136"><a href="#8g" class="w137"><span class="w34">Вернуться на сайт</span></a></div></div></div></div><div class="w96"><div class="w28">Логика</div><div class="w97">Срок — точное время + обратный отсчёт, обновляется каждую секунду.</div><div class="w97">По окончании блокировки экран возвращается к вводу номера (<a href="#1a">1a</a>).</div><div class="w97">«Получить код» неактивна до окончания срока.</div></div></div></div>
+<div id="8h" class="w7"><div class="w8"><span class="w9">8h</span><span class="w10">Авторизация при входе с сайта — код только звонком (варианты <a href="#1a">1a</a> и <a href="#3a">3a</a> · 2)</span></div><div class="w11"><div class="w12"><div class="w13">1 · ввод телефона · десктоп</div><div class="w123"><div class="w124"><div class="w125">Личный кабинет</div><div class="w18">Авторизация</div><div class="w126"></div><div><div class="w53">Номер телефона</div><input placeholder="+7 (___) ___-__-__" value="+7 912 345-67-89" class="w138"></div><div class="w139"><div class="w140">✓</div><span class="w141">Я ознакомлен(а) с <a href="#2a" class="w142">Политикой конфиденциальности</a> и даю <a href="#2a" class="w142">Согласие на предоставление и обработку персональных данных</a></span></div><div class="w143"><span class="w34">Код подтверждения продиктует робот во входящем звонке.</span></div><button type="button" class="w128">Получить код</button></div></div></div><div class="w12"><div class="w13">2 · ввод кода · десктоп</div><div class="w123"><div class="w124"><div class="w125">Личный кабинет</div><div class="w18">Авторизация</div><div class="w126"></div><div class="w144">Поступит входящий звонок с незнакомого номера. Ответьте на звонок — робот продиктует только цифры кода, без слов.</div><div class="w145">Звоним на номер <span class="w132">+7 912 345-67-89</span></div><div class="w143">Звонок выполняется — ожидайте входящий вызов.</div><div class="w146"><div class="w147"><input maxlength="1" inputmode="numeric" value="7" class="w148"><input maxlength="1" inputmode="numeric" value="" class="w149"><input maxlength="1" inputmode="numeric" value="" class="w149"><input maxlength="1" inputmode="numeric" value="" class="w149"></div><div class="w143"><span class="w34">Позвонить повторно через 0:47</span></div><button type="button" class="w128">Подтвердить</button><div class="w136"><a href="#8h" class="w137">Изменить номер</a></div></div></div></div></div><div class="w12"><div class="w13">2б · таймер истёк · десктоп</div><div class="w123"><div class="w124"><div class="w125">Личный кабинет</div><div class="w18">Авторизация</div><div class="w126"></div><div class="w144">Поступит входящий звонок с незнакомого номера. Ответьте на звонок — робот продиктует только цифры кода, без слов.</div><div class="w145">Звоним на номер <span class="w132">+7 912 345-67-89</span></div><div class="w143"><span class="w34">Не дозвонились? Проверьте, что телефон рядом и не в режиме «Не беспокоить».</span></div><div class="w146"><div class="w147"><input maxlength="1" inputmode="numeric" value="7" class="w148"><input maxlength="1" inputmode="numeric" value="" class="w149"><input maxlength="1" inputmode="numeric" value="" class="w149"><input maxlength="1" inputmode="numeric" value="" class="w149"></div><div class="w136"><a href="#8h" class="w150"><span class="w34">Позвонить ещё раз</span></a></div><button type="button" class="w128">Подтвердить</button><div class="w136"><a href="#8h" class="w137">Изменить номер</a></div></div></div></div></div><div class="w12"><div class="w13">1 · ввод телефона · 390</div><div class="w129"><div class="w64"><div class="w125">Личный кабинет</div><div class="w18">Авторизация</div><div class="w126"></div><div><div class="w53">Номер телефона</div><input placeholder="+7 (___) ___-__-__" value="+7 912 345-67-89" class="w138"></div><div class="w139"><div class="w140">✓</div><span class="w141">Я ознакомлен(а) с <a href="#2a" class="w142">Политикой конфиденциальности</a> и даю <a href="#2a" class="w142">Согласие на предоставление и обработку персональных данных</a></span></div><div class="w143"><span class="w34">Код подтверждения продиктует робот во входящем звонке.</span></div><button type="button" class="w128">Получить код</button></div></div></div><div class="w12"><div class="w13">2 · ввод кода · 390</div><div class="w129"><div class="w64"><div class="w125">Личный кабинет</div><div class="w18">Авторизация</div><div class="w126"></div><div class="w144">Поступит входящий звонок с незнакомого номера. Ответьте на звонок — робот продиктует только цифры кода, без слов.</div><div class="w145">Звоним на номер <span class="w132">+7 912 345-67-89</span></div><div class="w143">Звонок выполняется — ожидайте входящий вызов.</div><div class="w146"><div class="w147"><input maxlength="1" inputmode="numeric" value="7" class="w148"><input maxlength="1" inputmode="numeric" value="" class="w149"><input maxlength="1" inputmode="numeric" value="" class="w149"><input maxlength="1" inputmode="numeric" value="" class="w149"></div><div class="w143"><span class="w34">Позвонить повторно через 0:47</span></div><button type="button" class="w128">Подтвердить</button><div class="w136"><a href="#8h" class="w137">Изменить номер</a></div></div></div></div></div><div class="w12"><div class="w13">2б · таймер истёк · 390</div><div class="w129"><div class="w64"><div class="w125">Личный кабинет</div><div class="w18">Авторизация</div><div class="w126"></div><div class="w144">Поступит входящий звонок с незнакомого номера. Ответьте на звонок — робот продиктует только цифры кода, без слов.</div><div class="w145">Звоним на номер <span class="w132">+7 912 345-67-89</span></div><div class="w143"><span class="w34">Не дозвонились? Проверьте, что телефон рядом и не в режиме «Не беспокоить».</span></div><div class="w146"><div class="w147"><input maxlength="1" inputmode="numeric" value="7" class="w148"><input maxlength="1" inputmode="numeric" value="" class="w149"><input maxlength="1" inputmode="numeric" value="" class="w149"><input maxlength="1" inputmode="numeric" value="" class="w149"></div><div class="w136"><a href="#8h" class="w150"><span class="w34">Позвонить ещё раз</span></a></div><button type="button" class="w128">Подтвердить</button><div class="w136"><a href="#8h" class="w137">Изменить номер</a></div></div></div></div></div><div class="w96"><div class="w28">Логика</div><div class="w97">Нет выбора способа получения кода и плитки «SMS» — только звонок.</div><div class="w97">Вместо «Отправить повторно» / «Получить код в SMS» — «Позвонить повторно через…» и «Позвонить ещё раз».</div><div class="w97">Исчерпан лимит → <a href="#8g">8g</a>.</div><div class="w97">Для клиентов по ссылке из чата экраны <a href="#1a">1a</a> / <a href="#2a">2a</a> не меняются.</div></div></div></div>
+  </div>
+
+
+  <div id="7" class="s2">
+    <div class="s3"><span class="s4">Тизер выбранного авто в правом верхнем углу — название, цена, клик открывает поп-ап с данными</span></div>
+    <div class="s5"><div id="7a" class="s6"><div class="s3"><span class="s7">7a</span><span class="s4">Карточка с миниатюрой: фото слева, название и цена, стрелка — узнаваемая «карточка товара»</span></div><div class="s8">
+      <div class="s9">
+
+        
+        
+
+        
+
+        <div class="s10">
+          <div class="s11"><div class="s12">Личный кабинет</div><div class="s13">Покупка в кредит</div></div>
+          <div class="scp0 s14" data-popup-open="popup-car" role="button" tabindex="0"><div class="s15"><span class="s16">фото</span></div><div class="s17"><div class="s18">HAVAL M6 · Family</div><div class="s19"><span class="s4">от</span><span class="s20">2 490 000 ₽</span></div></div><div class="s21">›</div></div>
+        </div>
+
+        
+
+        <div class="s22"></div><div class="s23">Условия кредита</div>
+
+        <div class="s24">
+          <div class="s25">Желаемый ежемесячный платёж</div>
+          <div class="s26">
+            <input value="45 000" class="s27">
+            <span class="s28">₽/мес</span>
+          </div>
+          
+        </div>
+
+        <div class="s29">
+          <div>
+            <div class="s30">
+              <span class="s31">Срок кредита</span>
+              <span class="s32">60 мес</span>
+            </div>
+            <input type="range" min="54" max="84" step="6" value="60" class="s33">
+            <div class="s34">
+              <span>54 мес</span>
+              <span>84 мес</span>
+            </div>
+          </div>
+          <div>
+            <div class="s30">
+              <span class="s31">Первоначальный взнос</span>
+              <span class="s32">600 000 ₽</span>
+            </div>
+            <input type="range" min="280000" max="1743000" step="10000" value="600000" class="s33">
+            <div class="s34">
+              <span>280 000 ₽</span>
+              <span>1 743 000 ₽</span>
+            </div>
+          </div>
+        </div>
+
+        
+
+        <div class="s22"></div>
+
+        <div class="s35">Расскажите немного о себе, и мы подберем кредит на подходящих условиях.</div><div class="s36">
+          
+            <div>
+              <div class="s37">Семейное положение</div>
+              <div class="s38">
+                
+                  <div class="s39">Холост/не замужем</div>
+                
+                  <div class="s40">Женат/замужем</div>
+                
+                  <div class="s39">В разводе</div>
+                
+                  <div class="s39">Вдовец/вдова</div>
+                
+                  <div class="s39">Гражданский брак</div>
+                
+              </div>
+            </div>
+          
+            <div>
+              <div class="s37">Образование</div>
+              <div class="s38">
+                
+                  <div class="s39">Среднее</div>
+                
+                  <div class="s39">Среднее специальное</div>
+                
+                  <div class="s39">Незаконченное высшее</div>
+                
+                  <div class="s40">Высшее</div>
+                
+                  <div class="s39">2 и более высших</div>
+                
+                  <div class="s39">Учёная степень</div>
+                
+              </div>
+            </div>
+          
+            <div>
+              <div class="s37">Профессиональная деятельность</div>
+              <div class="s38">
+                
+                  <div class="s40">Работа по найму</div>
+                
+                  <div class="s39">Служба</div>
+                
+                  <div class="s39">Декретный отпуск</div>
+                
+                  <div class="s39">Работающий пенсионер</div>
+                
+                  <div class="s39">Пенсионер</div>
+                
+                  <div class="s39">Частичная занятость</div>
+                
+                  <div class="s39">ИП</div>
+                
+              </div>
+            </div>
+          
+        </div>
+
+        <div class="s41"></div>
+
+        
+
+        <div class="s42">
+          <div class="s43"><div class="s4">Все изменения сохраняются автоматически</div><button class="scp1 s44" type="button">Отправить</button></div>
+          
+        </div>
+
+      </div>
+    </div></div>
+    </div>
+  </div>
+
+  <div id="4" class="s2">
+    <div class="s3"><span class="s4">Десктоп, 1280px — сценарии трейд-ин и комбо</span></div>
+    <div class="s5"><div id="4b" class="s6"><div class="s3"><span class="s7">4b</span><span class="s4">Трейд-ин</span></div><div class="s8">
+      <div class="s9">
+
+        
+        
+
+        
+
+        <div class="s10">
+          <div class="s11"><div class="s12">Личный кабинет</div><div class="s13">Покупка в трейд-ин</div></div>
+          <div class="scp0 s14" data-popup-open="popup-car" role="button" tabindex="0"><div class="s15"><span class="s16">фото</span></div><div class="s17"><div class="s18">HAVAL M6 · Family</div><div class="s19"><span class="s4">от</span><span class="s20">2 490 000 ₽</span></div></div><div class="s21">›</div></div>
+        </div>
+
+        
+
+        <div class="s22"></div>
+
+        <div class="s23">Ваш автомобиль</div><div class="s45">
+  <div class="s46">
+    <div class="s47"><span class="s48">фото модели 16:9</span></div>
+    
+  </div>
+  <div class="s49">
+    <div><div class="s50">Марка</div><div class="s32">NISSAN</div></div><div><div class="s50">Модель</div><div class="s32">ALMERA</div></div><div><div class="s50">Год</div><div class="s32">2014</div></div><div><div class="s50">Руль</div><div class="s32">Левый</div></div><div><div class="s50">Пробег</div><div class="s32">66 000 км</div></div><div><div class="s50">Гос. номер</div><div class="s32">А123ВС 154</div></div>
+  </div>
+  <div class="s51">
+    <div>Фото модели. Изображение носит справочный характер</div>
+    <div>Данные получены на основе предоставленного номера автомобиля.</div>
+  </div>
+  <div class="s52"><div class="s53"><span class="s54">~ 890 000 ₽</span></div><div class="s55">Расчёт по сделкам с похожими автомобилями. Финальная оценка — после осмотра.</div></div></div>
+
+        <div class="s56">
+          <div class="s57">Комментарий</div>
+          <textarea rows="3" placeholder="Если данные указаны неверно или есть что добавить об автомобиле — напишите здесь" class="s58"></textarea>
+          
+        </div>
+
+        <div class="s22"></div>
+
+        <div class="s35">Расскажите о своём автомобиле, и мы рассчитаем&nbsp;условия его приема в зачёт.</div>
+
+        <div class="s37">Общее техническое состояние</div>
+        <div class="s59">
+          
+            <div class="s60">
+              <div class="s61">Отличное</div>
+              <div class="s62">Без повреждений, все узлы и агрегаты исправны, кузовной ремонт не производился</div>
+            </div>
+          
+            <div class="s63">
+              <div class="s61">Хорошее</div>
+              <div class="s62">Технически исправен, возможны мелкие дефекты ЛКП и окраска отдельных элементов</div>
+            </div>
+          
+            <div class="s60">
+              <div class="s61">Удовлетворительное</div>
+              <div class="s62">Заметные следы эксплуатации, был кузовной ремонт, требуется мелкое обслуживание</div>
+            </div>
+          
+            <div class="s60">
+              <div class="s61">Требует ремонта</div>
+              <div class="s62">Есть неисправности узлов или повреждения кузова, передвигается своим ходом</div>
+            </div>
+          
+            <div class="s60">
+              <div class="s61">Не на ходу</div>
+              <div class="s62">Не заводится или не может двигаться самостоятельно</div>
+            </div>
+          
+        </div>
+
+        <div class="s36">
+          
+            <div>
+              <div class="s37">Количество владельцев по ПТС</div>
+              <div class="s38">
+                
+                  <div class="s39">1</div>
+                
+                  <div class="s40">2</div>
+                
+                  <div class="s39">3</div>
+                
+                  <div class="s39">4 и более</div>
+                
+              </div>
+            </div>
+          
+            <div>
+              <div class="s37">Оригинал ПТС</div>
+              <div class="s38">
+                
+                  <div class="s40">Оригинал</div>
+                
+                  <div class="s39">Дубликат</div>
+                
+                  <div class="s39">Электронный ПТС</div>
+                
+              </div>
+            </div>
+          
+            <div>
+              <div class="s37">Количество ключей</div>
+              <div class="s38">
+                
+                  <div class="s39">1</div>
+                
+                  <div class="s40">2</div>
+                
+                  <div class="s39">Более 2</div>
+                
+              </div>
+            </div>
+          
+        </div>
+
+        <div class="s41"></div>
+
+        
+
+        <div class="s42">
+          <div class="s43"><div class="s4">Все изменения сохраняются автоматически</div><button class="scp1 s44" type="button">Отправить</button></div>
+          
+        </div>
+
+      </div>
+    </div></div><div id="4c" class="s6"><div class="s3"><span class="s7">4c</span><span class="s4">Комбо: трейд-ин + кредит</span></div><div class="s8">
+      <div class="s9">
+
+        <div class="s10">
+          <div class="s11"><div class="s12">Личный кабинет</div><div class="s13">Покупка в кредит и трейд-ин</div></div>
+          <div class="scp0 s14" data-popup-open="popup-car" role="button" tabindex="0"><div class="s15"><span class="s16">фото</span></div><div class="s17"><div class="s18">HAVAL M6 · Family</div><div class="s19"><span class="s4">от</span><span class="s20">2 490 000 ₽</span></div></div><div class="s21">›</div></div>
+        </div>
+
+        
+
+        <div class="s22"></div>
+
+        <div class="s23">Ваш автомобиль</div>
+        <div class="s45">
+  <div class="s46">
+    <div class="s47"><span class="s48">фото модели 16:9</span></div>
+    
+  </div>
+  <div class="s49">
+    <div><div class="s50">Марка</div><div class="s32">NISSAN</div></div><div><div class="s50">Модель</div><div class="s32">ALMERA</div></div><div><div class="s50">Год</div><div class="s32">2014</div></div><div><div class="s50">Руль</div><div class="s32">Левый</div></div><div><div class="s50">Пробег</div><div class="s32">66 000 км</div></div><div><div class="s50">Гос. номер</div><div class="s32">А123ВС 154</div></div>
+  </div>
+  <div class="s51">
+    <div>Фото модели. Изображение носит справочный характер</div>
+    <div>Данные получены на основе предоставленного номера автомобиля.</div>
+  </div>
+  <div class="s52"><div class="s53"><span class="s54">~ 890 000 ₽</span></div><div class="s55">Расчёт по сделкам с похожими автомобилями. Финальная оценка — после осмотра.</div></div></div>
+
+        <div class="s56">
+          <div class="s57">Комментарий</div>
+          <textarea rows="3" placeholder="Если данные указаны неверно или есть что добавить об автомобиле — напишите здесь" class="s58"></textarea>
+          
+        </div>
+        <div class="s22"></div>
+        <div class="s36">
+  <div class="s23">Условия кредита</div><div><div class="s25">Первоначальный взнос</div><div class="s64"><div class="s65"><span class="s4">Зачёт вашего автомобиля</span><span class="s66">~ 890 000 ₽</span></div><div class="s26"><span class="s67">+ доплата</span><input placeholder="0" value="" class="s68"><span class="s69">₽</span></div></div><div class="s70">Взнос складывается из оценки вашего автомобиля и доплаты — её можно не указывать.</div></div>
+  <div class="s71"><div><div class="s25">Желаемый ежемесячный платёж</div><div class="s72"><input value="45 000" class="s73"><span class="s28">₽/мес</span></div></div>
+   <div class="s74">
+    <div class="s30"><span class="s31">Срок кредита</span><span class="s32">60 мес</span></div>
+    <input type="range" min="54" max="84" step="6" value="60" class="s33">
+    <div class="s34"><span>54 мес</span><span>84 мес</span></div>
+   </div>
+  </div>
+ </div>
+
+        <div class="s22"></div>
+
+        <div class="s35">Расскажите о своём автомобиле, и мы рассчитаем трейд-ин и кредит на новую машину.</div>
+
+        <div class="s37">Общее техническое состояние</div>
+        <div class="s59">
+          
+            <div class="s60">
+              <div class="s61">Отличное</div>
+              <div class="s62">Без повреждений, все узлы и агрегаты исправны, кузовной ремонт не производился</div>
+            </div>
+          
+            <div class="s63">
+              <div class="s61">Хорошее</div>
+              <div class="s62">Технически исправен, возможны мелкие дефекты ЛКП и окраска отдельных элементов</div>
+            </div>
+          
+            <div class="s60">
+              <div class="s61">Удовлетворительное</div>
+              <div class="s62">Заметные следы эксплуатации, был кузовной ремонт, требуется мелкое обслуживание</div>
+            </div>
+          
+            <div class="s60">
+              <div class="s61">Требует ремонта</div>
+              <div class="s62">Есть неисправности узлов или повреждения кузова, передвигается своим ходом</div>
+            </div>
+          
+            <div class="s60">
+              <div class="s61">Не на ходу</div>
+              <div class="s62">Не заводится или не может двигаться самостоятельно</div>
+            </div>
+          
+        </div>
+
+        <div class="s36">
+          
+            <div>
+              <div class="s37">Количество владельцев по ПТС</div>
+              <div class="s38">
+                
+                  <div class="s39">1</div>
+                
+                  <div class="s40">2</div>
+                
+                  <div class="s39">3</div>
+                
+                  <div class="s39">4 и более</div>
+                
+              </div>
+            </div>
+          
+            <div>
+              <div class="s37">Оригинал ПТС</div>
+              <div class="s38">
+                
+                  <div class="s40">Оригинал</div>
+                
+                  <div class="s39">Дубликат</div>
+                
+                  <div class="s39">Электронный ПТС</div>
+                
+              </div>
+            </div>
+          
+            <div>
+              <div class="s37">Количество ключей</div>
+              <div class="s38">
+                
+                  <div class="s39">1</div>
+                
+                  <div class="s40">2</div>
+                
+                  <div class="s39">Более 2</div>
+                
+              </div>
+            </div>
+          
+        </div>
+
+        <div class="s22"></div>
+
+        
+
+        
+
+        
+
+        
+
+        <div class="s42">
+          <div class="s43"><div class="s4">Все изменения сохраняются автоматически</div><button class="scp1 s44" type="button">Отправить</button></div>
+          
+        </div>
+
+      </div>
+    </div></div>
+    </div>
+  </div>
+
+  <div id="3a" class="s2">
+    <div class="s3">
+      <span class="s7">3a</span>
+      <span class="s4">Мобильная версия, 390px — основной сценарий</span>
+    </div>
+
+    <div class="s75">
+
+      <div class="s76">
+        <div class="s77">1 · ввод телефона</div>
+        <div class="s78"><div class="s79"><div class="s80">Личный кабинет</div><div class="s13">Авторизация</div><div class="s81"></div><div><div class="s57">Номер телефона</div><input placeholder="+7 (___) ___-__-__" value="+7 912 345-67-89" class="s82"></div><div class="s83"><div class="s84">✓</div><span class="s85">Я ознакомлен(а) с <a href="#2a" class="s86">Политикой конфиденциальности</a> и даю <a href="#2a" class="s86">Согласие на предоставление и обработку персональных данных</a></span></div><div class="s23">Способ получения кода</div><div class="s87"><div class="s88"><div class="s61">Звонок с кодом</div><div class="s89">Продиктует робот</div></div><div class="s90"><div class="s61">SMS</div><div class="s89">Придёт сообщением</div></div></div><button class="scp1 s91" type="button">Получить код</button></div></div>
+      </div>
+
+      <div class="s76">
+        <div class="s77">2 · ввод кода</div>
+        <div class="s78"><div class="s79"><div class="s80">Личный кабинет</div><div class="s13">Авторизация</div><div class="s81"></div><div class="s92">Поступит входящий звонок с незнакомого номера. Ответьте на звонок — робот продиктует только цифры кода, без слов.</div><div class="s93">Звоним на номер <span class="s94">+7 912 345-67-89</span></div><div class="s95">Звонок выполняется — ожидайте входящий вызов.</div><div class="s36"><div class="s96"><input maxlength="1" inputmode="numeric" value="7" class="s97"><input maxlength="1" inputmode="numeric" value="" class="s98"><input maxlength="1" inputmode="numeric" value="" class="s98"><input maxlength="1" inputmode="numeric" value="" class="s98"></div><div class="s95">Отправить повторно через 0:47</div><button class="scp1 s91" type="button">Подтвердить</button><div class="s99"><a href="#3a" class="s100">Изменить номер</a></div></div></div></div>
+      </div>
+
+      <div class="s76">
+        <div class="s77">3 · анкета «кредит», верх</div>
+        <div class="s101"><div class="s11"><div class="s102">Личный кабинет</div><div class="s13">Покупка в кредит</div></div><div class="s103" data-popup-open="popup-car-sheet" role="button" tabindex="0"><div class="s104"><span class="s16">фото</span></div><div class="s105"><div class="s106">HAVAL M6 · Family</div><div class="s19"><span class="s4">от</span><span class="s20">2 490 000 ₽</span></div></div><div class="s107">›</div></div><div class="s108"></div><div class="s109">Условия кредита</div></div>
+      </div>
+
+      <div class="s76">
+        <div class="s77">3а · поп-ап «данные об автомобиле»</div>
+        <div class="s110">
+          <div class="s111">
+            <div class="s11"><div class="s102">Личный кабинет</div><div class="s13">Покупка в кредит</div></div><div class="s103" data-popup-open="popup-car-sheet" role="button" tabindex="0"><div class="s104"><span class="s16">фото</span></div><div class="s105"><div class="s106">HAVAL M6 · Family</div><div class="s19"><span class="s4">от</span><span class="s20">2 490 000 ₽</span></div></div><div class="s107">›</div></div><div class="s108"></div><div class="s109">Условия кредита</div>
+          </div>
+
+          <div class="s112"></div>
+
+          <div class="s113">
+            <div class="s114"></div>
+
+            <div class="s115">
+              <div>
+                <div class="s116">Данные об автомобиле</div>
+                <div class="s117">HAVAL M6 · Family</div>
+              </div>
+              <div class="s118">✕</div>
+            </div>
+
+            <div class="s119">
+              
+                <div class="s120">
+                  <div class="s121">1.5 143 л.с.</div>
+                  <div class="s122">Двигатель</div>
+                </div>
+              
+                <div class="s120">
+                  <div class="s121">МКПП</div>
+                  <div class="s122">Коробка</div>
+                </div>
+              
+                <div class="s120">
+                  <div class="s121">Передний</div>
+                  <div class="s122">Привод</div>
+                </div>
+              
+                <div class="s120">
+                  <div class="s121">12,9 с до 100 км/ч</div>
+                  <div class="s122">Разгон</div>
+                </div>
+              
+                <div class="s120">
+                  <div class="s121">8,2 л/100 км</div>
+                  <div class="s122">Расход</div>
+                </div>
+              
+                <div class="s120">
+                  <div class="s121">170 мм</div>
+                  <div class="s122">Клиренс</div>
+                </div>
+              
+            </div>
+
+            <div class="s123"></div>
+
+            <div class="s124">
+              <span class="s125">фото автомобиля 3:2</span>
+              <div class="s126">‹</div>
+              <div class="s127">›</div>
+            </div>
+
+            <div class="s128">
+              
+                <div class="s129"></div>
+              
+                <div class="s129"></div>
+              
+                <div class="s129"></div>
+              
+                <div class="s129"></div>
+              
+                <div class="s129"></div>
+              
+                <div class="s129"></div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="s76">
+        <div class="s77">4 · условия кредита</div>
+        <div class="s101">
+          <div class="s23">Условия кредита</div>
+
+          <div class="s130">
+            <div class="s25">Желаемый ежемесячный платёж</div>
+            <div class="s131">
+              <input value="45 000" class="s27">
+              <span class="s132">₽/мес</span>
+            </div>
+            
+          </div>
+
+          <div class="s133">
+            <div class="s134">Срок кредита</div>
+            <div class="s135">
+              <span class="s122">54 мес</span>
+              <span class="s136">60 мес</span>
+              <span class="s122">84 мес</span>
+            </div>
+            <input type="range" min="54" max="84" step="6" value="60" class="s137">
+          </div>
+
+          <div class="s56">
+            <div class="s134">Первоначальный взнос</div>
+            <div class="s135">
+              <span class="s122">280 000 ₽</span>
+              <span class="s136">600 000 ₽</span>
+              <span class="s122">1 743 000 ₽</span>
+            </div>
+            <input type="range" min="280000" max="1743000" step="10000" value="600000" class="s137">
+          </div>
+
+          
+        </div>
+      </div>
+
+      <div class="s76">
+        <div class="s77">5 · группы плиток</div>
+        <div class="s101">
+          <div class="s138">Расскажите немного о себе, и мы подберем кредит на подходящих условиях.</div><div class="s36">
+            
+              <div>
+                <div class="s37">Семейное положение</div>
+                <div class="s139">
+                  
+                    <div class="s39">Холост/не замужем</div>
+                  
+                    <div class="s40">Женат/замужем</div>
+                  
+                    <div class="s39">В разводе</div>
+                  
+                    <div class="s39">Вдовец/вдова</div>
+                  
+                    <div class="s39">Гражданский брак</div>
+                  
+                </div>
+              </div>
+            
+              <div>
+                <div class="s37">Образование</div>
+                <div class="s139">
+                  
+                    <div class="s39">Среднее</div>
+                  
+                    <div class="s39">Среднее специальное</div>
+                  
+                    <div class="s39">Незаконченное высшее</div>
+                  
+                    <div class="s40">Высшее</div>
+                  
+                    <div class="s39">2 и более высших</div>
+                  
+                    <div class="s39">Учёная степень</div>
+                  
+                </div>
+              </div>
+            
+              <div>
+                <div class="s37">Профессиональная деятельность</div>
+                <div class="s139">
+                  
+                    <div class="s40">Работа по найму</div>
+                  
+                    <div class="s39">Служба</div>
+                  
+                    <div class="s39">Декретный отпуск</div>
+                  
+                    <div class="s39">Работающий пенсионер</div>
+                  
+                    <div class="s39">Пенсионер</div>
+                  
+                    <div class="s39">Частичная занятость</div>
+                  
+                    <div class="s39">ИП</div>
+                  
+                </div>
+              </div>
+            
+          </div>
+
+          <div class="s140">Все изменения сохраняются автоматически</div>
+          
+          <button class="s141" type="button">Отправить</button>
+          
+        </div>
+      </div>
+
+      <div class="s76">
+        <div class="s77">6 · анкета «трейд-ин»</div>
+        <div class="s101"><div class="s11"><div class="s102">Личный кабинет</div><div class="s13">Покупка в трейд-ин</div></div><div class="s103" data-popup-open="popup-car-sheet" role="button" tabindex="0"><div class="s104"><span class="s16">фото</span></div><div class="s105"><div class="s106">HAVAL M6 · Family</div><div class="s19"><span class="s4">от</span><span class="s20">2 490 000 ₽</span></div></div><div class="s107">›</div></div><div class="s142"></div><div class="s109">Ваш автомобиль</div>
+  <div class="s143">
+    <div class="s144">
+      <div class="s47"><span class="s48">фото модели 3:2</span></div>
+      
+    </div>
+    <div class="s145">
+      <div><div class="s50">Марка</div><div class="s32">NISSAN</div></div><div><div class="s50">Модель</div><div class="s32">ALMERA</div></div><div><div class="s50">Год</div><div class="s32">2014</div></div><div><div class="s50">Руль</div><div class="s32">Левый</div></div><div><div class="s50">Пробег</div><div class="s32">66 000 км</div></div><div><div class="s50">Гос. номер</div><div class="s32">А123ВС 154</div></div>
+    </div>
+    <div class="s146">
+      <div>Фото модели. Изображение носит справочный характер</div>
+      <div>Данные получены на основе предоставленного номера автомобиля.</div>
+    </div>
+    <div class="s147"><div class="s54">~ 890 000 ₽</div><div class="s55">Расчёт по сделкам с похожими автомобилями. Финальная оценка — после осмотра.</div></div>
+  </div>
+  <div class="s74"><div class="s57">Комментарий</div><textarea rows="3" placeholder="Если данные указаны неверно или есть что добавить об автомобиле — напишите здесь" class="s58"></textarea></div><div class="s142"></div><div class="s138">Расскажите о своём автомобиле, и мы рассчитаем&nbsp;условия его приема в зачёт.</div><div class="s37">Общее техническое состояние</div>
+  <div class="s139">
+    <div class="s90"><div class="s61">Отличное</div><div class="s62">Без повреждений, все узлы и агрегаты исправны, кузовной ремонт не производился</div></div><div class="s88"><div class="s61">Хорошее</div><div class="s62">Технически исправен, возможны мелкие дефекты ЛКП и окраска отдельных элементов</div></div><div class="s90"><div class="s61">Удовлетворительное</div><div class="s62">Заметные следы эксплуатации, был кузовной ремонт, требуется мелкое обслуживание</div></div><div class="s90"><div class="s61">Требует ремонта</div><div class="s62">Есть неисправности узлов или повреждения кузова, передвигается своим ходом</div></div><div class="s90"><div class="s61">Не на ходу</div><div class="s62">Не заводится или не может двигаться самостоятельно</div></div>
+  </div></div>
+      </div>
+
+      <div class="s76">
+        <div class="s77">6b · анкета «комбо»: кредит + трейд-ин</div>
+        <div class="s101"><div class="s11"><div class="s102">Личный кабинет</div><div class="s13">Покупка в кредит и трейд-ин</div></div><div class="s103" data-popup-open="popup-car-sheet" role="button" tabindex="0"><div class="s104"><span class="s16">фото</span></div><div class="s105"><div class="s106">HAVAL M6 · Family</div><div class="s19"><span class="s4">от</span><span class="s20">2 490 000 ₽</span></div></div><div class="s107">›</div></div><div class="s142"></div><div class="s109">Ваш автомобиль</div>
+  <div class="s143">
+    <div class="s144">
+      <div class="s47"><span class="s48">фото модели 3:2</span></div>
+      
+    </div>
+    <div class="s145">
+      <div><div class="s50">Марка</div><div class="s32">NISSAN</div></div><div><div class="s50">Модель</div><div class="s32">ALMERA</div></div><div><div class="s50">Год</div><div class="s32">2014</div></div><div><div class="s50">Руль</div><div class="s32">Левый</div></div><div><div class="s50">Пробег</div><div class="s32">66 000 км</div></div><div><div class="s50">Гос. номер</div><div class="s32">А123ВС 154</div></div>
+    </div>
+    <div class="s146">
+      <div>Фото модели. Изображение носит справочный характер</div>
+      <div>Данные получены на основе предоставленного номера автомобиля.</div>
+    </div>
+    <div class="s147"><div class="s54">~ 890 000 ₽</div><div class="s55">Расчёт по сделкам с похожими автомобилями. Финальная оценка — после осмотра.</div></div>
+  </div>
+  <div class="s74"><div class="s57">Комментарий</div><textarea rows="3" placeholder="Если данные указаны неверно или есть что добавить об автомобиле — напишите здесь" class="s58"></textarea></div><div class="s142"></div><div class="s109">Условия кредита</div>
+  <div class="s130"><div class="s25">Первоначальный взнос</div>
+   <div class="s139">
+    <div class="s65"><span class="s4">Зачёт вашего автомобиля</span><span class="s66">~ 890 000 ₽</span></div>
+    <div class="s26"><span class="s67">+ доплата</span><input placeholder="0" inputmode="numeric" value="" class="s68"><span class="s69">₽</span></div>
+   </div>
+   <div class="s70">Взнос складывается из оценки вашего автомобиля и доплаты — её можно не указывать.</div>
+  </div>
+  <div class="s148"><div class="s25">Желаемый ежемесячный платёж</div><div class="s131"><input value="45 000" class="s27"><span class="s132">₽/мес</span></div></div>
+  <div class="s133"><div class="s134">Срок кредита</div><div class="s135"><span class="s122">54 мес</span><span class="s136">60 мес</span><span class="s122">84 мес</span></div><input type="range" min="54" max="84" step="6" value="60" class="s137"></div>
+  <div class="s142"></div><div class="s138">Расскажите о своём автомобиле, и мы рассчитаем трейд-ин и кредит на новую машину.</div><div class="s37">Общее техническое состояние</div>
+  <div class="s139">
+    <div class="s90"><div class="s61">Отличное</div><div class="s62">Без повреждений, все узлы и агрегаты исправны, кузовной ремонт не производился</div></div><div class="s88"><div class="s61">Хорошее</div><div class="s62">Технически исправен, возможны мелкие дефекты ЛКП и окраска отдельных элементов</div></div><div class="s90"><div class="s61">Удовлетворительное</div><div class="s62">Заметные следы эксплуатации, был кузовной ремонт, требуется мелкое обслуживание</div></div><div class="s90"><div class="s61">Требует ремонта</div><div class="s62">Есть неисправности узлов или повреждения кузова, передвигается своим ходом</div></div><div class="s90"><div class="s61">Не на ходу</div><div class="s62">Не заводится или не может двигаться самостоятельно</div></div>
+  </div></div>
+      </div>
+
+      <div class="s76">
+        <div class="s77">7 · заявка отправлена — баннер, анкета только для чтения</div>
+        <div class="s101"><div class="s2"><div class="s149">Заявка отправлена 2 августа в 14:32 — Специалисты дилерского центра вернутся к вам в ближайшее время с информацией по кредиту.</div><div class="s150"><div class="s11"><div class="s102">Личный кабинет</div><div class="s13">Покупка в кредит</div></div><div class="s103" data-popup-open="popup-car-sheet" role="button" tabindex="0"><div class="s104"><span class="s16">фото</span></div><div class="s105"><div class="s106">HAVAL M6 · Family</div><div class="s19"><span class="s4">от</span><span class="s20">2 490 000 ₽</span></div></div><div class="s107">›</div></div><div class="s108"></div><div class="s109">Условия кредита</div></div></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="2a" class="s2">
+    <div class="s3">
+      <span class="s7">2a</span>
+      <span class="s4">Состояния авторизации</span>
+    </div>
+
+    <div class="s151"><div class="s152"><div class="s153">1 · ссылка недействительна</div><div class="s154"><div class="s80">Ссылка недействительна</div><div class="s155"></div><div class="s156">Срок действия ссылки истёк. Попросите ассистента прислать актуальную ссылку на личный кабинет.</div></div></div><div class="s152"><div class="s153">2 · неверный код</div><div class="s154"><div class="s80">Личный кабинет</div><div class="s13">Авторизация</div><div class="s81"></div><div class="s92">Поступит входящий звонок с незнакомого номера. Ответьте на звонок — робот продиктует только цифры кода, без слов.</div><div class="s93">Звоним на номер <span class="s94">+7 912 345-67-89</span></div><div class="s95">Звонок выполняется — ожидайте входящий вызов.</div><div class="s157">Неверный код. Осталось 2 попытки</div><div class="s36"><div class="s96"><div class="s158"></div><div class="s158"></div><div class="s158"></div><div class="s158"></div></div><div class="s95">Отправить повторно через 0:47</div><button disabled="" class="s159" type="button">Подтвердить</button><div class="s99"><a href="#2a" class="s100">Изменить номер</a></div></div></div></div><div class="s152"><div class="s153">3 · попытки исчерпаны</div><div class="s154"><div class="s80">Личный кабинет</div><div class="s13">Авторизация</div><div class="s81"></div><div class="s92">Поступит входящий звонок с незнакомого номера. Ответьте на звонок — робот продиктует только цифры кода, без слов.</div><div class="s93">Звоним на номер <span class="s94">+7 912 345-67-89</span></div><div class="s160">Слишком много неверных попыток. Запросите новый код через 29 мин 59 с.</div><div class="s36"><div class="s96"><div class="s161"></div><div class="s161"></div><div class="s161"></div><div class="s161"></div></div><div class="s4"><a href="#2a" class="s86">Получить код в SMS</a></div><button disabled="" class="s159" type="button">Подтвердить</button><div class="s99"><a href="#2a" class="s100">Изменить номер</a></div></div></div></div><div class="s152"><div class="s153">4 · лимит запросов кода</div><div class="s154"><div class="s80">Слишком много запросов</div><div class="s155"></div><div class="s156">Код запрашивали слишком часто. Повторите попытку через 30 мин.</div></div></div><div class="s152"><div class="s153">4b · лимит по номеру телефона</div><div class="s154"><div class="s80">Слишком много запросов</div><div class="s155"></div><div class="s156">Лимит отправок кода для этого номера телефона исчерпан. Ограничение привязано к номеру и действует независимо от ссылки. Повторите попытку завтра.</div></div></div><div class="s152"><div class="s153">5 · код не отправлен — звонок</div><div class="s154"><div class="s80">Личный кабинет</div><div class="s13">Авторизация</div><div class="s81"></div><div class="s92">Поступит входящий звонок с незнакомого номера. Ответьте на звонок — робот продиктует только цифры кода, без слов.</div><div class="s93">Звоним на номер <span class="s94">+7 912 345-67-89</span></div><div class="s36"><div class="s160">Не удалось отправить код на +7 912 345-67-89.</div><div class="s156">Попытка не засчитана — можно повторить сразу.</div><button class="scp1 s44" type="button">Получить код в SMS</button><div class="s99"><a href="#2a" class="s100">Изменить номер</a></div></div></div></div><div class="s152"><div class="s153">5b · код не отправлен — SMS</div><div class="s154"><div class="s80">Личный кабинет</div><div class="s13">Авторизация</div><div class="s81"></div><div class="s162">Код придёт SMS-сообщением на номер +7 912 345-67-89.</div><div class="s93">Отправляем код на <span class="s94">+7 912 345-67-89</span></div><div class="s36"><div class="s160">Не удалось отправить код на +7 912 345-67-89.</div><div class="s156">Попытка не засчитана — можно повторить сразу.</div><button class="scp1 s44" type="button">Повторить</button><div class="s4"><a href="#2a" class="s86">Получить код звонком</a></div><div class="s99"><a href="#2a" class="s100">Изменить номер</a></div></div></div></div><div class="s152"><div class="s153">6 · код в SMS, таймер истёк</div><div class="s154"><div class="s80">Личный кабинет</div><div class="s13">Авторизация</div><div class="s81"></div><div class="s162">Код придёт SMS-сообщением на номер +7 912 345-67-89.</div><div class="s93">Отправляем код на <span class="s94">+7 912 345-67-89</span></div><div class="s95">SMS отправлено.</div><div class="s36"><div class="s96"><div class="s163"></div><div class="s164"></div><div class="s164"></div><div class="s164"></div></div><div class="s4"><a href="#2a" class="s86">Отправить SMS ещё раз</a> · <a href="#2a" class="s86">Получить код звонком</a></div><button class="scp1 s91" type="button">Подтвердить</button><div class="s99"><a href="#2a" class="s100">Изменить номер</a></div></div></div></div><div class="s152"><div class="s153">7 · повторный вход (номер привязан)</div><div class="s154"><div class="s80">Как отправить код?</div><div class="s13">Авторизация</div><div class="s81"></div><div class="s93">Код придёт на номер <span class="s94">+7 *** ***-**-89</span></div><div class="s23">Способ получения кода</div><div class="s64"><div class="s165"><div class="s61">Звонок с кодом</div><div class="s89">Продиктует робот</div></div><div class="s90"><div class="s61">SMS</div><div class="s89">Придёт сообщением</div></div></div><div class="s55">Код отправляется сразу по нажатию на способ</div></div></div><div class="s152">
+        <div class="s153">8 · загрузка</div>
+        <div class="s166">
+          
+          <div class="s167"></div>
+          <div class="s168"></div>
+          <div class="s169"></div>
+          <div class="s170"></div>
+          <div class="s171"></div>
+          <div class="s172"></div>
+        </div>
+      </div><div class="s173"><div class="s153">9 · текст политики / согласия — по клику на ссылку в чекбоксе</div>
+   <div class="s174">
+    <div class="s175"><div class="s176"></div><div class="s177"></div><div class="s177"></div></div>
+    <div class="s178">
+     <div class="s179">
+      <div class="s180"><div class="s181">Политика конфиденциальности</div><div class="scp2 s182">✕</div></div>
+      <div class="s183">Текст документа дилера из справочника — выводится как есть, с сохранением переносов строк, и прокручивается внутри окна.
+
+1. Общие положения
+Настоящая политика определяет порядок обработки и защиты персональных данных клиентов дилерского центра.
+
+2. Состав данных
+Номер телефона, данные анкеты и сведения об автомобиле, переданные клиентом через личный кабинет.
+
+3. Цели обработки
+Подготовка предложения по кредиту и трейд-ину, связь с клиентом по оставленной заявке.</div>
+     </div>
+    </div>
+   </div>
+  </div></div>
+  </div>
+
+  <div id="1a" class="s2">
+    <div class="s3">
+      <span class="s7">1a</span>
+      <span class="s4">Макет 1 — экран авторизации</span>
+    </div>
+
+    <div class="s184">
+
+      <div class="s185">
+        <div class="s186"><div class="s80">Личный кабинет</div><div class="s13">Авторизация</div><div class="s81"></div><div><div class="s57">Номер телефона</div><input placeholder="+7 (___) ___-__-__" value="+7 912 345-67-89" class="s82"></div><div class="s83"><div class="s84">✓</div><span class="s85">Я ознакомлен(а) с <a href="#2a" class="s86">Политикой конфиденциальности</a> и даю <a href="#2a" class="s86">Согласие на предоставление и обработку персональных данных</a></span></div><div class="s23">Способ получения кода</div><div class="s64"><div class="s88"><div class="s61">Звонок с кодом</div><div class="s89">Продиктует робот</div></div><div class="s90"><div class="s61">SMS</div><div class="s89">Придёт сообщением</div></div></div><button class="scp1 s91" type="button">Получить код</button></div>
+      </div>
+
+      <div class="s185">
+        <div class="s186"><div class="s80">Личный кабинет</div><div class="s13">Авторизация</div><div class="s81"></div><div class="s92">Поступит входящий звонок с незнакомого номера. Ответьте на звонок — робот продиктует только цифры кода, без слов.</div><div class="s93">Звоним на номер <span class="s94">+7 912 345-67-89</span></div><div class="s95">Звонок выполняется — ожидайте входящий вызов.</div><div class="s36"><div class="s96"><input maxlength="1" inputmode="numeric" value="7" class="s97"><input maxlength="1" inputmode="numeric" value="" class="s98"><input maxlength="1" inputmode="numeric" value="" class="s98"><input maxlength="1" inputmode="numeric" value="" class="s98"></div><div class="s95">Отправить повторно через 0:47</div><button class="scp1 s91" type="button">Подтвердить</button><div class="s99"><a href="#1a" class="s100">Изменить номер</a></div></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  </section>
+
+<!-- ============================================================
+     ПОПАП «ДАННЫЕ ОБ АВТОМОБИЛЕ» — тот же компонент .popup.
+     Открывается кнопкой [data-popup-open="popup-car"] (название авто в шапке).
+     ============================================================ -->
+<div class="popup popup--wide" id="popup-car" role="dialog" aria-modal="true" aria-label="Данные об автомобиле">
+  <div class="popup__overlay" data-popup-close></div>
+  <div class="popup__dialog">
+    <div class="popup__head">
+      <div>
+        <div class="h3">Данные об автомобиле</div>
+        <div class="popup__subtitle">HAVAL M6 · Family</div>
+      </div>
+      <button class="popup__close" type="button" data-popup-close aria-label="Закрыть">&#10005;</button>
+    </div>
+
+    <div class="chips  mt-12">
+      <div class="chip"><div class="chip__value">1.5 143 л.с.</div><div class="chip__label">Двигатель</div></div>
+      <div class="chip"><div class="chip__value">МКПП</div><div class="chip__label">Коробка</div></div>
+      <div class="chip"><div class="chip__value">Передний</div><div class="chip__label">Привод</div></div>
+      <div class="chip"><div class="chip__value">12,9 с до 100 км/ч</div><div class="chip__label">Разгон</div></div>
+      <div class="chip"><div class="chip__value">8,2 л/100 км</div><div class="chip__label">Расход</div></div>
+      <div class="chip"><div class="chip__value">170 мм</div><div class="chip__label">Клиренс</div></div>
+    </div>
+
+    <hr class="divider" style="margin:22px 0">
+
+    <div class="photo" style="border-radius:12px">
+      <span class="photo__ph">фото автомобиля 3:2</span>
+      <div class="photo__nav photo__nav--prev">&lsaquo;</div>
+      <div class="photo__nav photo__nav--next">&rsaquo;</div>
+    </div>
+
+    <div class="thumbs" style="width:100%">
+      <div class="thumb"></div><div class="thumb"></div><div class="thumb"></div>
+      <div class="thumb"></div><div class="thumb"></div><div class="thumb"></div>
+    </div>
+  </div>
+</div>
+
+<!-- мобильный вариант того же компонента — шторка снизу -->
+<div class="popup popup--wide popup--sheet" id="popup-car-sheet" role="dialog" aria-modal="true" aria-label="Данные об автомобиле">
+  <div class="popup__overlay" data-popup-close></div>
+  <div class="popup__dialog">
+    <div class="popup__head">
+      <div>
+        <div class="h3">Данные об автомобиле</div>
+        <div class="popup__subtitle">HAVAL M6 · Family</div>
+      </div>
+      <button class="popup__close" type="button" data-popup-close aria-label="Закрыть">&#10005;</button>
+    </div>
+
+    <div class="chips  mt-12">
+      <div class="chip"><div class="chip__value">1.5 143 л.с.</div><div class="chip__label">Двигатель</div></div>
+      <div class="chip"><div class="chip__value">МКПП</div><div class="chip__label">Коробка</div></div>
+      <div class="chip"><div class="chip__value">Передний</div><div class="chip__label">Привод</div></div>
+      <div class="chip"><div class="chip__value">12,9 с до 100 км/ч</div><div class="chip__label">Разгон</div></div>
+      <div class="chip"><div class="chip__value">8,2 л/100 км</div><div class="chip__label">Расход</div></div>
+      <div class="chip"><div class="chip__value">170 мм</div><div class="chip__label">Клиренс</div></div>
+    </div>
+
+    <hr class="divider" style="margin:22px 0">
+
+    <div class="photo" style="border-radius:12px">
+      <span class="photo__ph">фото автомобиля 3:2</span>
+      <div class="photo__nav photo__nav--prev">&lsaquo;</div>
+      <div class="photo__nav photo__nav--next">&rsaquo;</div>
+    </div>
+
+    <div class="thumbs" style="width:100%">
+      <div class="thumb"></div><div class="thumb"></div><div class="thumb"></div>
+      <div class="thumb"></div><div class="thumb"></div><div class="thumb"></div>
+    </div>
+  </div>
+</div>
+
+<div class="popup" id="popup-network" role="dialog" aria-modal="true" aria-labelledby="popup-network-title">
+  <div class="popup__overlay" data-popup-close></div>
+  <div class="popup__dialog">
+    <div class="popup__title" id="popup-network-title">Не удалось отправить</div>
+    <div class="popup__text">Проверьте соединение с интернетом и попробуйте ещё раз. Заполненные данные сохранены.</div>
+    <div class="popup__actions">
+      <button class="btn btn--sm" type="button" data-popup-close>Повторить</button>
+      <a class="link" href="#" data-popup-close>Закрыть</a>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* Управление попапом: добавление/снятие класса --visible. Без зависимостей. */
+document.addEventListener('click', function (e) {
+  var opener = e.target.closest('[data-popup-open]');
+  if (opener) {
+    var target = document.getElementById(opener.getAttribute('data-popup-open'));
+    if (target) target.classList.add('popup--visible');
+    return;
+  }
+  var closer = e.target.closest('[data-popup-close]');
+  if (closer) {
+    e.preventDefault();
+    var popup = closer.closest('.popup');
+    if (popup) popup.classList.remove('popup--visible');
+  }
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    var open = document.querySelector('.popup.popup--visible:not(.popup--inline)');
+    if (open) open.classList.remove('popup--visible');
+  }
+});
+</script>
+<script>
+document.addEventListener('keydown',function(e){var t=e.target.closest&&e.target.closest('[data-popup-open]');if(t&&(e.key==='Enter'||e.key===' ')){e.preventDefault();t.click();}});
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+{
+  "name": "[TEST] Test: Calc Engine",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0604c154-125e-5642-9f47-9394447406a6",
+      "name": "When clicking Test"
+    },
+    {
+      "parameters": {
+        "jsCode": "const cases = [{\"operation\": \"credit_scenarios_batch\", \"target_payment\": 0, \"items\": [{\"id\": \"t1\", \"price\": 3000000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": null}, {\"operation\": \"credit_scenarios_batch\", \"target_payment\": 5000, \"items\": [{\"id\": \"t1\", \"price\": 3000000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": null}, {\"operation\": \"credit_scenarios_batch\", \"target_payment\": 60000, \"items\": [{\"id\": \"t1\", \"price\": 3000000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": null}, {\"operation\": \"credit_scenarios_batch\", \"target_payment\": 0, \"items\": [{\"id\": \"t1\", \"price\": 3000000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": {\"Program_Name\": \"Base\", \"Max_Term_Months\": 60, \"Min_Down_Payment_Pct\": 15}}, {\"operation\": \"credit_scenarios_batch\", \"target_payment\": 5000, \"items\": [{\"id\": \"t1\", \"price\": 3000000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": {\"Program_Name\": \"Base\", \"Max_Term_Months\": 60, \"Min_Down_Payment_Pct\": 15}}, {\"operation\": \"credit_scenarios_batch\", \"target_payment\": 60000, \"items\": [{\"id\": \"t1\", \"price\": 3000000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": {\"Program_Name\": \"Base\", \"Max_Term_Months\": 60, \"Min_Down_Payment_Pct\": 15}}, {\"operation\": \"combo_scenarios_batch\", \"target_payment\": 80000, \"tradein_value\": 500000, \"tradein_status\": \"SUCCESS\", \"items\": [{\"id\": \"t1\", \"price\": 2000000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": {\"Program_Name\": \"Base\", \"Max_Term_Months\": 60, \"Min_Down_Payment_Pct\": 15}}, {\"operation\": \"combo_scenarios_batch\", \"target_payment\": 25000, \"tradein_value\": 500000, \"tradein_status\": \"SUCCESS\", \"items\": [{\"id\": \"t1\", \"price\": 2000000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": {\"Program_Name\": \"Base\", \"Max_Term_Months\": 60, \"Min_Down_Payment_Pct\": 15}}, {\"operation\": \"combo_scenarios_batch\", \"target_payment\": 80000, \"tradein_value\": 2100000, \"tradein_status\": \"SUCCESS\", \"items\": [{\"id\": \"t1\", \"price\": 2000000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": {\"Program_Name\": \"Base\", \"Max_Term_Months\": 60, \"Min_Down_Payment_Pct\": 15}}, {\"operation\": \"combo_scenarios_batch\", \"target_payment\": 80000, \"tradein_value\": 500000, \"tradein_status\": \"IN_PROGRESS\", \"items\": [{\"id\": \"t1\", \"price\": 2000000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": {\"Program_Name\": \"Base\", \"Max_Term_Months\": 60, \"Min_Down_Payment_Pct\": 15}}, {\"operation\": \"combo_scenarios_batch\", \"target_payment\": 40000, \"tradein_value\": 890000, \"tradein_status\": \"SUCCESS\", \"extra_down\": 200000, \"items\": [{\"id\": \"t1\", \"price\": 2490000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": {\"Program_Name\": \"Base\", \"Max_Term_Months\": 60, \"Min_Down_Payment_Pct\": 15}}, {\"operation\": \"combo_scenarios_batch\", \"target_payment\": 40000, \"tradein_value\": 890000, \"tradein_status\": \"SUCCESS\", \"extra_down\": 0, \"items\": [{\"id\": \"t1\", \"price\": 2490000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": {\"Program_Name\": \"Base\", \"Max_Term_Months\": 60, \"Min_Down_Payment_Pct\": 15}}, {\"operation\": \"combo_scenarios_batch\", \"target_payment\": 40000, \"tradein_value\": 890000, \"tradein_status\": \"SUCCESS\", \"extra_down\": 1600000, \"items\": [{\"id\": \"t1\", \"price\": 2490000}], \"rates\": [{\"Rate\": 8, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 50, \"Downpayment_To\": \"\"}, {\"Rate\": 12, \"Term_From\": 12, \"Term_To\": 36, \"Downpayment_From\": 20, \"Downpayment_To\": 49.99}, {\"Rate\": 14, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 30, \"Downpayment_To\": \"\"}, {\"Rate\": 18, \"Term_From\": 37, \"Term_To\": 84, \"Downpayment_From\": 10, \"Downpayment_To\": 29.99}], \"program\": {\"Program_Name\": \"Base\", \"Max_Term_Months\": 60, \"Min_Down_Payment_Pct\": 15}}];\nreturn cases.map(c => ({ json: c }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "id": "606f248b-2c17-5a27-af04-3c850c2cb73b",
+      "name": "Emit Golden Cases"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "1K9aRaJrWRCF4InF",
+          "mode": "list",
+          "cachedResultName": "[TEST] Tool: Calc Engine"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        440,
+        0
+      ],
+      "id": "8f7147c7-b95b-57c5-a3ed-d8ea52a1a485",
+      "name": "Calc Engine"
+    },
+    {
+      "parameters": {
+        "jsCode": "const golden = [{\"operation\": \"credit_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"standard\", \"scenarios\": {\"standard\": {\"title\": \"Стандартный расчет\", \"down_payment\": 600000, \"monthly_payment\": 50000, \"term\": 84, \"rate_text\": \"18%\"}}}}}, {\"operation\": \"credit_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"impossible\", \"message\": \"Платеж слишком мал. Минимум возможного: 17000\", \"min_possible_payment\": 17000, \"scenarios\": {\"reality_check\": {\"title\": \"Минимально возможный платеж\", \"description\": \"При взносе 70% и сроке 84 мес.\", \"down_payment\": 2100000, \"monthly_payment\": 17000, \"term\": 84, \"rate_text\": \"14%\"}}}}}, {\"operation\": \"credit_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"success\", \"scenarios\": {\"light_entry\": {\"title\": \"Минимальный взнос\", \"description\": \"Срок 84 мес, минимальный взнос под платеж\", \"down_payment\": 600000, \"monthly_payment\": 50000, \"term\": 84, \"rate_text\": \"18%\"}, \"fast_pay\": {\"title\": \"Минимальный срок\", \"description\": \"Срок 12 мес, максимальный взнос\", \"down_payment\": 2310000, \"monthly_payment\": 60000, \"term\": 12, \"rate_text\": \"8%\"}}}}}, {\"operation\": \"credit_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"standard\", \"scenarios\": {\"standard\": {\"title\": \"Стандартный расчет\", \"down_payment\": 450000, \"monthly_payment\": 65000, \"term\": 60, \"rate_text\": \"18%\"}}}}}, {\"operation\": \"credit_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"impossible\", \"message\": \"Платеж слишком мал. Минимум возможного: 21000\", \"min_possible_payment\": 21000, \"scenarios\": {\"reality_check\": {\"title\": \"Минимально возможный платеж\", \"description\": \"При взносе 70% и сроке 60 мес.\", \"down_payment\": 2100000, \"monthly_payment\": 21000, \"term\": 60, \"rate_text\": \"14%\"}}}}}, {\"operation\": \"credit_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"success\", \"scenarios\": {\"light_entry\": {\"title\": \"Минимальный взнос\", \"description\": \"Срок 60 мес, минимальный взнос под платеж\", \"down_payment\": 640000, \"monthly_payment\": 60000, \"term\": 60, \"rate_text\": \"18%\"}, \"fast_pay\": {\"title\": \"Минимальный срок\", \"description\": \"Срок 12 мес, максимальный взнос\", \"down_payment\": 2310000, \"monthly_payment\": 60000, \"term\": 12, \"rate_text\": \"8%\"}}}}}, {\"operation\": \"combo_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"success\", \"term\": 24, \"monthly_payment\": 71000, \"down_payment\": 500000, \"rate_text\": \"12%\"}}}, {\"operation\": \"combo_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"impossible\", \"term\": 60, \"monthly_payment\": 38000, \"down_payment\": 500000, \"rate_text\": \"18%\", \"warning\": \"Желаемый платеж слишком мал. Расчет произведен на максимальный срок.\"}}}, {\"operation\": \"combo_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"full_coverage\", \"message\": \"Стоимость старого авто полностью покрывает покупку нового!\"}}}, {\"operation\": \"combo_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"error\", \"message\": \"Не удалось автоматически оценить старый автомобиль.\"}}}, {\"operation\": \"combo_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"success\", \"term\": 48, \"monthly_payment\": 38000, \"down_payment\": 1090000, \"rate_text\": \"14%\"}}}, {\"operation\": \"combo_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"success\", \"term\": 60, \"monthly_payment\": 37000, \"down_payment\": 890000, \"rate_text\": \"14%\"}}}, {\"operation\": \"combo_scenarios_batch\", \"results\": {\"t1\": {\"status\": \"full_coverage\", \"message\": \"Стоимость старого авто полностью покрывает покупку нового!\"}}}];\n\nfunction sortKeys(o) {\n    if (Array.isArray(o)) return o.map(sortKeys);\n    if (o && typeof o === 'object') {\n        const out = {};\n        for (const k of Object.keys(o).sort()) out[k] = sortKeys(o[k]);\n        return out;\n    }\n    return o;\n}\nconst norm = o => JSON.stringify(sortKeys(o));\nconst actual = $input.all().map(i => i.json);\nif (actual.length !== golden.length) {\n    throw new Error(`CALC ENGINE GOLDEN FAIL: получено ${actual.length} ответов, ожидалось ${golden.length}`);\n}\nconst failures = [];\ngolden.forEach((exp, i) => {\n    if (norm(actual[i]) !== norm(exp)) failures.push({ case: i, expected: exp, actual: actual[i] });\n});\nif (failures.length) {\n    throw new Error(`CALC ENGINE GOLDEN FAIL (${failures.length} расхождений). Первое: ` +\n        JSON.stringify(failures[0]).slice(0, 1500));\n}\nreturn [{ json: { status: \"PASS\", cases: golden.length } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "e678776d-115b-5be6-876a-912a8156c156",
+      "name": "Assert Golden"
+    }
+  ],
+  "connections": {
+    "When clicking Test": {
+      "main": [
+        [
+          {
+            "node": "Emit Golden Cases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Emit Golden Cases": {
+      "main": [
+        [
+          {
+            "node": "Calc Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calc Engine": {
+      "main": [
+        [
+          {
+            "node": "Assert Golden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "65c0178e84d5c3db112ec6489beae5f53a11ae74e53d6537d4d9a5cd140a483b"
+  }
+}

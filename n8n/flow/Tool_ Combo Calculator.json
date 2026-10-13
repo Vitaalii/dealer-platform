@@ -1,0 +1,433 @@
+{
+  "name": "Tool: Combo Calculator",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// ==========================================\n// ⚙️ НАСТРОЙКИ (Ваш реальный домен NocoDB)\n// ==========================================\nconst MY_NOCO_DOMAIN = 'https://v9dt-o63u-4adx.gw-1a.dockhost.net';\n// ==========================================\n// [U2] Комбо-математика вынесена в саб-воркфлоу \"Tool: Calc Engine\".\n// Эта нода готовит данные и batch-запрос; результат вливает нода Merge Calc.\n\n// 1. ИНИЦИАЛИЗАЦИЯ И ЗАЩИТА ОТ ПУСТЫХ ДАННЫХ\nfunction getSafeAll(nodeName, checkField) {\n    try {\n        const items = $(nodeName).all().map(i => i.json);\n        if (items.length === 1 && !items[0][checkField]) return [];\n        return items;\n    } catch (e) { return []; }\n}\n\nfunction getSafeFirst(nodeName, checkField) {\n    try {\n        const item = $(nodeName).first().json;\n        if (!item[checkField]) return null;\n        return item;\n    } catch (e) { return null; }\n}\n\n// 2. ПЕРЕХВАТ ДАННЫХ ИЗ САБФЛОУ ОЦЕНКИ\nlet autoEvalData = {};\ntry {\n    autoEvalData = $('Execute Workflow').first().json;\n} catch(e) {}\n\n// 🚨 БЛОКИРОВКА №1: ЕСЛИ ОЦЕНКА ВЕРНУЛА ОШИБКУ ИЛИ IN_PROGRESS - СРАЗУ ОТДАЕМ ЕЕ БОТУ\nif (autoEvalData && autoEvalData.status && autoEvalData.status !== \"SUCCESS\") {\n    return {\n        json: {\n            response: {\n                combo_calculation: {\n                    status: autoEvalData.status, // \"IN_PROGRESS\" или \"NOT_FOUND\"\n                    message: autoEvalData.message || \"Отчет формируется. Уточните марку и год.\"\n                }\n            },\n            calc_request: { operation: \"noop\" }\n        }\n    };\n}\n\n// Если оценка SUCCESS, достаем из нее готовые цены и детали\nlet tradeinValue = autoEvalData.tradein_price_to || 0;\nlet tradeinStatus = \"SUCCESS\";\nlet autoRuCarDetails = {\n    tradein_make: autoEvalData.tradein_make || \"\",\n    tradein_model: autoEvalData.tradein_model || \"\",\n    tradein_year: autoEvalData.tradein_year || 0,\n    tradein_horse_power: autoEvalData.tradein_horse_power || 0,\n    tradein_transmission: autoEvalData.tradein_transmission || \"\",\n    tradein_steering_wheel: autoEvalData.tradein_steering_wheel || \"\"\n};\n\n// 3. СБОР ДАННЫХ ИЗ БАЗЫ (Выполняется только если оценка SUCCESS)\nconst triggerNode = $('Execute Workflow Trigger').first();\nconst triggerData = triggerNode ? triggerNode.json : {};\n\nlet context = {};\ntry {\n    context = typeof triggerData.qualification_context === 'string'\n        ? JSON.parse(triggerData.qualification_context)\n        : (triggerData.qualification_context || {});\n} catch(e) {}\n\nconst query = context.model || triggerData.query || \"Авто\";\nconst dealerId = context.dealer_id || (triggerData.dealer_id || \"unknown\");\nconst rawPayment = context.payment || context.credit_payment || triggerData.payment || \"0\";\nconst userPayment = Number(String(rawPayment).replace(/\\D/g, '')) || 0;\nconst requestType = context.request_type || \"combo\";\nlet targetComplectationId = (context.selected_complectation_id || context.complectation_id || \"00\").toString();\nconst requestTypeName = \"Расчет комбо (Трейд-ин + Кредит)\";\nlet targetComplectationName = (targetComplectationId === \"00\") ? \"Любая\" : \"Не найдена\";\n\n// [STOCK] Каталог — только активные строки (решение владельца 2026-10-05): неактивные\n// комплектации («Эксклюзив», «Флагман СЕ» у MONJARO дилера 02) попадали в комбо-расчёт.\n// Как в Car Search (car_search_prepare.js).\n// [ACTIVE-FIELD] Имя колонки активности — настройка дилера (бот 3.4.1,\n// data_routing.catalog_active_field; решение владельца 2026-10-06): у дилера 02\n// «Active_1», у остальных «Active». Недопустимое имя или нет ключа — «Active»;\n// колонки нет в таблице вовсе — тоже «Active» (прежнее поведение, а не пустой каталог).\nfunction catalogRouting() {\n    try {\n        let r = $('Parse Input').first().json.data_routing;\n        if (typeof r === \"string\") r = JSON.parse(r.trim().replace(/^=/, \"\"));\n        return (r && typeof r === \"object\") ? r : {};\n    } catch (e) { return {}; }\n}\nconst ACTIVE_FIELD_RE = /^Active(_\\d{1,3})?$/;\nconst requestedActiveField = String(catalogRouting().catalog_active_field || \"\").trim();\nconst rawCatalogItems = getSafeAll('Get Catalog', 'Model');\nlet ACTIVE_FIELD = ACTIVE_FIELD_RE.test(requestedActiveField) ? requestedActiveField : \"Active\";\nif (ACTIVE_FIELD !== \"Active\" && rawCatalogItems.length\n        && !rawCatalogItems.some(t => Object.prototype.hasOwnProperty.call(t, ACTIVE_FIELD))) {\n    ACTIVE_FIELD = \"Active\";\n}\nfunction isActiveRow(t) {\n    const a = t[ACTIVE_FIELD];\n    return a === true || a === 1 || a === \"1\" || a === \"true\";\n}\nconst catalogItems = rawCatalogItems.filter(isActiveRow);\nconst stockItems = getSafeAll('Get Stock', 'Model');\nconst ratesList = getSafeAll('Get Rates', 'Rate');\n// [N4] Программа кредитования дилера. До правки программа выбиралась\n// проверкой колонки Program_Name, которой нет ни в одной таблице\n// [brand]_Credit_Programs, — найденная строка превращалась в null, и движок\n// брал умолчания 84 мес. / 20 %.\n//  - признак строки программы — Program_id;\n//  - Model_Pattern — список Model id («11, 12, 13»); программа применяется,\n//    только если Model id модели стоит в нём ОТДЕЛЬНЫМ элементом (решение\n//    владельца 2026-09-30). Прежний фильтр сравнивал с Id строки каталога\n//    подстрокой: Id 1 совпадал с «11», модель из списка с первой строкой Id 6\n//    программу не получала;\n//  - минимальный взнос — ТОЛЬКО Min_Down_Payment, целые проценты (10 = 10 %),\n//    во всех трёх таблицах (HAVAL, GEELY, BELGEE — срез 2026-09-30). Пустое\n//    значение → 20 %, как в боте (решение владельца 2026-09-30). Движок\n//    читает поле Min_Down_Payment_Pct и сам пустое заменил бы на 10 %\n//    (calc_engine.js:53), поэтому 20 подставляется здесь явно.\nconst MIN_DOWN_DEFAULT_PCT = 20;\nfunction pickProgram(rows, modelId) {\n    const id = String(modelId == null ? \"\" : modelId).trim();\n    if (!id) return null;\n    const row = rows.find(r => r && r.Program_id != null && r.Program_id !== \"\" &&\n        String(r.Model_Pattern || \"\").split(\",\").map(s => s.trim()).includes(id));\n    if (!row) return null;\n    const raw = row.Min_Down_Payment;\n    const pct = (raw === undefined || raw === null || String(raw).trim() === \"\" || isNaN(Number(raw)))\n        ? MIN_DOWN_DEFAULT_PCT : Number(raw);\n    return Object.assign({}, row, { Min_Down_Payment_Pct: pct });\n}\nconst program = pickProgram(getSafeAll('Get Program', 'Program_id'),\n                            catalogItems.length ? catalogItems[0]['Model id'] : null);\n\nif (!catalogItems.length) {\n    return {\n        json: {\n            response: {\n                combo_calculation: {\n                    status: \"error\",\n                    message: `По запросу \"${query}\" модели не найдены в каталоге.`\n                },\n                summary: { catalog_active_field: ACTIVE_FIELD }\n            },\n            calc_request: { operation: \"noop\" }\n        }\n    };\n}\n\n// ---------------------------------------------------------\n// 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ОКРУГЛЕНИЯ\n// ---------------------------------------------------------\nfunction round10k(val) { return Math.round(val / 10000) * 10000; }\n\nfunction extractUrl(fileObj) {\n    if (!fileObj) return null;\n    if (typeof fileObj === 'string') return fileObj;\n    return fileObj.signedUrl || fileObj.url || fileObj.path || null;\n}\n\n// tradeinValue сознательно НЕ округляется — живая нода этого не делала\n// (round10k был только в удалённом legacy-пути)\n\n// ---------------------------------------------------------\n// 5. АГРЕГАЦИЯ ДАННЫХ (combo_calculation заполнит Merge Calc)\n// ---------------------------------------------------------\nconst grouped = {};\nconst calcItems = [];\nlet rootCalcId = null; // расчёт какой комплектации отдать в корень ответа\n\nfor (const trim of catalogItems) {\n    const trimName = trim.Complectation;\n    const trimId = (trim['Complectation id'] || trim['Complectation_id'] || trim.Id || \"\").toString();\n\n    if (trimId === targetComplectationId) targetComplectationName = trimName;\n\n    if (!grouped[trimId]) {\n        // [N5] Комбо-цена считается от той же базы, что кредит и трейд-ин в\n        // Car Search (car_search_prepare.js: MSRP = Price old, base_price =\n        // MSRP − Cash in hook). До правки базой была колонка Price new — в\n        // шаблоне бота это «цена с максимальной скидкой» (main.py:2180), —\n        // и цена комбо не сходилась с credit_price той же комплектации.\n        const msrp = round10k(Number(trim['Price old']) || 0);\n        const cashBonus = round10k(Number(trim['Cash in hook']) || 0);\n        const basePrice = msrp - cashBonus;\n        const creditBonus = round10k(Number(trim['Credit bonus']) || 0);\n        const tradeinBonus = round10k(Number(trim['Trade-in bonus']) || 0);\n\n        // Для КОМБО суммируем обе скидки\n        const finalComboPrice = basePrice - creditBonus - tradeinBonus;\n\n        const rawPics = trim['Pics'] || [];\n        let picsArray = Array.isArray(rawPics) ? rawPics : [];\n        const sortedImages = {};\n        for (const pic of picsArray) {\n            const fName = (pic.title || pic.path || \"\").toLowerCase();\n            let url = extractUrl(pic);\n            if (url && !url.startsWith('http')) {\n                const cleanPath = url.startsWith('/') ? url.substring(1) : url;\n                url = `${MY_NOCO_DOMAIN}/${cleanPath}`;\n            }\n            if (url) {\n                if (fName.includes('ext1')) sortedImages.exterior_front = url;\n                else if (fName.includes('ext2')) sortedImages.exterior_rear = url;\n                else if (fName.includes('int1')) sortedImages.interior_dashboard = url;\n            }\n        }\n\n        // [U2] Комбо-расчёт уехал в Calc Engine — собираем batch-заявку\n        calcItems.push({ id: trimId, price: finalComboPrice });\n\n        // Логика выбора корневого расчёта сохранена: первая комплектация,\n        // либо целевая, если встретилась позже\n        if (!rootCalcId || trimId === targetComplectationId) {\n            rootCalcId = trimId;\n        }\n\n        let featuresList = trim.Features ? trim.Features.split('\\n').map(s => s.trim()) : [];\n        const minusRaw = trim['Minus Features'] || \"\";\n        const minusList = minusRaw.split('\\n').map(s => s.trim().toLowerCase()).filter(s => s !== '');\n        const finalFeatures = featuresList.filter(f => {\n            if (f === '') return false;\n            if (f.toLowerCase().includes('топовые опции')) return false;\n            return !minusList.some(minus => f.toLowerCase().includes(minus));\n        });\n\n        grouped[trimId] = {\n            id: trimId,\n            name: trimName,\n            full_name: trim['Model title'] || trimName,\n            price: {\n                MSRP: msrp,\n                cash_bonus: cashBonus,\n                base_price: basePrice,\n                credit_bonus: creditBonus,\n                tradein_bonus: tradeinBonus,\n                combo_price: finalComboPrice\n            },\n            features: finalFeatures,\n            images: sortedImages,\n            combo_calculation: null // заполнит Merge Calc\n        };\n    }\n}\n\n// ---------------------------------------------------------\n// 6. ФОРМИРОВАНИЕ ОТВЕТА (без комбо-расчётов) + BATCH-ЗАЯВКА\n// ---------------------------------------------------------\nreturn {\n    json: {\n        response: {\n            model: catalogItems[0].Model,\n            dealer_id_used: dealerId,\n            user_request: {\n                payment: userPayment,\n                query: query,\n                type: requestType,\n                type_name: requestTypeName,\n                selected_complectation_id: targetComplectationId,\n                selected_complectation_name: targetComplectationName,\n                plate: context.plate || triggerData.plate || \"\"\n            },\n            tradein_evaluation: {\n                status: tradeinStatus,\n                estimated_value: tradeinValue,\n                ...autoRuCarDetails,\n                // [U4] Сырой found_info (уже с вложенным госномером — его кладёт\n                // воркфлоу оценки) для личного кабинета: Final Response достаёт его\n                // отсюда в json_cache. Ключ добавляется только когда блок реально\n                // пришёл — контракт кабинета «ключей просто нет», а не пустой объект.\n                ...(autoEvalData.found_info && Object.keys(autoEvalData.found_info).length\n                    ? { found_info: autoEvalData.found_info } : {})\n            },\n            combo_calculation: null, // заполнит Merge Calc (расчёт rootCalcId)\n            complectations: Object.values(grouped).sort((a,b) => a.price.MSRP - b.price.MSRP),\n            summary: {\n                total_stock: stockItems.length,\n                model_name: catalogItems[0].Model,\n                catalog_active_field: ACTIVE_FIELD\n            }\n        },\n        root_calc_id: rootCalcId,\n        calc_request: {\n            operation: \"combo_scenarios_batch\",\n            target_payment: userPayment,\n            tradein_value: tradeinValue,\n            tradein_status: tradeinStatus,\n            items: calcItems,\n            rates: ratesList,\n            program: program\n        }\n    }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        64
+      ],
+      "id": "ed4ecf71-4482-48c2-af64-a7271de18d55",
+      "name": "Prepare Combo"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.catalog_table_id }}",
+        "returnAll": true,
+        "options": {
+          "where": "={{\n  $('Parse Input').first().json.qualification_context?.model_id\n  ? `(Model id,eq,${$('Parse Input').first().json.qualification_context.model_id})`\n  : `(Model,eq,${$('Parse Input').first().json.query})`\n}}"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        -64,
+        64
+      ],
+      "id": "fa635277-4aac-45c2-9d2b-29288bda5f39",
+      "name": "Get Catalog",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "plate"
+            },
+            {
+              "name": "mileage"
+            },
+            {
+              "name": "payment"
+            },
+            {
+              "name": "query"
+            },
+            {
+              "name": "qualification_context"
+            },
+            {
+              "name": "data_routing"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -768,
+        64
+      ],
+      "id": "f46e3fc3-8151-4f02-a042-94c74726592c",
+      "name": "Execute Workflow Trigger"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.program_table_id }}",
+        "options": {
+          "where": "=(Model_Pattern,like,%{{ $('Get Catalog').first().json['Model id'] }}%)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        288,
+        64
+      ],
+      "id": "6e15d10b-99ab-4c19-8af7-6a10380902b6",
+      "name": "Get Program",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.credit_table_id }}",
+        "options": {
+          "where": "="
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        464,
+        64
+      ],
+      "id": "81e36bd5-560d-41fc-ae3f-4f3cca6e36ed",
+      "name": "Get Rates",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Делаем копию данных\nlet item = JSON.parse(JSON.stringify($input.first().json));\nitem.debug_logs = {};\n\nfunction forceParse(value, fieldName) {\n    if (typeof value !== 'string') return value;\n\n    // 💥 СРЕЗАЕМ ЗНАК '=' В НАЧАЛЕ СТРОКИ (Если n8n его туда приклеил)\n    let cleanValue = value.trim();\n    if (cleanValue.startsWith('=')) {\n        cleanValue = cleanValue.substring(1);\n    }\n\n    try {\n        // Попытка 1: Стандартный парсинг очищенной строки\n        let parsed = JSON.parse(cleanValue);\n        if (typeof parsed === 'string') {\n            parsed = JSON.parse(parsed);\n        }\n        item.debug_logs[fieldName + '_status'] = \"Успешно (JSON.parse)\";\n        return parsed;\n    } catch (e1) {\n        item.debug_logs[fieldName + '_error_1'] = e1.message;\n        try {\n            // Попытка 2: Бульдозер\n            let bulldozerParsed = Function('\"use strict\";return (' + cleanValue + ')')();\n            item.debug_logs[fieldName + '_status'] = \"Успешно (Бульдозер)\";\n            return bulldozerParsed;\n        } catch (e2) {\n            item.debug_logs[fieldName + '_error_2'] = e2.message;\n            return cleanValue; \n        }\n    }\n}\n\n// 3. Пропускаем переменные через парсер\nitem.qualification_context = forceParse(item.qualification_context, 'context');\nitem.data_routing = forceParse(item.data_routing, 'routing');\n\nif (item.query) {\n    item.query = forceParse(item.query, 'query');\n}\n\nreturn { json: item };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        64
+      ],
+      "id": "c2730b8e-7590-46fe-a6e2-8c6ab0ac39e2",
+      "name": "Parse Input"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.stock_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.stock_table_id }}",
+        "returnAll": true,
+        "options": {
+          "where": "=(Dealer_id,eq,{{ $('Parse Input').first().json.qualification_context.dealer_id }})~and(Model,eq,{{ $('Get Catalog').first().json.Model_short }})"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        112,
+        64
+      ],
+      "id": "356c8518-e03f-4c9a-b20e-4a5ef1be8838",
+      "name": "Get Stock",
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "XCPe53sUwk8i9e3T",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/XCPe53sUwk8i9e3T",
+          "cachedResultName": "TOOL: AUTO.RU EVALUATION"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "plate": "={{ $('Execute Workflow Trigger').item.json.plate }}",
+            "mileage": "={{ $('Execute Workflow Trigger').item.json.mileage }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "plate",
+              "displayName": "plate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "mileage",
+              "displayName": "mileage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -416,
+        64
+      ],
+      "id": "db06addb-3027-44f8-b3a0-5c0ecaed0581",
+      "name": "Execute Workflow"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a66bc2eb-b1a6-403a-9609-1f48c482f0f6",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "SUCCESS",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -256,
+        64
+      ],
+      "id": "ae57bd47-2fab-41bb-b446-2b843c78097b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "IzHcJxOxP9SI3LNv",
+          "mode": "list",
+          "cachedResultName": "Tool: Calc Engine",
+          "cachedResultUrl": "/workflow/IzHcJxOxP9SI3LNv"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        860,
+        64
+      ],
+      "id": "8f7147c7-b95b-57c5-a3ed-d8ea52a1a485",
+      "name": "Calc Engine"
+    },
+    {
+      "parameters": {
+        "jsCode": "// [U2] Вливает результаты Calc Engine в подготовленный ответ Combo Calculator\nconst prep = $('Prepare Combo').first().json;\nconst calc = $input.first().json;\nconst response = prep.response;\n\nif (calc && calc.results) {\n    for (const comp of (response.complectations || [])) {\n        if (calc.results[comp.id] !== undefined) {\n            comp.combo_calculation = calc.results[comp.id];\n        }\n    }\n    if (prep.root_calc_id && calc.results[prep.root_calc_id] !== undefined) {\n        response.combo_calculation = calc.results[prep.root_calc_id];\n    }\n}\n\nreturn { json: response };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        64
+      ],
+      "id": "3d23eaf8-1b3e-5b98-b3a5-50042713d583",
+      "name": "Merge Calc"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Catalog": {
+      "main": [
+        [
+          {
+            "node": "Get Stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Program": {
+      "main": [
+        [
+          {
+            "node": "Get Rates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Rates": {
+      "main": [
+        [
+          {
+            "node": "Prepare Combo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Input": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Stock": {
+      "main": [
+        [
+          {
+            "node": "Get Program",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get Catalog",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Combo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Combo": {
+      "main": [
+        [
+          {
+            "node": "Calc Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calc Engine": {
+      "main": [
+        [
+          {
+            "node": "Merge Calc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "95040746-816e-4068-b0d0-fe556238e5e1",
+  "meta": {
+    "instanceId": "65c0178e84d5c3db112ec6489beae5f53a11ae74e53d6537d4d9a5cd140a483b"
+  },
+  "id": "y4ee1N5dlH1tZyq4",
+  "tags": []
+}

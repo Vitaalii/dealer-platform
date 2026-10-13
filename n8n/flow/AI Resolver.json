@@ -1,0 +1,153 @@
+{
+  "name": "AI Resolver (shadow)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-resolver-shadow",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "00cd64da-9698-5f37-b0b6-21a646aa246c",
+      "name": "Webhook",
+      "webhookId": "28edc6d5-da4b-5ecb-8421-130428859b26"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: $input.first().json.body || {} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ],
+      "id": "9f9ae30b-ee0c-529a-847b-ade7e66e7486",
+      "name": "Unwrap Body"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "qsotmM7sbmyckg3E",
+          "mode": "list",
+          "cachedResultName": "Tool: Resolver Core"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        0
+      ],
+      "id": "3c05d247-aa8e-58f1-9de6-c59f098fb1c6",
+      "name": "Resolver Core"
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nreturn [{ json: {\n    ts: new Date().toISOString(),\n    session_id: r.meta.session_id, user_id: r.meta.user_id,\n    scenario: r.meta.scenario, stage: r.meta.stage, msg_count: r.meta.msg_count,\n    client_msg: r.meta.client_msg,\n    dialog_intent: r.dialog_intent, client_mode: r.client_mode, client_signal: r.client_signal,\n    key_data_extracted: JSON.stringify(r.key_data_extracted || {}),\n    reasoning: r.reasoning, verdict: r.verdict, latency_ms: r.latency_ms,\n    model: r.model, raw_output: r.raw_output,\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        600,
+        0
+      ],
+      "id": "8a0de6ae-8b37-52f4-b51b-eb371fee20cb",
+      "name": "Prepare Log"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "create",
+        "projectId": "pqw76hd7h1lztww",
+        "table": "m06goq4gtf2ia2o",
+        "dataToSend": "autoMapInputData"
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        800,
+        0
+      ],
+      "id": "4789d68d-98c9-53b4-b0d4-ddaae1c14c33",
+      "name": "Save Log",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Unwrap Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap Body": {
+      "main": [
+        [
+          {
+            "node": "Resolver Core",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolver Core": {
+      "main": [
+        [
+          {
+            "node": "Prepare Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Log": {
+      "main": [
+        [
+          {
+            "node": "Save Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "65c0178e84d5c3db112ec6489beae5f53a11ae74e53d6537d4d9a5cd140a483b"
+  }
+}

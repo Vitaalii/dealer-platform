@@ -1,0 +1,588 @@
+{
+  "name": "TOOL: AUTO.RU EVALUATION",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## ⚠️ Этот файл расходится с боевым воркфлоу\n\nНода **Code in JavaScript** отдаёт `found_info` + `plate` для личного кабинета (U1, план `docs/plans/2026-08-10-001-*`).\n\nБоевой воркфлоу этой правки **не содержит**: выкат в прод вне скоупа, проверка идёт на форке `[TEST] TOOL: AUTO.RU EVALUATION`.\n\n**Не сохранять поверх боевого** до отдельного согласования — см. `docs/test-contour-checklist.md`.",
+        "height": 320,
+        "width": 460,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -320
+      ],
+      "id": "ea797c5c-6106-5d55-8e21-789ac4501327",
+      "name": "U1 divergence warning"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://apiauto.ru/1.0/stats/partner/predict_by_vin_or_lp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-authorization",
+              "value": "__SET_IN_N8N_CREDENTIALS__"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"vin_or_lp\": String($json.plate).replace('=', '').trim(),\n    \"mileage\": Number(String($json.mileage).replace(/\\D/g, '')),\n    \"geo_id\": 213,\n    \"seller_type\": \"PRIVATE\"\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        144,
+        0
+      ],
+      "id": "aa0ce920-9caa-4c41-ac1b-7413af4c1cbe",
+      "name": "HTTP Request",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e3ee870d-607b-4230-8919-2c7a3f22cd17",
+              "leftValue": "={{ $json.price_range ? $json.price_range.from : 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        368,
+        -16
+      ],
+      "id": "8695845e-6dd9-4bed-b07f-859e2c9adc39",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://apiauto.ru/1.0/stats/predict",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-authorization",
+              "value": "__SET_IN_N8N_CREDENTIALS__"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"rid\": 213,\n    \"tech_param_id\": $json.found_info.tech_param_id || 0,\n    \"km_age\": $('Execute Workflow Trigger').item.json.mileage,\n    \"color\": $json.found_info.color || \"040001\",\n    \"owners_count\": $json.found_info.owners_count || 1,\n    \"year\": $json.found_info.year || 2015,\n    \"pts_original\": typeof $json.found_info.pts_original !== 'undefined' ? $json.found_info.pts_original : true,\n    \"steering_wheel\": $json.found_info.steering_wheel || \"LEFT\",\n    \"complectation_id\": $json.found_info.complectation_id || 0,\n    \"seller_type\": \"PRIVATE\",\n    \"car_identifier\": $('Execute Workflow Trigger').item.json.plate,\n    \"super_gen_id\": $json.found_info.super_gen_id || 0\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        720,
+        -80
+      ],
+      "id": "edbfa96f-013c-4a5a-8fe1-7fb6bf85bb8e",
+      "name": "HTTP if_no"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================================\n// U1 (план docs/plans/2026-08-10-001-...): проброс found_info в личный кабинет.\n//\n// ВНИМАНИЕ: боевой воркфлоу в n8n этой правки НЕ содержит. Выкат в прод вне\n// скоупа плана, проверка идёт на форке [TEST] TOOL: AUTO.RU EVALUATION.\n// Не импортировать этот файл в боевой n8n до отдельного согласования —\n// см. docs/test-contour-checklist.md.\n//\n// Кабинет ждёт found_info \"как отдал сервис\" плюс добавленный ключ plate:\n// ключи не переименовывать, поля не фильтровать, URL фото не нормализовать\n// (photos.main приходит протокол-относительным, бот дополняет сам).\n// Плоские tradein_* ниже — контракт CRM и комбо-ветки, их не трогать.\n// ============================================================================\n\n// Функция для красивого округления до 10 000 руб\nfunction round10k(val) {\n    if (!val) return 0;\n    return Math.round(Number(val) / 10000) * 10000;\n}\n\nlet result = {};\nlet inputData = $input.item.json;\n\n// 🛑 ПЕРЕХВАТ ОШИБКИ ФОРМАТА (если сработала ветка false в If2)\n// План 2026-09-08-001, U7: причина отказа приходит из ноды валидации отдельным\n// полем reason. Наружу уходит не один статус, а три — блоки ST_*_TOOL_NEEDED_V2\n// различают «не хватает кода региона» и «это не похоже на номер» и задают\n// клиенту разный вопрос вместо одной и той же фразы дважды подряд.\n// plate_seen — уже разобранная часть номера: она даёт модели материал для\n// конкретной формулировки («вижу Т582ХР, допишите код региона»).\nif (inputData.is_valid === false) {\n    var reason = inputData.reason || \"NOT_A_PLATE\";\n    if (reason === \"NO_REGION\") {\n        return {\n            status: \"NO_REGION\",\n            plate_seen: inputData.plate,\n            message: \"Госномер разобран, но в нём нет кода региона. Назови клиенту то, что уже видно, и попроси дописать код региона.\"\n        };\n    }\n    if (reason === \"BAD_REGION\") {\n        return {\n            status: \"INVALID_DATA\",\n            plate_seen: inputData.plate,\n            message: \"В госномере указан несуществующий код региона. Попроси клиента проверить код региона и написать номер целиком.\"\n        };\n    }\n    return {\n        status: \"INVALID_DATA\",\n        message: \"Системная ошибка: Неверный формат госномера. Деликатно попроси его написать полный госномер.\"\n    };\n}\n\n// --- U1: сборка found_info -------------------------------------------------\nfunction safeNodeJson(nodeName) {\n    try { return $(nodeName).first().json || {}; } catch (e) { return {}; }\n}\n\n// Госномера в ответе auto.ru нет — он приходит на вход. Берём нормализованный\n// (верхний регистр, без пробелов и тире) из ноды валидации, фолбэк — сырой вход.\nfunction resolvePlate() {\n    const cleaned = safeNodeJson('Code in JavaScript1').plate;\n    if (cleaned) return String(cleaned);\n    const raw = safeNodeJson('Execute Workflow Trigger').plate;\n    return raw ? String(raw) : \"\";\n}\n\n// Пустой found_info ключа не создаёт: кабинет трактует отсутствие как\n// \"оценки не было\" и показывает редактируемые поля — это штатное поведение.\nfunction buildFoundInfo(src) {\n    if (!src || typeof src !== 'object' || Array.isArray(src)) return null;\n    if (!Object.keys(src).length) return null;\n    const plate = resolvePlate();\n    return plate ? Object.assign({}, src, { plate: plate }) : Object.assign({}, src);\n}\n\n// 💥 НОВОЕ: Извлекаем детальные характеристики авто, если Авто.ру их нашел\nlet carDetails = {};\nif (inputData.found_info) {\n    carDetails = {\n        tradein_make: inputData.found_info.mark || \"\",\n        tradein_model: inputData.found_info.model || \"\",\n        tradein_year: inputData.found_info.year || 0,\n        tradein_horse_power: inputData.found_info.horse_power || 0,\n        tradein_transmission: inputData.found_info.transmission || \"\",\n        tradein_steering_wheel: inputData.found_info.steering_wheel || \"\"\n    };\n}\n\nif (inputData.prices && inputData.prices.tradein) {\n    // Успех от второго запроса (оценка по параметрам)\n    result = {\n        status: \"SUCCESS\",\n        car_info: \"Оценка по техническим параметрам\",\n        tradein_price_from: round10k(inputData.prices.tradein.from),\n        tradein_price_to: round10k(inputData.prices.tradein.to),\n        market_price_from: round10k(inputData.prices.autoru.from),\n        market_price_to: round10k(inputData.prices.autoru.to),\n        ...carDetails // Вклеиваем детали для CRM\n    };\n} else if (inputData.price_range && inputData.price_range.from > 0) {\n    // Успех от первого запроса\n    result = {\n        status: \"SUCCESS\",\n        car_info: `${inputData.found_info.mark} ${inputData.found_info.model} (${inputData.found_info.year} г.)`,\n        tradein_price_from: round10k(inputData.price_range.from),\n        tradein_price_to: round10k(inputData.price_range.to),\n        ...carDetails // Вклеиваем детали для CRM\n    };\n} else if (inputData.error === \"IN_PROGRESS\") {\n    // Авто.ру ушел собирать данные\n    result = {\n        status: \"IN_PROGRESS\",\n        message: \"Отчет по этому авто сейчас формируется, базы отвечают долго. Извинись перед клиентом за задержку и, чтобы не заставлять его ждать, сразу предложи приехать в салон для точной живой оценки или предложи звонок от специалиста.\"\n    };\n} else {\n    // Машина вообще не найдена\n    result = {\n        status: \"NOT_FOUND\",\n        message: \"Автомобиль не найден в базах. Сообщи об этом клиенту и сразу предложи приехать в салон для точной живой оценки или предложи звонок от специалиста.\"\n    };\n}\n\n// --- U1: found_info уезжает только при реальной оценке ---------------------\n// Ветки IN_PROGRESS / NOT_FOUND / INVALID_DATA остаются без ключа (контракт R5).\nif (result.status === \"SUCCESS\") {\n    const foundInfo = buildFoundInfo(inputData.found_info);\n    if (foundInfo) result.found_info = foundInfo;\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        -16
+      ],
+      "id": "73eef4fb-40e1-45c2-a3ea-3806566f0d6f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "plate"
+            },
+            {
+              "name": "mileage"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -384,
+        16
+      ],
+      "id": "a7cfc5fc-3418-4670-af0b-b91ac9671b97",
+      "name": "Execute Workflow Trigger"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e1a1f515-f52d-4446-90ce-6b3811c48899",
+              "leftValue": "={{ $json.found_info ? \"yes\" : \"no\" }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        80
+      ],
+      "id": "a3c237b0-6a09-48f1-854a-e4b0e10a60aa",
+      "name": "If Params Exist"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        128
+      ],
+      "id": "311a1761-b913-4d80-a36f-f0065d525a4d",
+      "name": "Wait",
+      "webhookId": "8e7cc814-9785-448a-863d-a81dbbb5417b"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://apiauto.ru/1.0/stats/partner/predict_by_vin_or_lp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-authorization",
+              "value": "__SET_IN_N8N_CREDENTIALS__"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"vin_or_lp\": String($('Execute Workflow Trigger').item.json.plate).replace('=', '').trim(),\n    \"mileage\": Number(String($('Execute Workflow Trigger').item.json.mileage).replace(/\\D/g, '')),\n    \"geo_id\": 213,\n    \"seller_type\": \"PRIVATE\"\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        880,
+        64
+      ],
+      "id": "bd6d2c60-6a36-45b8-9f20-dbe7ef474fb8",
+      "name": "HTTP Request1",
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e3ee870d-607b-4230-8919-2c7a3f22cd17",
+              "leftValue": "={{ $json.price_range ? $json.price_range.from : 0 }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1040,
+        64
+      ],
+      "id": "882d1d7b-a415-48c3-b350-8fc60fbf730c",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e1a1f515-f52d-4446-90ce-6b3811c48899",
+              "leftValue": "={{ $json.found_info ? \"yes\" : \"no\" }}",
+              "rightValue": "yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1200,
+        128
+      ],
+      "id": "0f15be2e-2404-4daa-883a-9c78582eca75",
+      "name": "If Params Exist1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://apiauto.ru/1.0/stats/predict",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-authorization",
+              "value": "__SET_IN_N8N_CREDENTIALS__"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"rid\": 213,\n    \"tech_param_id\": $json.found_info.tech_param_id || 0,\n    \"km_age\": $('Execute Workflow Trigger').item.json.mileage,\n    \"color\": $json.found_info.color || \"040001\",\n    \"owners_count\": $json.found_info.owners_count || 1,\n    \"year\": $json.found_info.year || 2015,\n    \"pts_original\": typeof $json.found_info.pts_original !== 'undefined' ? $json.found_info.pts_original : true,\n    \"steering_wheel\": $json.found_info.steering_wheel || \"LEFT\",\n    \"complectation_id\": $json.found_info.complectation_id || 0,\n    \"seller_type\": \"PRIVATE\",\n    \"car_identifier\": $('Execute Workflow Trigger').item.json.plate,\n    \"super_gen_id\": $json.found_info.super_gen_id || 0\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1344,
+        -80
+      ],
+      "id": "a9cc07db-df5e-40ba-8bdb-24442a85a038",
+      "name": "HTTP if_no1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Забираем номер из входящих данных\nlet rawPlate = $input.item.json.plate || \"\";\n\n// 1. Очищаем номер: разделители убираем, приводим к верхнему регистру.\n// Точка и запятая добавлены к пробелу и тире — клиенты пишут «Р491.НК,37».\nlet cleanPlate = String(rawPlate).replace(/[\\s\\-.,]/g, '').toUpperCase();\n\n// 2. VIN распознаётся ДО любых преобразований и наружу уходит как есть.\n// Поле auto.ru называется vin_or_lp и принимает оба идентификатора, а VIN\n// пишется ТОЛЬКО латиницей — конвертация гомоглифов (шаг 4) его уничтожила бы.\n// Проверка стоит здесь, а не после отрезания хвоста: VIN, оканчивающийся на\n// RU, иначе потерял бы два знака и перестал бы распознаваться.\n// VIN как вход оценки сегодня не поддержан — в конвейере его нет нигде\n// (ни в описании evaluate_auto, ни в блоках NocoDB, ни в боте). Узел обязан\n// лишь не портить строку. План 2026-09-08-001, U9.\nconst VIN_RE = /^[A-HJ-NPR-Z0-9]{17}$/;\nif (VIN_RE.test(cleanPlate)) {\n  return { plate: cleanPlate, is_valid: false, reason: \"VIN_UNSUPPORTED\",\n           mileage: $input.item.json.mileage };\n}\n\n// 3. Хвост региона «RUS» / «РУС» / «RU» — только с конца строки.\n// Якорь обязателен: без него 'RU' вырезалось бы из середины и, например,\n// Х318ТЕ750 потерял бы букву. Инцидент: исполнения #3932 и #3937,\n// «Т582ХР 33 rus» отвергался валидацией, клиент потерян по таймауту.\ncleanPlate = cleanPlate.replace(/(RUS|РУС|RU)$/, '');\n\n// 4. Гомоглифы: латинская запись номера приводится к кириллической.\n// РАБОЧЕЕ ДОПУЩЕНИЕ (решение владельца 2026-09-08), не подтверждённый факт:\n// auto.ru ищет по кириллической записи. Явного правила про алфавит поля\n// vin_or_lp в документации сервиса нет; в примере запроса госномер записан\n// кириллицей (В853КС77). Допущение опровергается появлением латинского\n// номера, который сервис нашёл бы как есть, — тогда шаг снимается.\nconst LAT2CYR = { A: 'А', B: 'В', E: 'Е', K: 'К', M: 'М', H: 'Н',\n                  O: 'О', P: 'Р', C: 'С', T: 'Т', Y: 'У', X: 'Х' };\ncleanPlate = cleanPlate.replace(/[ABEKMHOPCTYX]/g, function (c) { return LAT2CYR[c]; });\n\n// 5. Разбор по группам вместо цельного анкер-регэкспа: так «нет региона»\n// отличается от «регион неверный», и блоки ST_*_TOOL_NEEDED_V2 могут задать\n// клиенту конкретный вопрос вместо общего «номер кажется неполным» дважды.\nconst PLATE_RE = /^([АВЕКМНОРСТУХ])(\\d{3})([АВЕКМНОРСТУХ]{2})(\\d{2,3})?$/;\nconst m = PLATE_RE.exec(cleanPlate);\n\nlet isValid = false;\nlet reason = \"NOT_A_PLATE\";\nif (m) {\n  const region = m[4];\n  if (!region) {\n    reason = \"NO_REGION\";\n  } else if (region.length === 2) {\n    // двузначные коды: 01..99, кода «00» не существует\n    isValid = Number(region) >= 1;\n    reason = isValid ? \"OK\" : \"BAD_REGION\";\n  } else {\n    // трёхзначные коды РФ начинаются только на 1, 7 или 9 (102, 750, 977…).\n    // Правило, а не перечень: переживает появление новых кодов. Оно же ловит\n    // склейку номера с числом — исполнение #3974, «К647МУ211» проходил\n    // валидацию и возвращался из auto.ru немым NOT_FOUND.\n    isValid = region[0] === '1' || region[0] === '7' || region[0] === '9';\n    reason = isValid ? \"OK\" : \"BAD_REGION\";\n  }\n}\n\n// 6. Формируем результат\nreturn {\n  plate: cleanPlate, // Отдаем очищенный номер дальше\n  is_valid: isValid,\n  reason: reason,    // OK | NO_REGION | BAD_REGION | NOT_A_PLATE | VIN_UNSUPPORTED\n  mileage: $input.item.json.mileage // Пробрасываем пробег дальше\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        16
+      ],
+      "id": "976d4770-0756-4b4e-a29b-b4c0bca0172d",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "24931cdd-f213-4a34-81be-2c8eb10e38ad",
+              "leftValue": "={{ $json.is_valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -64,
+        16
+      ],
+      "id": "4e706814-add9-41b3-8ecd-7e8bdf8db4af",
+      "name": "If2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If Params Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP if_no": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Params Exist": {
+      "main": [
+        [
+          {
+            "node": "HTTP if_no",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If Params Exist1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Params Exist1": {
+      "main": [
+        [
+          {
+            "node": "HTTP if_no1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP if_no1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        []
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "04374357-fa51-4b4d-b131-0ed2744a94ab",
+  "meta": {
+    "instanceId": "65c0178e84d5c3db112ec6489beae5f53a11ae74e53d6537d4d9a5cd140a483b"
+  },
+  "id": "ZYVac3Twp_ugyP3Jngwhj",
+  "tags": []
+}

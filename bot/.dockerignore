@@ -1,0 +1,55 @@
+# Окружение и кэш
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Секреты
+.env
+.env.*
+
+# Гит и докер
+.git/
+.gitignore
+Dockerfile
+.dockerignore
+
+# Базы данных — прод работает на PostgreSQL
+data/
+*.db
+*.db-journal
+bot_database.db
+
+# Слепки прод-версий для сравнения
+scripts/main_old.py
+scripts/main_new.py
+scripts/database_old.py
+scripts/database_new.py
+scripts/widget_old.js
+scripts/widget_new.js
+
+# Тесты и документация
+tests/
+docs/
+back_up/
+
+# Служебное
+.claude/
+.pytest_cache/
+
+# Документация в корне
+AI_HANDOFF.md
+CABINET_CONTEXT.md
+CLAUDE.md
+
+# Ключи и учётные данные
+google_key_dev.json
+activate_webhook.py
+
+# Node — только для сборки кабинета; Production/ коммитится
+node_modules/
+package-lock.json
+tools/
+
+# Локальные скрипты проверок с секретами (вебхук Битрикса) — не в образ
+check_*.py

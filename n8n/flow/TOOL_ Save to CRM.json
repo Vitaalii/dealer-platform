@@ -1,0 +1,81 @@
+{
+  "name": "TOOL: Save to CRM",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://obut-5oaj-5i2u.gw-1a.dockhost.net/n8n_callback",
+        "sendBody": true,
+        "specifyBody": "=keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.user_id }}"
+            },
+            {
+              "name": "deal_id",
+              "value": "={{ $json.deal_id }}"
+            },
+            {
+              "name": "ai_payload",
+              "value": "={{ $json.ai_payload }}"
+            }
+          ]
+        },
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "6075c2d7-eaa9-42ed-89ba-1e41b73758aa",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "0XEKTDr5enPFJ3wg",
+          "name": "Bot Callback Secret [PROD]"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"user_id\": \"12345\",\n  \"deal_id\": \"45678\",\n  \"ai_payload\": \"{...}\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fdeefb5b-5cef-46d3-8282-39fdc41db55e",
+      "name": "Execute Workflow Trigger"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

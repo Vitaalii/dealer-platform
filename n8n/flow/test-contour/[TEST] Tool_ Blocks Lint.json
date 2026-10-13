@@ -1,0 +1,157 @@
+{
+  "name": "[TEST] Tool: Blocks Lint",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "64dda640-59f2-5b2a-b3ae-68369333263f",
+      "name": "When clicking Lint"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "pqw76hd7h1lztww",
+        "table": "m29x3p8vdy0jes3",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        220,
+        0
+      ],
+      "id": "09fafef0-a3de-5aa0-ad65-edfe0f5c35a0",
+      "name": "Get Intents",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "pqw76hd7h1lztww",
+        "table": "mbbecemi1ac6awi",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        440,
+        0
+      ],
+      "id": "27175968-ced4-5152-8cdb-274192422753",
+      "name": "Get Blocks",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "pqw76hd7h1lztww",
+        "table": "mz7c92eks2ooxfh",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        660,
+        0
+      ],
+      "id": "ee106d84-7abc-5888-b521-b7bc4496c495",
+      "name": "Get Map",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const BUDGET = 2500;\n// Tokens_est = len/4; русский текст ≈ 2.5 симв/токен => реальные ≈ est × 1.6\nconst TOKENS_EST_TO_REAL = 1.6;\n// Вход резолвера (R8, план 2026-07-17-001): ~2700 ток. × 3.17 симв./ток. (замер\n// 2026-07-17); фикс-часть промпта Build Prompt (шаблон + история 8×150 + сообщение)\nconst RESOLVER_PROMPT_CHAR_BUDGET = 8560;\n// [U5, план 2026-08-14-001] было 2433; из шаблона Build Prompt удалены\n// client_mode и client_signal, замеренная дельта -440. Зеркалит\n// nocodb/lint_check.py — менять только вместе с ним.\nconst RESOLVER_FIXED_CHARS = 1993;\nconst RESOLVER_CHARS_PER_TOKEN = 3.17;\nconst SCENARIOS = [\"credit\",\"tradein\",\"combo\",\"stock\",\"consult\"];\nconst STAGES = [\"greeting\",\"data_collect\",\"tool_needed\",\"closing\"];\n\nconst intents = $('Get Intents').all().map(i => i.json);\nconst blocks  = $('Get Blocks').all().map(i => i.json);\nconst mapping = $('Get Map').all().map(i => i.json);\n\nconst intentIds = new Set(intents.map(i => i.Intent_ID));\nconst blockById = Object.fromEntries(blocks.map(b => [b.Block_ID, b]));\nconst expand = (v, u) => (!v || v === \"all\") ? u : v.split(\",\").map(s => s.trim()).filter(Boolean);\n\nconst errors = [], warnings = [];\n\nfor (const m of mapping) {\n    if (!intentIds.has(m.Intent_ID)) errors.push(`карта → несуществующий интент ${m.Intent_ID}`);\n    const blk = blockById[m.Block_ID];\n    if (!blk) errors.push(`карта ${m.Intent_ID} → несуществующий блок ${m.Block_ID}`);\n    else if (m.Active && !blk.Active) warnings.push(`привязка ${m.Intent_ID} → ${m.Block_ID}: блок неактивен`);\n}\n\n// Зеркалит выбор основного блока в Prompt Compiler:\n//   pick(id) = active(id + \"_V2\") ? id + \"_V2\" : id, иначе WF_{СЦЕН}_LEGACY.\n// Прежняя редакция смотрела только на базовый блок и ругалась на каждый,\n// вытесненный своей версией _V2. Менять только вместе с nocodb/lint_check.py.\nconst activeId = (bid) => Boolean(blockById[bid] && blockById[bid].Active);\nfor (const scen of SCENARIOS) for (const stage of STAGES) {\n    const bid = `ST_${scen.toUpperCase()}_${stage.toUpperCase()}`;\n    if (!blockById[bid] && !blockById[`${bid}_V2`]) { warnings.push(`нет дефолтного блока ${bid}`); continue; }\n    if (activeId(`${bid}_V2`) || activeId(bid)) continue;\n    const legacy = `WF_${scen.toUpperCase()}_LEGACY`;\n    warnings.push(activeId(legacy)\n        ? `дефолтный блок ${bid} и его _V2 неактивны — ход поедет на ${legacy}`\n        : `дефолтный блок ${bid}: неактивны ни он, ни _V2, ни фолбэк ${legacy} — основной блок хода будет ПУСТЫМ`);\n}\n\nconst core = blocks.filter(b => b.Block_ID.startsWith(\"G-\") && b.Active && !b.Intent_Triggers)\n    .reduce((s, b) => s + (Number(b.Tokens_est) || 0), 0);\nconst tools = Number((blockById[\"T-01_TOOLS\"] || {}).Tokens_est) || 0;\nconst over = [];\nfor (const it of intents) {\n    if (!it.Active) continue;\n    for (const scen of expand(it.Scenarios, SCENARIOS)) {\n        // R1 (план 2026-07-17-001): Stage_Context — справочное поле, не фильтр\n        for (const stage of STAGES) {\n            const rows = mapping.filter(m => m.Intent_ID === it.Intent_ID && m.Active\n                && expand(m.Scenario_Filter, SCENARIOS).includes(scen)\n                && expand(m.Stage_Filter, STAGES).includes(stage));\n            const primary = (rows.find(m => m.Role === \"primary\") || {}).Block_ID\n                || `ST_${scen.toUpperCase()}_${stage.toUpperCase()}`;\n            const ids = [`CS_${scen.toUpperCase()}`, `D_${scen.toUpperCase()}`, primary,\n                         ...rows.filter(m => m.Role === \"additional\").map(m => m.Block_ID)];\n            const est = core + tools + ids.reduce((s, i) => s + (Number((blockById[i] || {}).Tokens_est) || 0), 0);\n            const total = Math.round(est * TOKENS_EST_TO_REAL);\n            if (total > BUDGET) over.push([it.Intent_ID, scen, stage, total]);\n        }\n    }\n}\nif (over.length) {\n    over.sort((a, b) => b[3] - a[3]);\n    warnings.push(`бюджет >${BUDGET} ток. у ${over.length} комбинаций; худшие: `\n        + over.slice(0, 5).map(o => `${o[0]}/${o[1]}/${o[2]}=${o[3]}`).join(\", \"));\n}\n\n// вход резолвера (R8): фикс-часть + строки `Intent_ID | Description | Примеры`\n// всех активных интентов сценария (стадия список не сужает после R1)\nfor (const scen of SCENARIOS) {\n    const rows = intents.filter(i => i.Active && expand(i.Scenarios, SCENARIOS).includes(scen));\n    const listChars = rows.reduce((s, i) =>\n        s + `${i.Intent_ID} | ${i.Description || \"\"} | Примеры: ${i.Example_Phrases || \"\"}`.length + 1, 0);\n    const total = RESOLVER_FIXED_CHARS + listChars;\n    if (total > RESOLVER_PROMPT_CHAR_BUDGET) {\n        warnings.push(`вход резолвера ${scen}: ~${total} симв. `\n            + `(~${Math.round(total / RESOLVER_CHARS_PER_TOKEN)} ток., ${rows.length} интентов) `\n            + `> бюджета R8 ${RESOLVER_PROMPT_CHAR_BUDGET} симв.`);\n    }\n}\n\nif (errors.length) {\n    throw new Error(`BLOCKS LINT FAIL: ${errors.length} ошибок. ` + errors.slice(0, 10).join(\" | \"));\n}\nreturn [{ json: { status: \"OK\", errors: 0, warnings: warnings.length,\n                  warning_list: warnings,\n                  counts: { intents: intents.length, blocks: blocks.length, map: mapping.length } } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "01fd291b-cea6-5673-ba23-e15df53c58b6",
+      "name": "Lint"
+    }
+  ],
+  "connections": {
+    "When clicking Lint": {
+      "main": [
+        [
+          {
+            "node": "Get Intents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Intents": {
+      "main": [
+        [
+          {
+            "node": "Get Blocks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Blocks": {
+      "main": [
+        [
+          {
+            "node": "Get Map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Map": {
+      "main": [
+        [
+          {
+            "node": "Lint",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "65c0178e84d5c3db112ec6489beae5f53a11ae74e53d6537d4d9a5cd140a483b"
+  }
+}

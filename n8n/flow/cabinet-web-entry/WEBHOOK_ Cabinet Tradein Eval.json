@@ -1,0 +1,334 @@
+{
+  "name": "WEBHOOK: Cabinet Tradein Eval",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Вебхук оценки трейд-ина для веб-входа в кабинет (БОЙ)\n\nPOST `/webhook/cabinet-tradein-eval`\n\nСекрет — заголовок `X-Cabinet-Eval-Secret`, credential Header Auth «Cabinet Eval Secret [PROD]». Секрет в этом JSON не хранится.\n\nСабфлоу оценки: «TOOL: AUTO.RU EVALUATION» (`XCPe53sUwk8i9e3T`).\n\nБез секрета или с неверным — отказ n8n (403) до старта исполнения, auto.ru не вызывается.\n\n**Боевая копия. Не активировать без отдельной команды.**\n\nГенератор: `flow/cabinet-web-entry/build_eval_webhooks.py`.",
+        "height": 300,
+        "width": 420,
+        "color": 3
+      },
+      "id": "4eac66c4-8d2b-5684-baab-1ba217fbcd5a",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cabinet-tradein-eval",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "2820332b-32dd-50f4-aef4-d04ad2affc0d",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -520,
+        100
+      ],
+      "webhookId": "7b55fd2a-d721-5581-94ef-caa705ddb5b3",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "KhaneOxa4PaPKXOM",
+          "name": "Cabinet Eval Secret [PROD]"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// [N1] Проверка тела запроса ДО платного вызова auto.ru.\n// Секрет здесь уже проверен: Header Auth ноды Webhook отклоняет запрос\n// раньше, чем стартует исполнение.\n//\n// Контракт запроса: { plate, mileage, request_id }.\n//   plate      — госномер; нормализует его сабфлоу (нода Code in JavaScript1),\n//                здесь только trim и проверка на непустую строку;\n//   mileage    — пробег в км; сюда допускаются только цифры (пробелы и\n//                разделители тысяч вырезаются). Сабфлоу во втором запросе\n//                (stats/predict) шлёт пробег как пришёл, без очистки, —\n//                поэтому чистим здесь, а не полагаемся на него;\n//   request_id — идентификатор бота для сквозных логов, возвращается эхом.\nconst body = $input.first().json.body || {};\n\nconst requestId = body.request_id == null ? \"\" : String(body.request_id).trim();\nconst plate = body.plate == null ? \"\" : String(body.plate).trim();\nconst mileageDigits = body.mileage == null ? \"\" : String(body.mileage).replace(/[\\s .,_']/g, \"\");\n\nconst errors = [];\nif (!plate) errors.push(\"plate: пусто\");\nif (!/^\\d{1,7}$/.test(mileageDigits) || Number(mileageDigits) <= 0) {\n    errors.push(\"mileage: ожидается целое число км больше 0\");\n}\n\n// request_id — в custom data исполнения: по нему исполнение находится\n// в списке без открытия каждого. Сохранение работает на любой лицензии.\ntry {\n    if (requestId) $execution.customData.set(\"request_id\", requestId.slice(0, 255));\n} catch (e) {}\n\nreturn [{ json: {\n    ok: errors.length === 0,\n    request_id: requestId,\n    plate,\n    mileage: mileageDigits,\n    errors,\n}}];\n"
+      },
+      "id": "deba7d62-2743-5e37-8f17-3b854dc2b564",
+      "name": "Validate Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -300,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "45160d7e-ed3e-5cb8-b5a8-72ed28652478",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1f045bf1-8141-572e-95f8-d251e53a552c",
+      "name": "Request OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -80,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "XCPe53sUwk8i9e3T",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/XCPe53sUwk8i9e3T",
+          "cachedResultName": "TOOL: AUTO.RU EVALUATION"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "plate": "={{ $json.plate }}",
+            "mileage": "={{ $json.mileage }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "plate",
+              "displayName": "plate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "mileage",
+              "displayName": "mileage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "3fd25e0f-d271-5236-bd5c-a184116d841c",
+      "name": "Auto.ru Evaluation",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        160,
+        0
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// [N1] Ответ бота: только поля контракта, без текстов для модели (message).\n// Сабфлоу возвращает статусы SUCCESS / IN_PROGRESS / NOT_FOUND /\n// INVALID_DATA / NO_REGION; статус передаётся как есть.\n// found_info — только при SUCCESS и только если сабфлоу его отдал\n// (контракт кабинета: «ключа нет», а не пустой объект).\nconst r = $input.first().json || {};\nconst req = $('Validate Request').first().json;\nconst num = v => (v === undefined || v === null || v === \"\" ? null : Number(v));\n\nconst out = {\n    request_id: req.request_id,\n    status: r.status || \"ERROR\",\n    tradein_price_from: r.status === \"SUCCESS\" ? num(r.tradein_price_from) : null,\n    tradein_price_to: r.status === \"SUCCESS\" ? num(r.tradein_price_to) : null,\n};\nif (r.status === \"SUCCESS\" && r.found_info && typeof r.found_info === \"object\"\n        && !Array.isArray(r.found_info) && Object.keys(r.found_info).length) {\n    out.found_info = r.found_info;\n}\n// Разобранная часть номера при NO_REGION / INVALID_DATA — для подсказки\n// клиенту («вижу Т582ХР, допишите регион»); отдаётся, только если есть.\nif (r.plate_seen) out.plate_seen = r.plate_seen;\nreturn [{ json: out }];\n"
+      },
+      "id": "b5cfe228-1d63-543d-80bd-cdae3aa03c62",
+      "name": "Shape Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -60
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "267b4279-0900-5e5c-bbd4-3fd4ac5fe1b3",
+      "name": "Respond 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        620,
+        -60
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// [N1] Сабфлоу оценки упал (например, HTTP-сбой ноды HTTP if_no без onError).\n// Отдаём явный статус вместо зависшего запроса; подробности — в исполнении.\nconst req = $('Validate Request').first().json;\nconst err = $input.first().json || {};\nreturn [{ json: {\n    request_id: req.request_id,\n    status: \"ERROR\",\n    error: String((err.error && (err.error.message || err.error)) || \"evaluation sub-workflow failed\").slice(0, 300),\n}}];\n"
+      },
+      "id": "05634463-3651-52d5-8069-f97597df07c5",
+      "name": "Shape Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {
+          "responseCode": 502
+        }
+      },
+      "id": "405aeb2e-2b84-575b-9a9d-73f20e94c9ab",
+      "name": "Respond 502",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        620,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// [N1] Тело запроса не прошло проверку — auto.ru не вызывался.\nconst req = $input.first().json;\nreturn [{ json: {\n    request_id: req.request_id,\n    status: \"BAD_REQUEST\",\n    errors: req.errors,\n}}];\n"
+      },
+      "id": "bb0c176a-1376-5da5-beb4-16734eae6571",
+      "name": "Shape Bad Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "f2a00ef7-f550-5667-8e0c-b665866f9311",
+      "name": "Respond 400",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        400,
+        280
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Request": {
+      "main": [
+        [
+          {
+            "node": "Request OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request OK?": {
+      "main": [
+        [
+          {
+            "node": "Auto.ru Evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Shape Bad Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto.ru Evaluation": {
+      "main": [
+        [
+          {
+            "node": "Shape Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Shape Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape Response": {
+      "main": [
+        [
+          {
+            "node": "Respond 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape Error": {
+      "main": [
+        [
+          {
+            "node": "Respond 502",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape Bad Request": {
+      "main": [
+        [
+          {
+            "node": "Respond 400",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "pinData": {},
+  "tags": []
+}

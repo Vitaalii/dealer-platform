@@ -1,0 +1,127 @@
+{
+  "dealer_code": "09",
+  "generated_at": "2026-10-06T10:47:19+03:00",
+  "source": "n8n: Car Search + Combo Calculator",
+  "positions": [
+    {
+      "model_id": "12",
+      "complectation_id": "11",
+      "credit_price": 3330000,
+      "combo_price": 3080000
+    },
+    {
+      "model_id": "12",
+      "complectation_id": "12",
+      "credit_price": 3430000,
+      "combo_price": 3260000
+    },
+    {
+      "model_id": "14",
+      "complectation_id": "11",
+      "credit_price": 2950000,
+      "combo_price": 2490000
+    },
+    {
+      "model_id": "14",
+      "complectation_id": "12",
+      "credit_price": 3200000,
+      "combo_price": 2880000
+    },
+    {
+      "model_id": "14",
+      "complectation_id": "13",
+      "credit_price": 3340000,
+      "combo_price": 3020000
+    },
+    {
+      "model_id": "14",
+      "complectation_id": "14",
+      "credit_price": 3380000,
+      "combo_price": 3060000
+    },
+    {
+      "model_id": "16",
+      "complectation_id": "11",
+      "credit_price": 3450000,
+      "combo_price": 3260000
+    },
+    {
+      "model_id": "16",
+      "complectation_id": "14",
+      "credit_price": 3910000,
+      "combo_price": 3820000
+    },
+    {
+      "model_id": "16",
+      "complectation_id": "15",
+      "credit_price": 4120000,
+      "combo_price": 4030000
+    },
+    {
+      "model_id": "16",
+      "complectation_id": "16",
+      "credit_price": 4230000,
+      "combo_price": 4140000
+    },
+    {
+      "model_id": "17",
+      "complectation_id": "12",
+      "credit_price": 4090000,
+      "combo_price": 3740000
+    },
+    {
+      "model_id": "18",
+      "complectation_id": "11",
+      "credit_price": 4600000,
+      "combo_price": 4410000
+    },
+    {
+      "model_id": "18",
+      "complectation_id": "12",
+      "credit_price": 4910000,
+      "combo_price": 4760000
+    },
+    {
+      "model_id": "19",
+      "complectation_id": "11",
+      "credit_price": 3970000,
+      "combo_price": 3770000
+    },
+    {
+      "model_id": "19",
+      "complectation_id": "12",
+      "credit_price": 4280000,
+      "combo_price": 4080000
+    },
+    {
+      "model_id": "20",
+      "complectation_id": "11",
+      "credit_price": 3620000,
+      "combo_price": 3370000
+    },
+    {
+      "model_id": "20",
+      "complectation_id": "12",
+      "credit_price": 3920000,
+      "combo_price": 3670000
+    },
+    {
+      "model_id": "21",
+      "complectation_id": "11",
+      "credit_price": 2770000,
+      "combo_price": 2620000
+    },
+    {
+      "model_id": "21",
+      "complectation_id": "12",
+      "credit_price": 2960000,
+      "combo_price": 2810000
+    },
+    {
+      "model_id": "51",
+      "complectation_id": "11",
+      "credit_price": 6480000,
+      "combo_price": 6480000
+    }
+  ]
+}

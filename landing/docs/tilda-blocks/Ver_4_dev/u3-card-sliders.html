@@ -1,0 +1,1546 @@
+<!-- nominify begin -->
+<style>
+/* ================================================================
+   BOX-SIZING RESET
+
+   Tilda подключает tilda-grid-3.0.min.css, где стоит
+       *,*:before,*:after { box-sizing: content-box }
+   Универсальный селектор перебивает дефолт браузера (для <button>
+   это border-box), поэтому любой наш элемент с явной шириной И
+   горизонтальным padding вылезает за контейнер именно на странице
+   Tilda — и выглядит нормально в голом браузере.
+
+   Макет (designs/Комплектация - экспорт.html:8) начинается с
+   `* { box-sizing: border-box }`, и все его значения padding/width
+   посчитаны под border-box. Переносим это правило, скоупя его на
+   свои корни, чтобы не трогать собственный DOM Tilda.
+================================================================ */
+#uc-skeleton, #uc-skeleton *, #uc-skeleton *::before, #uc-skeleton *::after,
+.uc-cards-block, .uc-cards-block *, .uc-cards-block *::before, .uc-cards-block *::after {
+    box-sizing: border-box;
+}
+
+/* ================================================================
+   ОБЩИЙ КОНТЕЙНЕР
+================================================================ */
+.uc-cards-block {
+    padding: 45px 0;
+    font-family: Arial, sans-serif;
+}
+.configurator {
+    max-width: min(1000px, 85vw);
+    margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+    .configurator { padding: 0 8px; max-width: 100%; }
+    .uc-cards-block { padding-top: 30px; }
+    .sec-label { font-size: 20px; }
+}
+
+/* ================================================================
+   МЕТКА СЕКЦИИ
+================================================================ */
+.sec-label {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #111;
+    text-transform: none;
+    margin-bottom: 16px;
+}
+
+/* ================================================================
+   БЛОК МОДЕЛИ — ДЕСКТОП (карусель)
+================================================================ */
+.carousel-wrap {
+    position: relative;
+    padding: 0 44px;
+    margin-bottom: 32px;
+}
+.carousel-arrow {
+    position: absolute;
+    top: 66px; /* вертикальный центр изображения 132px */
+    transform: translateY(-50%);
+    width: 32px;
+    height: 40px;
+    border-radius: 8px;
+    border: 0.5px solid #e0e0e0;
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #111;
+    z-index: 2;
+    transition: border-color 0.15s;
+}
+.carousel-arrow:hover { border-color: #bbb; }
+.carousel-arrow.prev { left: 0; }
+.carousel-arrow.next { right: 0; }
+.carousel-row {
+    display: flex;
+    justify-content: center;
+}
+.carousel-slot {
+    flex: 1;
+    text-align: center;
+    opacity: 0.38;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    padding: 0 6px;
+    box-sizing: border-box;
+}
+.carousel-slot.active {
+    opacity: 1;
+    cursor: default;
+}
+.carousel-slot img {
+    width: 100%;
+    height: 132px;
+    object-fit: contain;
+    display: block;
+}
+.carousel-name {
+    font-size: 16px;
+    color: #888;
+    margin-top: 6px;
+    line-height: 1.3;
+}
+.carousel-slot.active .carousel-name {
+    color: #111;
+    font-weight: 700;
+}
+
+/* ================================================================
+   БЛОК МОДЕЛИ — МОБАЙЛ (≤640px)
+================================================================ */
+.m-hero {
+    display: none;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+.m-hero-img-wrap {
+    position: relative;
+    width: 100%;
+}
+/* Swiper внутри hero */
+.uc-model-swiper {
+    width: 100%;
+    overflow: hidden;
+}
+.uc-model-swiper .swiper-slide {
+    display: flex;
+    flex-direction: column;
+}
+.m-hero-img {
+    width: 100%;
+    aspect-ratio: 3/2;
+    object-fit: contain;
+    display: block;
+}
+.m-img-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 36px;
+    border: 0.5px solid #e0e0e0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: rgba(255,255,255,0.85);
+    color: #111;
+    font-size: 13px;
+    z-index: 2;
+}
+.m-img-btn.prev { left: 4px; }
+.m-img-btn.next { right: 4px; }
+.m-model-dots {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0;
+}
+.m-model-dot {
+    height: 4px;
+    border-radius: 2px;
+    background: #e0e0e0;
+    transition: all 0.2s;
+    width: 4px;
+}
+.m-model-dot.active { background: #111; width: 16px; }
+
+@media (max-width: 640px) {
+    .carousel-wrap { display: none; }
+    .m-hero { display: block; }
+    /* Названия моделей — между фото и точками пагинации (как в макете) */
+    .m-hero-names-vp {
+        overflow: hidden;
+        height: 18.5px;
+        /* Отступы внутренние, а не внешние. Место в потоке остаётся
+           прежним — 18.5 + 12 + 12 = 42.5px, — но зоной касания
+           становится вся эта высота вместо одной лишь полосы текста.
+           Ориентир: WCAG 2.2 SC 2.5.8 требует минимум 24×24 CSS px,
+           Apple HIG рекомендует 44×44 pt.
+
+           Поля соседей не схлопываются: у .m-hero-img-wrap нижнего
+           margin нет, у .m-model-dots вместо margin — padding. */
+        padding: 12px 0;
+        /* Задано явно: .m-hero-names-vp лежит внутри .uc-cards-block, на
+           который этот блок распространяет box-sizing: border-box (см.
+           шапку файла). При border-box height вместе с padding схлопнул
+           бы содержимое в отрицательную высоту. */
+        box-sizing: content-box;
+        /* Вертикальную прокрутку страницы браузер оставляет себе, а
+           горизонталь отдаёт обработчику свайпа. Благодаря этому жест
+           не требует preventDefault и не ломает скролл. */
+        touch-action: pan-y;
+        width: 100%;
+    }
+    .m-hero-names-strip {
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 18px;
+        transition: transform 0.32s ease;
+        width: 100%;
+    }
+    .m-hero-name-prev,
+    .m-hero-name-next {
+        font-size: 16px;
+        font-weight: 500;
+        color: #ccc;
+        white-space: nowrap;
+        overflow: hidden;
+        cursor: pointer;
+        flex: 1 1 0;
+        min-width: 0;
+    }
+    .m-hero-name-prev {
+        text-align: right;
+        mask-image: linear-gradient(to left, black 40%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to left, black 40%, transparent 100%);
+    }
+    .m-hero-name-next {
+        text-align: left;
+        mask-image: linear-gradient(to right, black 40%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to right, black 40%, transparent 100%);
+    }
+    .m-hero-name-cur {
+        font-size: 16px;
+        font-weight: 700;
+        color: #111;
+        white-space: nowrap;
+        flex: 0 0 auto;
+    }
+}
+
+/* ================================================================
+   BRIDGE — разделитель секций внутри объединённого шага
+================================================================ */
+.bridge {
+    padding: 12px 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.bridge-bar {
+    width: 3px;
+    height: 18px;
+    background: #1a1a1a;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.bridge-text {
+    font-size: 18px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+/* ================================================================
+   КОНФИГУРАЦИЯ: двигатель / коробка / привод
+================================================================ */
+.plabel {
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    color: #888;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+    margin-bottom: 32px;
+}
+.config-col {
+    padding: 0 28px;
+    box-sizing: border-box;
+}
+.config-col:not(:last-child) { border-right: 0.5px solid #efefef; }
+
+/* ---- Тайлы (замена uc-pill) ---- */
+.uc-row { display: flex; gap: 8px; }
+.uc-row--wrap { flex-wrap: wrap; }
+
+.tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: Arial, sans-serif;
+    white-space: nowrap;
+    cursor: pointer;
+    flex: 1;
+    box-sizing: border-box;
+    transition: border-color 0.15s, background 0.15s;
+}
+.uc-row--wrap .tile { flex: 0 0 calc(50% - 4px); }
+
+.tile-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 5px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 700;
+    box-sizing: border-box;
+}
+
+/* Акцентный цвет шагов 1 и 2 — общий с плашкой под шапкой и кнопками
+   «ДАЛЕЕ →». Рамка совпадает с заливкой, иначе вокруг плитки проступил
+   бы контур; галочка на белом квадратике держит тот же тон. */
+.tile--selected {
+    border: 1.5px solid #51565C;
+    background: #51565C;
+    color: #fff;
+    font-weight: 600;
+}
+.tile--selected .tile-icon { background: #fff; color: #51565C; }
+
+.tile--available {
+    border: 1.5px solid #d0d0d0;
+    background: #fff;
+    color: #1a1a1a;
+    font-weight: 400;
+}
+.tile--available .tile-icon { background: #fff; border: 1.5px solid #c9c9c9; }
+.tile--available:hover { border-color: #888; background: #f8f8f8; }
+
+.tile--unavailable {
+    border: 1.5px solid #ececec;
+    background: #f7f7f7;
+    color: #bbb;
+    cursor: not-allowed;
+    font-weight: 400;
+}
+.tile--unavailable .tile-icon { background: #ececec; border: 1px solid #e2e2e2; color: #bbb; }
+
+/* ================================================================
+   КОМПЛЕКТАЦИИ + ИНДИКАТОР ОПЦИЙ
+================================================================ */
+.trims-block { padding: 0 28px; }
+/* 32px — тот же шаг между блоками, что у .carousel-wrap и .config-grid.
+   Раньше этот отступ отделял ряд комплектаций от индикатора опций;
+   теперь под ним заголовок «Опции», и 32px отделяют секцию от
+   следующего .bridge — ровно как в макете opcii-makety.html.
+   С внутрисекционным отступом .bridge (16px) не равняемся намеренно:
+   между секциями зазор и должен быть шире. */
+.trims-row { margin-bottom: 32px; }
+
+/* Обёртка секции «Опции». Отступ тот же, что у .trims-block, — иначе
+   индикатор и кнопки разъехались бы с плитками по левому краю.
+   Скоупим под корень блока: правило про склейку CSS всех блоков в один
+   документ (CLAUDE.md). Соседние правила остались нескоупленными
+   исторически, в новом коде это не повторяем. */
+.uc-cards-block .opts-block { padding: 0 28px; }
+
+/* Комплектации всегда в одну строку: N тайлов делят ширину поровну.
+   flex-basis: 0 + min-width: 0 — иначе тайл не сожмётся ниже своего текста
+   и ряд переполнится вместо равного деления. Пересчитывается браузером
+   при каждой перерисовке ряда, фиксированных ширин нет. */
+.trims-row .uc-row { flex-wrap: nowrap; }
+.trims-row .tile {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.opts-indicator {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 13px 16px;
+    border: 1px solid #ececec;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 36px;
+    transition: border-color 0.15s;
+}
+.opts-indicator:hover { border-color: #d0d0d0; }
+
+/* На десктопе .opts-top «растворяется», а его дети становятся
+   flex-элементами .opts-indicator и раскладываются через order. */
+.opts-top { display: contents; }
+
+.opts-indicator-text {
+    font-size: 14px;
+    color: #1a1a1a;
+    white-space: nowrap;
+    order: 1;
+}
+.opts-bar {
+    flex: 1;
+    height: 6px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    overflow: hidden;
+    order: 2;
+}
+.opts-bar-fill {
+    height: 100%;
+    width: 0;
+    background: #3B6D11;
+    border-radius: 3px;
+}
+.opts-indicator-show {
+    font-size: 13px;
+    color: #888;
+    white-space: nowrap;
+    order: 3;
+}
+
+/* ================================================================
+   NAV-КНОПКИ «← НАЗАД» и «ДАЛЕЕ →»
+
+   Селекторы скоупятся под .uc-cards-block. Tilda склеивает CSS всех
+   блоков в один документ, поэтому одноимённый класс в другом блоке
+   молча перебивает наш при равной специфичности, если он ниже по
+   странице — именно так U6 (justify-content: space-between) прижимал
+   эту кнопку влево. Скоуп поднимает специфичность до (0,2,0), а все
+   свойства перечислены явно, чтобы ничего не подтекало извне.
+
+   space-between здесь — уже наш собственный выбор под две кнопки,
+   а не подтёкшее из U6 значение: «← НАЗАД» слева, «ДАЛЕЕ →» справа,
+   как на шаге 2.
+================================================================ */
+.uc-cards-block .uc-quiz-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 0;
+}
+.uc-cards-block .uc-quiz-btn-back {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 13px 24px;
+    background: transparent;
+    color: #1a1a1a;
+    border: 0.5px solid #d0d0d0;
+    white-space: nowrap;
+}
+.uc-cards-block .uc-quiz-btn-back:hover {
+    border-color: #888888;
+    background: #f8f8f8;
+}
+.uc-cards-block .uc-quiz-btn-next {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 13px 32px;
+    background: var(--uc-btn-next-bg, #2D5467);
+    color: #ffffff;
+    border: none;
+    white-space: nowrap;
+}
+/* Значения приходят из :root блока U2 — там они объявлены один раз на
+   оба шага квиза. Второй аргумент var() — подстраховка на случай, если
+   U3 окажется на странице без U2: цвет останется прежним, а не пропадёт.
+
+   Hover светлее базового на +10.4 пункта светлоты (та же дельта, что была
+   у пары #1a1a1a → #333333); тон и насыщенность базового сохранены.
+   Цвет кнопки намеренно отвязан от акцента #51565C плашки и плиток. */
+.uc-cards-block .uc-quiz-btn-next:hover { background: var(--uc-btn-next-bg-hover, #3C728D); }
+
+/* ================================================================
+   МОБАЙЛ: вертикальный стек + скролл-ряды с фейдами
+   (паттерн фейдов — как в .modif-scroll-wrap)
+================================================================ */
+.uc-scroll-wrap { position: relative; }
+
+@media (max-width: 640px) {
+    .bridge { padding: 10px 18px; margin-bottom: 14px; }
+    .bridge-bar { height: 16px; }
+    .bridge-text { font-size: 16px; }
+
+    /* .config-grid → .m-selectors: вертикальный стек */
+    .config-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        padding: 0 18px;
+        margin-bottom: 24px;
+    }
+    .config-col { padding: 0; }
+    .config-col:not(:last-child) { border-right: none; }
+    .plabel { font-size: 13px; margin-bottom: 8px; }
+
+    /* Скролл-ряд вместо wrap-сетки */
+    .uc-row {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .uc-row::-webkit-scrollbar { display: none; }
+    .uc-row--wrap { flex-wrap: nowrap; }
+    .uc-row .tile,
+    .uc-row--wrap .tile,
+    .trims-row .tile {
+        flex: 0 0 auto;
+        min-width: auto;
+        padding: 8px 12px;
+        font-size: 15px;
+    }
+
+    /* Фейды по краям скролл-рядов */
+    .uc-scroll-wrap::before,
+    .uc-scroll-wrap::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        width: 19px;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+        transition: opacity 0.18s;
+        opacity: 0;
+    }
+    .uc-scroll-wrap::before {
+        left: 0;
+        background: linear-gradient(to left, transparent, #fff);
+    }
+    .uc-scroll-wrap::after {
+        right: 0;
+        background: linear-gradient(to right, transparent, #fff);
+    }
+    .uc-scroll-wrap.show-left::before  { opacity: 1; }
+    .uc-scroll-wrap.show-right::after  { opacity: 1; }
+
+    .trims-block { padding: 0 18px; }
+    .uc-cards-block .opts-block { padding: 0 18px; }
+    /* 24px — мобильный шаг между блоками, тот же, что у .config-grid
+       выше. Прежние 12px были вдвое теснее всего окружения. */
+    .trims-row { margin-bottom: 24px; }
+
+    /* Индикатор опций: две строки */
+    .opts-indicator {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 12px 14px;
+        margin-bottom: 36px;
+    }
+    .opts-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .opts-indicator-text { font-size: 12px; order: 0; }
+    .opts-indicator-show { font-size: 11px; order: 0; }
+    .opts-bar { flex: none; width: 100%; order: 0; }
+
+    /* Две кнопки в ряд, как на шаге 2. display:block + width:100% тут
+       стояли под единственную кнопку; с двумя они дали бы стек во всю
+       ширину. Обе кнопки — auto-ширины с nowrap, на 320px помещаются. */
+    .uc-cards-block .uc-quiz-btn-back { padding: 13px 18px; }
+    .uc-cards-block .uc-quiz-btn-next { padding: 13px 18px; }
+}
+
+/* ================================================================
+   СКЕЛЕТОН-ЗАГЛУШКА
+================================================================ */
+@keyframes uc-shimmer {
+    0%   { transform: translateX(-200%); }
+    100% { transform: translateX(200%); }
+}
+.uc-skel-card {
+    background: #f0f0f0;
+    border-radius: 8px;
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+}
+.uc-skel-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation: uc-shimmer 1.5s infinite;
+}
+.uc-skel-label {
+    height: 10px;
+    width: 60px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+.uc-skel-row {
+    display: flex;
+    gap: 8px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+.uc-skel-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+}
+#uc-skeleton {
+    padding: 20px 0;
+}
+</style>
+
+<div id="uc-skeleton">
+    <div class="configurator">
+        <!-- Модели — carousel placeholder -->
+        <div class="uc-skel-label uc-skel-card"></div>
+        <div class="uc-skel-grid">
+            <div class="uc-skel-card" style="height:160px;"></div>
+            <div class="uc-skel-card" style="height:160px;"></div>
+            <div class="uc-skel-card" style="height:160px;"></div>
+            <div class="uc-skel-card" style="height:160px;"></div>
+            <div class="uc-skel-card" style="height:160px;"></div>
+        </div>
+        <!-- Конфигурация — три колонки тайлов -->
+        <div class="uc-skel-label uc-skel-card"></div>
+        <div class="uc-skel-row">
+            <div class="uc-skel-card" style="flex:1;height:40px;border-radius:10px;"></div>
+            <div class="uc-skel-card" style="flex:1;height:40px;border-radius:10px;"></div>
+            <div class="uc-skel-card" style="flex:1;height:40px;border-radius:10px;"></div>
+        </div>
+        <!-- Комплектации — тайлы -->
+        <div class="uc-skel-label uc-skel-card"></div>
+        <div class="uc-skel-row">
+            <div class="uc-skel-card" style="flex:1;height:40px;border-radius:10px;"></div>
+            <div class="uc-skel-card" style="flex:1;height:40px;border-radius:10px;"></div>
+            <div class="uc-skel-card" style="flex:1;height:40px;border-radius:10px;"></div>
+        </div>
+        <!-- Индикатор опций -->
+        <div class="uc-skel-card" style="height:44px;border-radius:10px;"></div>
+    </div>
+</div>
+
+<div class="uc-cards-block" style="display:none;">
+    <div class="configurator">
+
+        <!-- ① Модель -->
+        <div class="sec-label">Параметры</div>
+
+        <!-- Десктоп: карусель (viewport независим от выбранной модели) -->
+        <div class="carousel-wrap" id="uc-carousel-wrap">
+            <button class="carousel-arrow prev" id="uc-carr-prev" type="button" aria-label="Назад">
+                <i class="ti ti-chevron-left"></i>
+            </button>
+            <div class="carousel-row" id="uc-carousel-row"></div>
+            <button class="carousel-arrow next" id="uc-carr-next" type="button" aria-label="Вперёд">
+                <i class="ti ti-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Мобайл: Swiper с анимацией слайда -->
+        <div class="m-hero" id="uc-m-hero">
+            <div class="m-hero-img-wrap">
+                <div class="swiper uc-model-swiper" id="uc-model-swiper">
+                    <div class="swiper-wrapper" id="uc-model-swiper-wrapper"></div>
+                </div>
+                <button class="m-img-btn prev" id="uc-m-prev" type="button" aria-label="Назад">
+                    <i class="ti ti-chevron-left"></i>
+                </button>
+                <button class="m-img-btn next" id="uc-m-next" type="button" aria-label="Вперёд">
+                    <i class="ti ti-chevron-right"></i>
+                </button>
+            </div>
+            <div class="m-hero-names-vp">
+                <div class="m-hero-names-strip" id="m-hero-names-strip"></div>
+            </div>
+            <div class="m-model-dots" id="uc-m-dots"></div>
+        </div>
+
+        <!-- ② Конфигурация + комплектация (единый шаг 1) -->
+        <div id="uc-modif-section" style="display:none;">
+
+            <div class="bridge">
+                <div class="bridge-bar"></div>
+                <span class="bridge-text">Конфигурация</span>
+            </div>
+
+            <div class="config-grid">
+                <div class="config-col">
+                    <div class="plabel">Двигатель</div>
+                    <div class="uc-scroll-wrap">
+                        <div class="uc-row" id="uc-row-engine"></div>
+                    </div>
+                </div>
+                <div class="config-col">
+                    <div class="plabel">Коробка передач</div>
+                    <div class="uc-scroll-wrap">
+                        <div class="uc-row" id="uc-row-transm"></div>
+                    </div>
+                </div>
+                <div class="config-col">
+                    <div class="plabel">Привод</div>
+                    <div class="uc-scroll-wrap">
+                        <div class="uc-row" id="uc-row-drive"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bridge">
+                <div class="bridge-bar"></div>
+                <span class="bridge-text">Комплектация</span>
+            </div>
+
+            <div class="trims-block">
+                <div class="uc-scroll-wrap trims-row">
+                    <div class="uc-row" id="uc-row-trims"></div>
+                </div>
+            </div>
+
+            <div class="bridge">
+                <div class="bridge-bar"></div>
+                <span class="bridge-text">Опции</span>
+            </div>
+
+            <!-- Навигация лежит здесь, а не в .trims-block: новый блок встаёт
+                 между плитками и кнопками, а DOM линеен. Отступы обёрток
+                 одинаковые, поэтому визуально ряд кнопок не сдвигается. -->
+            <div class="opts-block">
+                <div class="opts-indicator" id="uc-opts-indicator" role="button" tabindex="0">
+                    <div class="opts-top">
+                        <span class="opts-indicator-text" id="uc-opts-text"></span>
+                        <span class="opts-indicator-show">Показать →</span>
+                    </div>
+                    <div class="opts-bar"><div class="opts-bar-fill" id="uc-opts-fill"></div></div>
+                </div>
+
+                <div class="uc-quiz-nav">
+                    <button class="uc-quiz-btn-back" id="uc-quiz-u3-back" type="button">← НАЗАД</button>
+                    <button class="uc-quiz-btn-next" id="uc-quiz-u3-next" type="button">ДАЛЕЕ →</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+(function () {
+
+    var allData          = [];
+    var modelData        = [];
+    var _models          = [];
+    var _currentModelIdx = 0;   // индекс выбранной/активной модели
+    var _carouselStart   = 0;   // индекс первого видимого слота (независим от _currentModelIdx)
+    var _modelSwiper     = null;
+    var _slideChanging   = false;
+    var _ucReady         = false;
+
+    /* Свайп по ряду названий (мобайл). ОТКАТ: false снимает жест целиком,
+       не затрагивая ни тап по боковому названию, ни расширенную зону
+       касания в .m-hero-names-vp. */
+    var NAMES_SWIPE_ENABLED   = true;
+    /* Порог в px, ниже которого движение считается тапом, а не свайпом:
+       иначе дрожание пальца при тапе уводило бы модель. */
+    var NAMES_SWIPE_THRESHOLD = 40;
+
+    // Состояние конфигурации (одиночный выбор в каждой группе)
+    var selEngine = '';
+    var selTransm = '';
+    var selDrive  = '';
+
+    /* ================================================================
+       ТОЧКА ВХОДА из U2
+    ================================================================ */
+    window.initCards = function (airData) {
+        allData = airData;
+        buildModelSlider(airData);
+    };
+
+    /* ================================================================
+       СТРОКА НАЗВАНИЙ МОДЕЛЕЙ (мобайл)
+    ================================================================ */
+    function renderNames(centerIdx) {
+        var total = _models.length;
+        if (!total) return;
+        var prevIdx = (centerIdx - 1 + total) % total;
+        var nextIdx = (centerIdx + 1) % total;
+        var stripEl = document.getElementById('m-hero-names-strip');
+        if (!stripEl) return;
+        stripEl.style.transition = 'none';
+        stripEl.style.transform  = 'translateX(0)';
+        stripEl.innerHTML =
+            '<span class="m-hero-name-prev">' + esc(_models[prevIdx].name) + '</span>' +
+            '<span class="m-hero-name-cur">'  + esc(_models[centerIdx].name) + '</span>' +
+            '<span class="m-hero-name-next">' + esc(_models[nextIdx].name) + '</span>';
+    }
+
+    /* ================================================================
+       СВАЙП ПО РЯДУ НАЗВАНИЙ (мобайл)
+
+       Жест не заводит второй Swiper, а сводится к goModelSlide — тому же
+       пути, по которому уже ходят стрелки и тап по боковому названию.
+       Третьего пути коммита состояния не появляется, поэтому и рассинхрон
+       между рядом фотографий и рядом названий возникнуть не может.
+       Повторное срабатывание гасит _slideChanging внутри goModelSlide.
+
+       Обработчик висит на контейнере .m-hero-names-vp, а не на самой
+       полосе: её содержимое целиком перерисовывает renderNames, и привязка
+       к нему терялась бы при каждом переключении.
+
+       Вертикальную прокрутку разводит CSS (touch-action: pan-y), поэтому
+       preventDefault здесь не нужен.
+    ================================================================ */
+    function bindNamesSwipe() {
+        if (!NAMES_SWIPE_ENABLED) return;
+        var vp = document.querySelector('.m-hero-names-vp');
+        if (!vp || vp.getAttribute('data-uc-swipe-bound')) return;
+        vp.setAttribute('data-uc-swipe-bound', '1');
+
+        var startX = null;
+
+        vp.addEventListener('touchstart', function (e) {
+            /* Мультитач — это жест масштабирования, а не наш свайп */
+            startX = e.touches.length === 1 ? e.touches[0].clientX : null;
+        }, { passive: true });
+
+        vp.addEventListener('touchend', function (e) {
+            if (startX === null) return;
+            var touch = e.changedTouches && e.changedTouches[0];
+            var dx = touch ? touch.clientX - startX : 0;
+            startX = null;
+
+            if (Math.abs(dx) < NAMES_SWIPE_THRESHOLD) return;  // это был тап
+            if (_models.length < 2) return;                    // переключать нечего
+
+            goModelSlide(dx < 0 ? 'next' : 'prev');
+        }, { passive: true });
+    }
+
+    function goModelSlide(direction) {
+        if (_slideChanging) return;
+        _slideChanging = true;
+        var total  = _models.length;
+        var newIdx = direction === 'next'
+            ? (_currentModelIdx + 1) % total
+            : (_currentModelIdx - 1 + total) % total;
+
+        var stripEl = document.getElementById('m-hero-names-strip');
+        if (stripEl) {
+            var shiftPx = stripEl.scrollWidth / 3;
+            stripEl.style.transition = 'transform 0.32s ease';
+            stripEl.style.transform  = direction === 'next'
+                ? 'translateX(-' + shiftPx + 'px)'
+                : 'translateX(' + shiftPx + 'px)';
+        }
+
+        if (_modelSwiper) {
+            if (direction === 'next') { _modelSwiper.slideNext(320); }
+            else                      { _modelSwiper.slidePrev(320); }
+        }
+
+        setTimeout(function () {
+            _currentModelIdx = newIdx;
+            renderNames(_currentModelIdx);
+            updateDots();
+            renderCarousel();
+            modelData = allData.filter(function (car) {
+                return car.fields['Model'] === _models[newIdx].name;
+            });
+            $('#uc-modif-section').show();
+            buildConfigurator(modelData);
+            _slideChanging = false;
+        }, 320);
+    }
+
+    /* ================================================================
+       КАРУСЕЛЬ МОДЕЛЕЙ
+    ================================================================ */
+    function buildModelSlider(airData) {
+        var seenId = {};
+        _models = [];
+        airData.forEach(function (car) {
+            var mid = car.fields['Model id'];
+            if (mid && !seenId[mid]) {
+                seenId[mid] = true;
+                _models.push({ id: +mid, name: car.fields['Model'] || '', car: car });
+            }
+        });
+        _models.sort(function (a, b) { return a.id - b.id; });
+
+        _currentModelIdx = 0;
+        _carouselStart   = 0;
+
+        /* Десктоп: стрелки прокручивают viewport, НЕ меняют выбранную модель */
+        $('#uc-carr-prev').off('click').on('click', function () {
+            _carouselStart = (_carouselStart - 1 + _models.length) % _models.length;
+            renderCarousel();
+        });
+        $('#uc-carr-next').off('click').on('click', function () {
+            _carouselStart = (_carouselStart + 1) % _models.length;
+            renderCarousel();
+        });
+
+        /* Swiper для мобильного hero */
+        if (_modelSwiper) {
+            _modelSwiper.destroy(true, true);
+            _modelSwiper = null;
+        }
+
+        var $wrapper = $('#uc-model-swiper-wrapper').empty();
+        _models.forEach(function (m) {
+            var $slide = $('<div class="swiper-slide"></div>');
+            $slide.append('<img class="m-hero-img" src="' + resolvePhoto(m.car, 'Title_pic') + '" alt="' + esc(m.name) + '">');
+            $wrapper.append($slide);
+        });
+
+        /* Кнопки стрелок — ручные обработчики для синхронизации с анимацией названий */
+        $('#uc-m-prev').off('click').on('click', function () { goModelSlide('prev'); });
+        $('#uc-m-next').off('click').on('click', function () { goModelSlide('next'); });
+
+        /* Свайп по ряду названий. Привязка идемпотентна: контейнер
+           статичен и переживает перестроение слайдера. */
+        bindNamesSwipe();
+
+        var useLoop = _models.length > 1;
+        _modelSwiper = new Swiper('#uc-model-swiper', {
+            slidesPerView: 1,
+            loop: useLoop,
+            speed: 320,
+            allowTouchMove: true
+        });
+
+        /* slideChange срабатывает при свайпе (не при клике стрелок — там goModelSlide) */
+        _modelSwiper.on('slideChange', function () {
+            if (_slideChanging) return;
+            var realIdx = useLoop ? _modelSwiper.realIndex : _modelSwiper.activeIndex;
+            if (realIdx === _currentModelIdx) return;
+            var total     = _models.length;
+            var fwd       = (realIdx - _currentModelIdx + total) % total;
+            var direction = fwd <= total / 2 ? 'next' : 'prev';
+            _slideChanging = true;
+            var stripEl = document.getElementById('m-hero-names-strip');
+            if (stripEl) {
+                var shiftPx = stripEl.scrollWidth / 3;
+                stripEl.style.transition = 'transform 0.32s ease';
+                stripEl.style.transform  = direction === 'next'
+                    ? 'translateX(-' + shiftPx + 'px)'
+                    : 'translateX(' + shiftPx + 'px)';
+            }
+            setTimeout(function () {
+                _currentModelIdx = realIdx;
+                renderNames(_currentModelIdx);
+                updateDots();
+                renderCarousel();
+                modelData = allData.filter(function (car) {
+                    return car.fields['Model'] === _models[realIdx].name;
+                });
+                $('#uc-modif-section').show();
+                buildConfigurator(modelData);
+                _slideChanging = false;
+            }, 320);
+        });
+
+        renderCarousel();
+        updateDots();
+
+        if (_models.length) {
+            var utm = (new URLSearchParams(window.location.search)).get('utm_model') || '';
+            globalModelUtm = utm;
+            var startModelIdx = 0;
+            if (utm) {
+                var utmLower = utm.toLowerCase();
+                for (var mi = 0; mi < _models.length; mi++) {
+                    var modelUtm = (_models[mi].car.fields['Model utm'] || '').toLowerCase();
+                    if (modelUtm && modelUtm === utmLower) {
+                        startModelIdx = mi;
+                        break;
+                    }
+                }
+            }
+            _currentModelIdx = startModelIdx;
+            _carouselStart   = startModelIdx;
+            renderNames(startModelIdx);
+            selectModel(_models[startModelIdx].name);
+            if (startModelIdx > 0) {
+                if (useLoop) {
+                    _modelSwiper.slideToLoop(startModelIdx, 0, false);
+                } else {
+                    _modelSwiper.slideTo(startModelIdx, 0, false);
+                }
+            }
+        }
+    }
+
+    /* Рисует 4-слотное окно карусели начиная с _carouselStart */
+    function renderCarousel() {
+        var total = _models.length;
+        if (!total) return;
+
+        var $row = $('#uc-carousel-row').empty();
+        var slots = Math.min(4, total);
+
+        for (var i = 0; i < slots; i++) {
+            var modelIdx = ((_carouselStart + i) % total + total) % total;
+            var m = _models[modelIdx];
+            var isActive = (modelIdx === _currentModelIdx);
+
+            var $slot = $('<div class="carousel-slot' + (isActive ? ' active' : '') + '"></div>');
+            $slot.append('<img src="' + resolvePhoto(m.car, 'Title_pic') + '" alt="' + esc(m.name) + '">');
+            $slot.append('<div class="carousel-name">' + esc(m.name) + '</div>');
+
+            if (!isActive) {
+                (function (name) {
+                    $slot.on('click', function () { selectModel(name); });
+                })(m.name);
+            }
+            $row.append($slot);
+        }
+
+        if (total <= 4) {
+            $('#uc-carr-prev, #uc-carr-next').hide();
+        } else {
+            $('#uc-carr-prev, #uc-carr-next').show();
+        }
+    }
+
+    /* Обновляет dots мобильного hero */
+    function updateDots() {
+        var dotsHtml = '';
+        for (var i = 0; i < _models.length; i++) {
+            dotsHtml += '<div class="m-model-dot' + (i === _currentModelIdx ? ' active' : '') + '"></div>';
+        }
+        $('#uc-m-dots').html(dotsHtml);
+        if (_models.length <= 4) {
+            $('#uc-m-prev, #uc-m-next').hide();
+        } else {
+            $('#uc-m-prev, #uc-m-next').show();
+        }
+    }
+
+    /* ================================================================
+       ВЫБОР МОДЕЛИ (клик на слот карусели или slideChange)
+    ================================================================ */
+    function selectModel(modelName) {
+        for (var i = 0; i < _models.length; i++) {
+            if (_models[i].name === modelName) { _currentModelIdx = i; break; }
+        }
+
+        renderNames(_currentModelIdx);
+
+        /* Подстроить _carouselStart если выбранная модель вне видимого окна */
+        var total = _models.length;
+        var slots = Math.min(4, total);
+        var visible = false;
+        for (var j = 0; j < slots; j++) {
+            if (((_carouselStart + j) % total + total) % total === _currentModelIdx) {
+                visible = true; break;
+            }
+        }
+        if (!visible) { _carouselStart = _currentModelIdx; }
+
+        renderCarousel();
+
+        /* Анимированный переход в Swiper (только если не вызван из slideChange) */
+        if (_modelSwiper && !_slideChanging) {
+            if (_modelSwiper.params && _modelSwiper.params.loop) {
+                _modelSwiper.slideToLoop(_currentModelIdx, 350);
+            } else {
+                _modelSwiper.slideTo(_currentModelIdx, 350);
+            }
+        }
+        updateDots();
+
+        modelData = allData.filter(function (car) {
+            return car.fields['Model'] === modelName;
+        });
+
+        $('#uc-modif-section').show();
+        buildConfigurator(modelData);
+    }
+
+    /* ================================================================
+       КОНФИГУРАЦИЯ: ОПЦИИ ДВИГАТЕЛЬ / КОРОБКА / ПРИВОД
+    ================================================================ */
+
+    function getSortedModelData() {
+        return modelData.slice().sort(function (a, b) {
+            return Number(a.fields['Complectation id'] || 0) - Number(b.fields['Complectation id'] || 0);
+        });
+    }
+
+    function collectOptions(fieldName) {
+        var seen = {}, opts = [];
+        getSortedModelData().forEach(function (car) {
+            var v = car.fields[fieldName] || '';
+            if (v && !seen[v]) { seen[v] = true; opts.push(v); }
+        });
+        return opts;
+    }
+
+    function getEngineOptions()     { return collectOptions('Engine'); }
+    function getAllTransmOptions()  { return collectOptions('Transmission_ru'); }
+    function getAllDriveOptions()   { return collectOptions('Drivetrain_ru'); }
+
+    function getAvailableTransm(engine) {
+        var set = {};
+        modelData.forEach(function (car) {
+            if (car.fields['Engine'] === engine) {
+                var t = car.fields['Transmission_ru'] || '';
+                if (t) set[t] = true;
+            }
+        });
+        return set;
+    }
+
+    function getAvailableDrive(engine, transm) {
+        var set = {};
+        modelData.forEach(function (car) {
+            if (car.fields['Engine'] === engine && car.fields['Transmission_ru'] === transm) {
+                var d = car.fields['Drivetrain_ru'] || '';
+                if (d) set[d] = true;
+            }
+        });
+        return set;
+    }
+
+    /* ================================================================
+       ТАЙЛЫ
+    ================================================================ */
+    function tileHtml(group, label, status, dataId) {
+        var cls = 'tile ' + (status === 'selected'    ? 'tile--selected'
+                          :  status === 'unavailable' ? 'tile--unavailable'
+                          :                             'tile--available');
+        var icon = status === 'selected' ? '✓' : status === 'unavailable' ? '×' : '';
+        var idAttr = (dataId === undefined) ? '' : ' data-complid="' + esc(dataId) + '"';
+        return '<button class="' + cls + '" type="button"'
+             + ' data-group="' + group + '" data-value="' + esc(label) + '"' + idAttr
+             + ' title="' + esc(label) + '">'
+             + '<span class="tile-icon">' + icon + '</span>' + esc(label)
+             + '</button>';
+    }
+
+    /* Десктоп: >2 тайлов конфигурации раскладываются в 2 колонки (мобайл переопределяет в nowrap).
+       К ряду комплектаций НЕ применяется: там тайлы всегда в одну строку и делят ширину поровну. */
+    function applyRowWrap($row, count) {
+        $row.toggleClass('uc-row--wrap', count > 2);
+    }
+
+    function renderConfigRows() {
+        var engines = getEngineOptions();
+        var eHtml = '';
+        engines.forEach(function (e) {
+            // Двигатель никогда не бывает unavailable — весь список опций модели
+            eHtml += tileHtml('engine', e, e === selEngine ? 'selected' : 'available');
+        });
+        var $e = $('#uc-row-engine').html(eHtml);
+        applyRowWrap($e, engines.length);
+
+        var availTransm = getAvailableTransm(selEngine);
+        var transms = getAllTransmOptions();
+        var tHtml = '';
+        transms.forEach(function (t) {
+            var status = (t === selTransm) ? 'selected' : (availTransm[t] ? 'available' : 'unavailable');
+            tHtml += tileHtml('transm', t, status);
+        });
+        var $t = $('#uc-row-transm').html(tHtml);
+        applyRowWrap($t, transms.length);
+
+        var availDrive = getAvailableDrive(selEngine, selTransm);
+        var drives = getAllDriveOptions();
+        var dHtml = '';
+        drives.forEach(function (d) {
+            var status = (d === selDrive) ? 'selected' : (availDrive[d] ? 'available' : 'unavailable');
+            dHtml += tileHtml('drive', d, status);
+        });
+        var $d = $('#uc-row-drive').html(dHtml);
+        applyRowWrap($d, drives.length);
+    }
+
+    /* ================================================================
+       КОМПЛЕКТАЦИИ (trims)
+       В DOM попадают ТОЛЬКО доступные при текущей конфигурации —
+       состояния unavailable у комплектации не существует.
+    ================================================================ */
+    function sortedMatchingCars() {
+        return window.ucQuiz.matchingCars.slice().sort(function (a, b) {
+            return Number(a.fields['Complectation id'] || 0) - Number(b.fields['Complectation id'] || 0);
+        });
+    }
+
+    function renderTrims() {
+        var cars    = sortedMatchingCars();
+        var selCar  = window.ucQuiz.selectedCar;
+        var selId   = selCar ? String(selCar.fields['Complectation id']) : '';
+        var html    = '';
+        cars.forEach(function (car) {
+            var cid    = String(car.fields['Complectation id']);
+            var name   = car.fields['Complectation'] || '';
+            var status = (cid === selId) ? 'selected' : 'available';
+            html += tileHtml('trim', name, status, cid);
+        });
+        // Без applyRowWrap: ряд комплектаций никогда не переносится.
+        // Ширину делит CSS (.trims-row .tile { flex: 1 1 0 }), поэтому она
+        // пересчитывается на каждой перерисовке под актуальное число тайлов.
+        $('#uc-row-trims').html(html).removeClass('uc-row--wrap');
+        refreshFades();
+    }
+
+    /* Лёгкое переключение активного тайла без перестройки ряда */
+    function markTrimSelected(car) {
+        var selId = String(car.fields['Complectation id']);
+        $('#uc-row-trims .tile').each(function () {
+            var $t = $(this);
+            var on = $t.attr('data-complid') === selId;
+            $t.toggleClass('tile--selected', on).toggleClass('tile--available', !on);
+            $t.find('.tile-icon').text(on ? '✓' : '');
+        });
+    }
+
+    /* ================================================================
+       ПРИМЕНИТЬ КОНФИГУРАЦИЮ
+       Пересчитывает matchingCars, сохраняет выбранную комплектацию
+       по Complectation id (если она всё ещё доступна), иначе берёт первую.
+    ================================================================ */
+    function updateMatchingCars() {
+        window.ucQuiz.matchingCars = modelData.filter(function (car) {
+            return car.fields['Engine'] === selEngine &&
+                   car.fields['Transmission_ru'] === selTransm &&
+                   car.fields['Drivetrain_ru'] === selDrive;
+        });
+    }
+
+    function applyConfig() {
+        updateMatchingCars();
+        var cars = sortedMatchingCars();
+        if (!cars.length) {
+            $('#uc-row-trims').empty();
+            return;
+        }
+
+        var target = null;
+        if (window.ucQuiz.selectedCar) {
+            var prevId = String(window.ucQuiz.selectedCar.fields['Complectation id']);
+            for (var i = 0; i < cars.length; i++) {
+                if (String(cars[i].fields['Complectation id']) === prevId) { target = cars[i]; break; }
+            }
+        }
+        if (!target) target = cars[0];
+
+        window.ucQuiz.selectedCar = target;
+        renderTrims();
+        selectComplectation(target);
+    }
+
+    function buildConfigurator(data) {
+        var sorted = data.slice().sort(function (a, b) {
+            return Number(a.fields['Complectation id'] || 0) - Number(b.fields['Complectation id'] || 0);
+        });
+        var defaultRow = sorted[0];
+        if (!defaultRow) return;
+
+        selEngine = defaultRow.fields['Engine'] || '';
+        selTransm = defaultRow.fields['Transmission_ru'] || '';
+        selDrive  = defaultRow.fields['Drivetrain_ru'] || '';
+
+        // Смена модели: прошлый выбор комплектации не переносится
+        window.ucQuiz.selectedCar = null;
+
+        renderConfigRows();
+        applyConfig();
+
+        if (!window.ucQuiz.matchingCars.length) {
+            // Конфигурация по умолчанию ничего не даёт — показываем defaultRow
+            window.ucQuiz.selectedCar = defaultRow;
+            selectComplectation(defaultRow);
+        }
+    }
+
+    /* ================================================================
+       ВЫБОР КОМПЛЕКТАЦИИ — центральный координатор состояния
+    ================================================================ */
+    function selectComplectation(car) {
+        var f = car.fields;
+
+        window.ucQuiz.selectedCar = car;
+
+        var $form = $('.uc-tildaform');
+        $form.find('input[name="modification"]').val(f['Model Modification'] || '');
+        $form.find('input[name="complectation"]').val(f['Complectation'] || '');
+        $form.find('input[name="SKU"]').val(f['ID'] || f['SKU'] || f['VIN'] || '');
+        $form.find('input[name="Model"]').val(f['Model'] || '');
+        $form.find('input[name="Link"]').val(f['Link'] || '');
+        $form.find('input[name="Price_ac"]').val(f['Price new'] || '');
+        $form.find('input[name="Price_ol"]').val(f['Price old'] || '');
+
+        var dealerId        = $form.find('input[name="dealer_id"]').val() || '';
+        var modelId         = String(f['Model id'] || '');
+        var complectationId = String(f['Complectation id'] || '');
+        var ssid = Array.from({ length: 2 }, function () {
+            return String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        }).join('');
+
+        skuId           = dealerId + modelId + complectationId + ssid;
+        globalModelUtm  = f['Model utm'] || (f['Model'] || '').replace(/\s+/g, '_');
+        globalModeX     = f['Model'] || '';
+        globalFullCompl = f['Complectation'] || '';
+
+        markTrimSelected(car);
+
+        if (typeof window.updateGallery === 'function') {
+            window.updateGallery(car);
+        }
+
+        // U4: пересчитать оснащение → U4 вызовет window.uc_updateOptsIndicator()
+        if (typeof window.updateFeatures === 'function') {
+            window.updateFeatures(car);
+        }
+
+        if (!_ucReady) {
+            _ucReady = true;
+            $('#uc-skeleton').hide();
+            $('.uc-cards-block').show();
+            window.dispatchEvent(new CustomEvent('uc:ready'));
+        }
+        initFades();
+    }
+
+    /* ================================================================
+       УТИЛИТЫ
+    ================================================================ */
+    function resolvePhoto(car, fieldName) {
+        var picField = car.fields[fieldName];
+        var fallback = 'https://tilda.ws/img/empty-photo.png';
+        if (!picField) return fallback;
+
+        var imgData = picField;
+        if (typeof picField === 'string' && picField.startsWith('[')) {
+            try { imgData = JSON.parse(picField); } catch (e) {}
+        }
+        var imgObj = Array.isArray(imgData) ? imgData[0] : imgData;
+        if (imgObj && typeof imgObj === 'object') {
+            var rawPath = imgObj.url || imgObj.signedPath || imgObj.path;
+            if (rawPath) {
+                return rawPath.startsWith('http')
+                    ? rawPath
+                    : (window.UNIFIEDBOT_URL || '') + '/' + rawPath.replace(/^\//, '');
+            }
+        }
+        return fallback;
+    }
+
+    function esc(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    /* ================================================================
+       ИНДИКАТОР ОПЦИЙ — вызывается из U4 после каждого updateFeatures()
+    ================================================================ */
+    window.uc_updateOptsIndicator = function (hasCount, totalCount) {
+        var textEl = document.getElementById('uc-opts-text');
+        var fillEl = document.getElementById('uc-opts-fill');
+        if (textEl) {
+            textEl.textContent = totalCount
+                ? 'Доступно · ' + hasCount + ' из ' + totalCount + ' значимых опций'
+                : '';
+        }
+        if (fillEl) {
+            fillEl.style.width = (totalCount ? Math.round((hasCount / totalCount) * 100) : 0) + '%';
+        }
+    };
+
+    /* ================================================================
+       КЛИК ПО ТАЙЛАМ
+    ================================================================ */
+    $(document).on('click', '.tile', function () {
+        var $tile = $(this);
+        if ($tile.hasClass('tile--unavailable')) return;
+
+        var group = $tile.attr('data-group');
+        var val   = $tile.attr('data-value');
+        var avail, first;
+
+        if (group === 'trim') {
+            var cid = $tile.attr('data-complid');
+            var cars = window.ucQuiz.matchingCars;
+            for (var i = 0; i < cars.length; i++) {
+                if (String(cars[i].fields['Complectation id']) === cid) {
+                    selectComplectation(cars[i]);
+                    return;
+                }
+            }
+            return;
+        }
+
+        if (group === 'engine') {
+            selEngine = val;
+            avail = getAvailableTransm(selEngine);
+            if (!avail[selTransm]) { first = Object.keys(avail)[0]; selTransm = first || ''; }
+            avail = getAvailableDrive(selEngine, selTransm);
+            if (!avail[selDrive])  { first = Object.keys(avail)[0]; selDrive  = first || ''; }
+        } else if (group === 'transm') {
+            selTransm = val;
+            avail = getAvailableDrive(selEngine, selTransm);
+            if (!avail[selDrive])  { first = Object.keys(avail)[0]; selDrive  = first || ''; }
+        } else if (group === 'drive') {
+            selDrive = val;
+        } else {
+            return;
+        }
+
+        renderConfigRows();
+        applyConfig();
+    });
+
+    /* ================================================================
+       ПОП-АП ОСНАЩЕНИЯ — принадлежит U4, дёргается отсюда
+    ================================================================ */
+    $(document).on('click', '#uc-opts-indicator', function () {
+        if (typeof window.openFeaturesPopup === 'function') {
+            window.openFeaturesPopup();
+        }
+    });
+    $(document).on('keydown', '#uc-opts-indicator', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        if (typeof window.openFeaturesPopup === 'function') {
+            window.openFeaturesPopup();
+        }
+    });
+
+    /* ================================================================
+       КВИЗ: NAV-КНОПКИ шага 1
+       «ДАЛЕЕ →» — шаг 1 → шаг 2; «← НАЗАД» — шаг 1 → шаг 0 (Hero).
+       Оба идут через next()/back(), а не goTo(): они взводят
+       userNavigated, от которого зависит сброс скролла в слушателях.
+    ================================================================ */
+    $(document).on('click', '#uc-quiz-u3-next', function () {
+        window.ucQuiz.next();
+    });
+
+    $(document).on('click', '#uc-quiz-u3-back', function () {
+        window.ucQuiz.back();
+    });
+
+    /* ================================================================
+       КВИЗ: uc:step LISTENER — шаг 1 = конфигуратор
+    ================================================================ */
+    window.addEventListener('uc:step', function (e) {
+        var $t = $('#uc-skeleton').closest('.t-rec');
+        if (!$t.length) $t = $('.uc-cards-block').closest('.t-rec');
+        if (e.detail.step === 1) {
+            $t.show();
+            var el = $t[0];
+            if (el) {
+                el.classList.remove('uc-step-enter');
+                void el.offsetWidth;
+                el.classList.add('uc-step-enter');
+            }
+            /* Swiper меряет контейнер при создании и пересчитывает по
+               window-resize. Пока секция скрыта, обе величины равны нулю,
+               а с появлением шага 0 посетитель проводит на Hero сколько
+               угодно и может успеть повернуть устройство. Без пересчёта
+               мобильный слайдер моделей покажет слайды нулевой ширины.
+               Тот же класс отказа, что в
+               docs/solutions/ui-bugs/swiper-stale-dimensions-after-dom-mutation.md */
+            if (_modelSwiper && typeof _modelSwiper.update === 'function') {
+                _modelSwiper.update();
+            }
+            refreshFades();
+            if (e.detail.scroll) {
+                setTimeout(function() {
+                    var top = $t.offset().top - 20;
+                    /* behavior: 'auto', не 'smooth'. Показ секции меняет
+                       высоту документа в тот же кадр, и браузер отменяет
+                       плавную анимацию на полпути: при возврате с шага 2
+                       скролл замирал на ~459px вместо нуля. Для подмены
+                       экрана мгновенный переход и по смыслу вернее. */
+                    window.scrollTo({ top: top, behavior: 'auto' });
+                }, 50);
+            }
+        } else {
+            $t.hide();
+        }
+    });
+
+    /* Клик по соседним названиям моделей = клик по стрелке */
+    $(document).on('click', '.m-hero-name-prev', function () { goModelSlide('prev'); });
+    $(document).on('click', '.m-hero-name-next', function () { goModelSlide('next'); });
+
+    /* ================================================================
+       ДИНАМИЧЕСКИЙ ФЕЙД ДЛЯ СКРОЛЛ-СТРОК (мобайл)
+    ================================================================ */
+    function updateFade(scrollEl, wrapEl) {
+        if (!scrollEl || !wrapEl) return;
+        var atLeft  = scrollEl.scrollLeft <= 1;
+        var atRight = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 1;
+        wrapEl.classList.toggle('show-left',  !atLeft);
+        wrapEl.classList.toggle('show-right', !atRight);
+    }
+
+    function eachScrollRow(fn) {
+        var wraps = document.querySelectorAll('.uc-scroll-wrap');
+        Array.prototype.forEach.call(wraps, function (wrap) {
+            var sc = wrap.querySelector('.uc-row');
+            if (sc) fn(sc, wrap);
+        });
+    }
+
+    function initFades() {
+        eachScrollRow(function (sc, wrap) {
+            if (!sc._ucFadeBound) {
+                sc._ucFadeBound = true;
+                sc.addEventListener('scroll', function () { updateFade(sc, wrap); }, { passive: true });
+            }
+            updateFade(sc, wrap);
+        });
+    }
+
+    function refreshFades() {
+        eachScrollRow(updateFade);
+    }
+
+    $(window).on('resize', function () { refreshFades(); });
+
+})();
+</script>
+<!-- nominify end -->

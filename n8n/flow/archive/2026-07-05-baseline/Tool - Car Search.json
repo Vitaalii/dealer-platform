@@ -1,0 +1,245 @@
+{
+  "name": "Tool - Car Search",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// ==========================================\n// ⚙️ НАСТРОЙКИ (Ваш реальный домен NocoDB)\n// ==========================================\nconst MY_NOCO_DOMAIN = 'https://v9dt-o63u-4adx.gw-1a.dockhost.net'; \n// ==========================================\n\n// 1. ИНИЦИАЛИЗАЦИЯ И ЗАЩИТА ОТ ПУСТЫХ ДАННЫХ\nfunction getSafeAll(nodeName, checkField) {\n    try { \n        const items = $(nodeName).all().map(i => i.json);\n        if (items.length === 1 && !items[0][checkField]) {\n            return [];\n        }\n        return items;\n    } catch (e) { return []; }\n}\n\nfunction getSafeFirst(nodeName, checkField) {\n    try { \n        const item = $(nodeName).first().json;\n        if (!item[checkField]) return null;\n        return item;\n    } catch (e) { return null; }\n}\n\nconst triggerNode = $('Execute Workflow Trigger').first();\nconst triggerData = triggerNode ? triggerNode.json : {};\n\nconst context = triggerData.qualification_context || {};\nconst query = context.model || triggerData.query || \"Авто\";\nconst dealerId = context.dealer_id || (triggerData.dealer_id || \"unknown\");\nconst userPayment = Number(context.payment || context.credit_payment || triggerData.payment) || 0;\nconst requestType = context.request_type || \"catalog_view\";\nlet targetComplectationId = (context.complectation_id || \"00\").toString();\n\nconst requestTypeMap = {\n    \"credit\": \"Расчет кредита\",\n    \"tradein\": \"Оценка авто в трейд-ин\",\n    \"combo\": \"Расчет кредита и трейд-ин\",\n    \"stock\": \"Наличие на складе\",\n    \"consult\": \"Консультация менеджера\"\n};\nconst requestTypeName = requestTypeMap[requestType] || requestType;\n\nlet targetComplectationName = (targetComplectationId === \"00\") ? \"Любая\" : \"Не найдена\";\n\nconst catalogItems = getSafeAll('Get Catalog', 'Model');\nconst stockItems = getSafeAll('Get Stock', 'Model'); \nconst ratesList = getSafeAll('Get Rates', 'Rate');   \nconst program = getSafeFirst('Get Program', 'Program_Name'); \n\nif (!catalogItems.length) {\n    return { \n        json: {\n            result_text: `По запросу \"${query}\" модели не найдены в каталоге.`,\n            stock_count: 0,\n            complectations: []\n        } \n    };\n}\n\n// ---------------------------------------------------------\n// 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ОКРУГЛЕНИЯ\n// ---------------------------------------------------------\nfunction round10k(val) { return Math.round(val / 10000) * 10000; }\nfunction round1k(val) { return Math.round(val / 1000) * 1000; }\n\nfunction extractUrl(fileObj) {\n    if (!fileObj) return null;\n    if (typeof fileObj === 'string') return fileObj;\n    return fileObj.signedUrl || fileObj.url || fileObj.path || null;\n}\n\nfunction calculatePMT(loan, rateYear, months) {\n    let rateMonth = rateYear / 12;\n    if (rateMonth <= 0.00001) return loan / months;\n    return (loan * rateMonth) / (1 - Math.pow(1 + rateMonth, -months));\n}\n\nfunction calculateMaxLoan(pmt, rateYear, months) {\n    let rateMonth = rateYear / 12;\n    if (rateMonth <= 0.00001) return pmt * months;\n    return (pmt * (1 - Math.pow(1 + rateMonth, -months))) / rateMonth;\n}\n\nfunction getSmartRate(term, downPct) {\n    if (!ratesList || ratesList.length === 0) return { val: 0.16, text: \"16% (Default)\" };\n    const match = ratesList.find(r => {\n        const tFrom = Number(r.Term_From);\n        const tTo   = Number(r.Term_To);\n        const dFrom = Number(r.Downpayment_From);\n        const dTo   = (r.Downpayment_To !== undefined && r.Downpayment_To !== null && r.Downpayment_To !== \"\") ? Number(r.Downpayment_To) : 100;\n        return term >= tFrom && term <= tTo && downPct >= dFrom && downPct <= dTo;\n    });\n    if (match) return { val: Number(match.Rate) / 100, text: `${match.Rate}%` };\n    \n    const termCandidates = ratesList.filter(r => {\n        const tFrom = Number(r.Term_From);\n        const tTo   = Number(r.Term_To);\n        return term >= tFrom && term <= tTo;\n    });\n    if (termCandidates.length > 0) {\n        termCandidates.sort((a, b) => Number(a.Downpayment_From) - Number(b.Downpayment_From));\n        const best = termCandidates[0];\n        return { val: Number(best.Rate) / 100, text: `~${best.Rate}%` };\n    }\n    return { val: 0.16, text: \"~16% (Fallback)\" };\n}\n\nfunction calculateCreditScenarios(price, targetPayment) {\n    const maxTerm = program ? (Number(program.Max_Term_Months) || 84) : 84;\n    const minTerm = 12; \n    const minDownPctGlobal = program ? (Number(program.Min_Down_Payment_Pct) || 10) : 20;\n\n    if (!targetPayment || targetPayment <= 0) {\n        const r = getSmartRate(maxTerm, minDownPctGlobal);\n        const downPayment = price * (minDownPctGlobal / 100);\n        const loan = price - downPayment;\n        const pmt = calculatePMT(loan, r.val, maxTerm);\n        return {\n            status: \"standard\",\n            scenarios: {\n                standard: {\n                    title: \"Стандартный расчет\",\n                    down_payment: round10k(downPayment),\n                    monthly_payment: round1k(pmt),\n                    term: maxTerm,\n                    rate_text: r.text\n                }\n            }\n        };\n    }\n    \n    const realityDownPct = 70;\n    const realityRate = getSmartRate(maxTerm, realityDownPct);\n    const realityDownPayment = price * 0.7;\n    const realityLoan = price - realityDownPayment;\n    const minPossiblePayment = round1k(calculatePMT(realityLoan, realityRate.val, maxTerm));\n\n    if (targetPayment < minPossiblePayment) {\n        return {\n            status: \"impossible\",\n            message: `Платеж слишком мал. Минимум возможного: ${minPossiblePayment}`,\n            min_possible_payment: minPossiblePayment,\n            scenarios: {\n                reality_check: {\n                    title: \"Минимально возможный платеж\",\n                    description: `При взносе 70% и сроке ${maxTerm} мес.`,\n                    down_payment: round10k(realityDownPayment),\n                    monthly_payment: minPossiblePayment,\n                    term: maxTerm,\n                    rate_text: realityRate.text\n                }\n            }\n        };\n    }\n\n    let lightRateTemp = getSmartRate(maxTerm, minDownPctGlobal); \n    let maxLoanLight = calculateMaxLoan(targetPayment, lightRateTemp.val, maxTerm);\n    let lightDownPayment = price - maxLoanLight;\n    const minProgramDownAbs = price * (minDownPctGlobal / 100);\n    if (lightDownPayment < minProgramDownAbs) lightDownPayment = minProgramDownAbs;\n    \n    const lightDownPct = (lightDownPayment / price) * 100;\n    const lightRateFinal = getSmartRate(maxTerm, lightDownPct);\n    const lightFinalLoan = price - lightDownPayment;\n    const lightFinalPmt = calculatePMT(lightFinalLoan, lightRateFinal.val, maxTerm);\n\n    let fastRateTemp = getSmartRate(minTerm, 50); \n    let maxLoanFast = calculateMaxLoan(targetPayment, fastRateTemp.val, minTerm);\n    let fastDownPayment = price - maxLoanFast;\n    if (fastDownPayment > price * 0.9) fastDownPayment = price * 0.9;\n    \n    const fastDownPct = (fastDownPayment / price) * 100;\n    const fastRateFinal = getSmartRate(minTerm, fastDownPct);\n    const fastFinalLoan = price - fastDownPayment;\n    const fastFinalPmt = calculatePMT(fastFinalLoan, fastRateFinal.val, minTerm);\n\n    return {\n        status: \"success\",\n        scenarios: {\n            light_entry: {\n                title: \"Минимальный взнос\",\n                description: `Срок ${maxTerm} мес, минимальный взнос под платеж`,\n                down_payment: round10k(lightDownPayment),\n                monthly_payment: round1k(lightFinalPmt),\n                term: maxTerm,\n                rate_text: lightRateFinal.text\n            },\n            fast_pay: {\n                title: \"Минимальный срок\",\n                description: `Срок ${minTerm} мес, максимальный взнос`,\n                down_payment: round10k(fastDownPayment),\n                monthly_payment: round1k(fastFinalPmt),\n                term: minTerm,\n                rate_text: fastRateFinal.text\n            }\n        }\n    };\n}\n\n// ---------------------------------------------------------\n// 3. АГРЕГАЦИЯ ДАННЫХ\n// ---------------------------------------------------------\nconst grouped = {};\n\nfor (const trim of catalogItems) {\n    const trimName = trim.Complectation;\n    const trimId = (trim['Complectation id'] || trim['Complectation_id'] || trim.Id || \"\").toString();\n\n    if (trimId === targetComplectationId) {\n        targetComplectationName = trimName;\n    }\n\n    if (!grouped[trimId]) {\n        // --- [ОБНОВЛЕНО] ЛОГИКА ПЯТИУРОВНЕВОЙ ЦЕНЫ ---\n        const msrp = round10k(Number(trim['Price old']) || 0);          // Розничная цена (MSRP)\n        const cashBonus = round10k(Number(trim['Cash in hook']) || 0);  // Прямая скидка от салона\n        \n        // РАССЧИТЫВАЕМ САМОСТОЯТЕЛЬНО: Прайс минус прямая скидка\n        const basePrice = msrp - cashBonus; \n\n        const creditBonus = round10k(Number(trim['Credit bonus']) || 0);\n        const tradeinBonus = round10k(Number(trim['Trade-in bonus']) || 0);\n\n        const creditPrice = basePrice - creditBonus;   // Базовая цена минус кредит\n        const tradeinPrice = basePrice - tradeinBonus; // Базовая цена минус трейд-ин\n        // ----------------------------------------------\n\n        const rawPics = trim['Pics'] || [];\n        let picsArray = Array.isArray(rawPics) ? rawPics : [];\n        \n        const sortedImages = {};\n        for (const pic of picsArray) {\n            const fName = (pic.title || pic.path || \"\").toLowerCase();\n            let url = extractUrl(pic);\n            \n            if (url && !url.startsWith('http')) {\n                const cleanPath = url.startsWith('/') ? url.substring(1) : url;\n                url = `${MY_NOCO_DOMAIN}/${cleanPath}`;\n            }\n\n            if (url) {\n                if (fName.includes('ext1')) sortedImages.exterior_front = url;\n                else if (fName.includes('ext2')) sortedImages.exterior_rear = url;\n                else if (fName.includes('int1')) sortedImages.interior_dashboard = url;\n                else if (fName.includes('int2')) sortedImages.interior_driver = url;\n                else if (fName.includes('int3')) sortedImages.interior_door = url;\n                else if (fName.includes('int4')) sortedImages.interior_gear = url;\n            }\n        }\n\n        const creditInfo = calculateCreditScenarios(creditPrice, userPayment);\n        \n        let featuresList = trim.Features ? trim.Features.split('\\n').map(s => s.trim()) : [];\n        const minusRaw = trim['Minus Features'] || \"\"; \n        const minusList = minusRaw.split('\\n').map(s => s.trim().toLowerCase()).filter(s => s !== '');\n\n        const finalFeatures = featuresList.filter(f => {\n            if (f === '') return false;\n            if (f.toLowerCase().includes('топовые опции')) return false;\n            const isForbidden = minusList.some(minus => f.toLowerCase().includes(minus));\n            return !isForbidden;\n        });\n\n        grouped[trimId] = {\n            id: trimId, \n            name: trimName,\n            full_name: trim['Model title'] || trimName,\n            specs: {\n                engine: trim.Engine,\n                transmission: trim.Transmission_ru || trim.Transmission,\n                drive: trim.Drivetrain_ru || trim.Drivetrain,\n                acceleration: trim.Acceleration,\n                consumption: trim['Сonsumption']\n            },\n            price: {\n                MSRP: msrp,                // Цена по прайсу[cite: 7]\n                cash_bonus: cashBonus,      // Прямая скидка[cite: 7]\n                base_price: basePrice,      // Базовая цена[cite: 7]\n                credit_price: creditPrice,  // Цена в кредит\n                credit_bonus: creditBonus,\n                tradein_price: tradeinPrice, // Цена в трейд-ин\n                tradein_bonus: tradeinBonus\n            },\n            features: finalFeatures,\n            images: sortedImages,\n            stock_count: 0, \n            stock_details: { in_stock: 0, in_transit: 0, other: 0 },\n            stock_colors: [], \n            credit_calculation: creditInfo \n        };\n    }\n}\n\n// ---------------------------------------------------------\n// 4. ПОДСЧЕТ СКЛАДА\n// ---------------------------------------------------------\nif (stockItems.length > 0) {\n    for (const car of stockItems) {\n        const carSlug = (car.slug || \"\").toLowerCase(); \n        if (!carSlug) continue;\n\n        const matchedTrimKey = Object.keys(grouped).find(key => {\n            const trimData = grouped[key]; \n            let searchKey = trimData.name.toLowerCase(); \n            searchKey = searchKey.replace('+', '-plus').replace(' ', '-'); \n            return carSlug.includes(searchKey);\n        });\n\n        if (matchedTrimKey) {\n            const trimData = grouped[matchedTrimKey];\n            trimData.stock_count++;\n            const status = (car.Status || \"\").toLowerCase();\n            let statusKey = \"other\";\n            if (status.includes(\"дилер\") || status.includes(\"dealer\") || status.includes(\"stock\")) statusKey = \"in_stock\";\n            else if (status.includes(\"пути\") || status.includes(\"transit\") || status.includes(\"way\")) statusKey = \"in_transit\";\n\n            trimData.stock_details[statusKey]++;\n\n            const colorName = car.Color_ext || \"Не указан\";\n            let colorEntry = trimData.stock_colors.find(c => c.name === colorName);\n            if (!colorEntry) {\n                colorEntry = { name: colorName, total: 0, in_stock: 0, in_transit: 0 };\n                trimData.stock_colors.push(colorEntry);\n            }\n            colorEntry.total++;\n            if (statusKey === 'in_stock') colorEntry.in_stock++;\n            if (statusKey === 'in_transit') colorEntry.in_transit++;\n        }\n    }\n}\n\n// ---------------------------------------------------------\n// 5. ФОРМИРОВАНИЕ ОТВЕТА\n// ---------------------------------------------------------\nreturn {\n    json: { \n        user_id: triggerData.user_id,\n        session_id: triggerData.session_id,\n        chatInput: triggerData.chatInput,\n        user_data: triggerData.user_data,\n        data_routing: triggerData.data_routing,\n        qualification_context: triggerData.qualification_context,\n\n        model: catalogItems[0].Model,\n        dealer_id_used: dealerId,\n        deal_id: context.deal_id || triggerData.deal_id || null,\n        user_request: {\n            payment: userPayment, \n            query: query,\n            type: requestType,\n            type_name: requestTypeName,\n            selected_complectation_id: targetComplectationId,\n            selected_complectation_name: targetComplectationName,\n            plate: context.plate || \"\"  \n        },\n        complectations: Object.values(grouped).sort((a,b) => a.price.MSRP - b.price.MSRP),\n        summary: {\n            total_stock: stockItems.length,\n            model_name: catalogItems[0].Model\n        }\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        64
+      ],
+      "id": "b430dfd6-bd38-4719-bad2-470a1a090cd3",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.catalog_table_id }}",
+        "returnAll": true,
+        "options": {
+          "where": "={{\n  $('Parse Input').first().json.qualification_context?.model_id\n  ? `(Model id,eq,${$('Parse Input').first().json.qualification_context.model_id})`\n  : `(Model,eq,${$('Parse Input').first().json.query})`\n}}"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        -64,
+        64
+      ],
+      "id": "a8d1f42c-24ee-45a5-8541-228bcbf3c189",
+      "name": "Get Catalog",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -400,
+        64
+      ],
+      "id": "b3d000d5-6234-42fd-bb10-17200aa30c07",
+      "name": "Execute Workflow Trigger"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.program_table_id }}",
+        "options": {
+          "where": "=(Model_Pattern,like,%{{ $('Get Catalog').first().json.Id }}%)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        288,
+        64
+      ],
+      "id": "f2bafdfa-0be9-4ecd-a585-da12008730d7",
+      "name": "Get Program",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.credit_table_id }}",
+        "options": {
+          "where": "="
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        464,
+        64
+      ],
+      "id": "4e34e576-18f8-4bee-a665-b7af7b213265",
+      "name": "Get Rates",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем данные от триггера\nconst item = $input.first().json;\n\n// Проверяем, является ли поле 'query' строкой, похожей на JSON\nif (item.query && typeof item.query === 'string' && (item.query.startsWith('{') || item.query.startsWith('['))) {\n  try {\n    // Пытаемся распарсить строку обратно в объект\n    const parsed = JSON.parse(item.query);\n    \n    // Возвращаем распакованный объект как новые данные\n    return { json: parsed };\n  } catch (e) {\n    // Если ошибка парсинга, возвращаем как было\n    return { json: item };\n  }\n}\n\n// Если данные уже нормальные (не строка), просто пропускаем их дальше\nreturn { json: item };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        64
+      ],
+      "id": "6291696c-4e41-46aa-8f19-e0380801ae0d",
+      "name": "Parse Input"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.stock_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.stock_table_id }}",
+        "returnAll": true,
+        "options": {
+          "where": "=(Dealer_id,eq,{{ $('Parse Input').first().json.qualification_context.dealer_id }})~and(Model,eq,{{ $('Get Catalog').first().json.Model_short }})"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        112,
+        64
+      ],
+      "id": "e8c39e79-37c3-4f5c-a4e3-6c8bdd811336",
+      "name": "Get Stock",
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ==========================================\n// ⚙️ НАСТРОЙКИ (Ваш реальный домен NocoDB)\n// ==========================================\nconst MY_NOCO_DOMAIN = 'https://v9dt-o63u-4adx.gw-1a.dockhost.net'; \n// ==========================================\n\n// 1. ИНИЦИАЛИЗАЦИЯ И ЗАЩИТА ОТ ПУСТЫХ ДАННЫХ\nfunction getSafeAll(nodeName, checkField) {\n    try { \n        const items = $(nodeName).all().map(i => i.json);\n        if (items.length === 1 && !items[0][checkField]) {\n            return [];\n        }\n        return items;\n    } catch (e) { return []; }\n}\n\nfunction getSafeFirst(nodeName, checkField) {\n    try { \n        const item = $(nodeName).first().json;\n        if (!item[checkField]) return null;\n        return item;\n    } catch (e) { return null; }\n}\n\nconst triggerNode = $('Execute Workflow Trigger').first();\nconst triggerData = triggerNode ? triggerNode.json : {};\n\n// Распаковываем контекст\nconst context = triggerData.qualification_context || {};\n\n// [FIX 1] Query может лежать в qualification_context (как модель) или в корне\nconst query = context.model || triggerData.query || \"Авто\";\n\nconst dealerId = context.dealer_id || (triggerData.dealer_id || \"unknown\");\n\n// [FIX 2] Проверка context.payment\nconst userPayment = Number(context.payment || context.credit_payment || triggerData.payment) || 0;\n\nconst requestType = context.request_type || \"catalog_view\";\n\nlet targetComplectationId = (context.complectation_id || \"00\").toString();\n\nconst requestTypeMap = {\n    \"credit\": \"Расчет кредита\",\n    \"tradein\": \"Оценка авто в трейд-ин\",\n    \"combo\": \"Расчет кредита и трейд-ин\",\n    \"stock\": \"Наличие на складе\",\n    \"consult\": \"Консультация менеджера\"\n};\nconst requestTypeName = requestTypeMap[requestType] || requestType;\n\nlet targetComplectationName = (targetComplectationId === \"00\") ? \"Любая\" : \"Не найдена\";\n\nconst catalogItems = getSafeAll('Get Catalog', 'Model');\nconst stockItems = getSafeAll('Get Stock', 'Model'); \nconst ratesList = getSafeAll('Get Rates', 'Rate');   \nconst program = getSafeFirst('Get Program', 'Program_Name'); \n\nif (!catalogItems.length) {\n    return { \n        json: {\n            result_text: `По запросу \"${query}\" модели не найдены в каталоге.`,\n            stock_count: 0,\n            complectations: []\n        } \n    };\n}\n\n// ---------------------------------------------------------\n// 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ОКРУГЛЕНИЯ\n// ---------------------------------------------------------\n\n// Новые функции округления\nfunction round10k(val) { return Math.round(val / 10000) * 10000; }\nfunction round1k(val) { return Math.round(val / 1000) * 1000; }\n\nfunction extractUrl(fileObj) {\n    if (!fileObj) return null;\n    if (typeof fileObj === 'string') return fileObj;\n    return fileObj.signedUrl || fileObj.url || fileObj.path || null;\n}\n\nfunction calculatePMT(loan, rateYear, months) {\n    let rateMonth = rateYear / 12;\n    if (rateMonth <= 0.00001) return loan / months;\n    return (loan * rateMonth) / (1 - Math.pow(1 + rateMonth, -months));\n}\n\nfunction calculateMaxLoan(pmt, rateYear, months) {\n    let rateMonth = rateYear / 12;\n    if (rateMonth <= 0.00001) return pmt * months;\n    return (pmt * (1 - Math.pow(1 + rateMonth, -months))) / rateMonth;\n}\n\nfunction getSmartRate(term, downPct) {\n    if (!ratesList || ratesList.length === 0) return { val: 0.16, text: \"16% (Default)\" };\n    const match = ratesList.find(r => {\n        const tFrom = Number(r.Term_From);\n        const tTo   = Number(r.Term_To);\n        const dFrom = Number(r.Downpayment_From);\n        const dTo   = (r.Downpayment_To !== undefined && r.Downpayment_To !== null && r.Downpayment_To !== \"\") ? Number(r.Downpayment_To) : 100;\n        return term >= tFrom && term <= tTo && downPct >= dFrom && downPct <= dTo;\n    });\n    if (match) return { val: Number(match.Rate) / 100, text: `${match.Rate}%` };\n    \n    const termCandidates = ratesList.filter(r => {\n        const tFrom = Number(r.Term_From);\n        const tTo   = Number(r.Term_To);\n        return term >= tFrom && term <= tTo;\n    });\n    if (termCandidates.length > 0) {\n        termCandidates.sort((a, b) => Number(a.Downpayment_From) - Number(b.Downpayment_From));\n        const best = termCandidates[0];\n        return { val: Number(best.Rate) / 100, text: `~${best.Rate}%` };\n    }\n    return { val: 0.16, text: \"~16% (Fallback)\" };\n}\n\nfunction calculateCreditScenarios(price, targetPayment) {\n    const maxTerm = program ? (Number(program.Max_Term_Months) || 84) : 84;\n    const minTerm = 12; \n    const minDownPctGlobal = program ? (Number(program.Min_Down_Payment_Pct) || 10) : 20;\n\n    if (!targetPayment || targetPayment <= 0) {\n        const r = getSmartRate(maxTerm, minDownPctGlobal);\n        const downPayment = price * (minDownPctGlobal / 100);\n        const loan = price - downPayment;\n        const pmt = calculatePMT(loan, r.val, maxTerm);\n        return {\n            status: \"standard\",\n            scenarios: {\n                standard: {\n                    title: \"Стандартный расчет\",\n                    down_payment: round10k(downPayment), // Округление до 10к\n                    monthly_payment: round1k(pmt),       // Округление до 1к\n                    term: maxTerm,\n                    rate_text: r.text\n                }\n            }\n        };\n    }\n    \n    const realityDownPct = 70;\n    const realityRate = getSmartRate(maxTerm, realityDownPct);\n    const realityDownPayment = price * 0.7;\n    const realityLoan = price - realityDownPayment;\n    const minPossiblePayment = round1k(calculatePMT(realityLoan, realityRate.val, maxTerm)); // Округление до 1к\n\n    if (targetPayment < minPossiblePayment) {\n        return {\n            status: \"impossible\",\n            message: `Платеж слишком мал. Минимум возможного: ${minPossiblePayment}`,\n            min_possible_payment: minPossiblePayment,\n            scenarios: {\n                reality_check: {\n                    title: \"Минимально возможный платеж\",\n                    description: `При взносе 70% и сроке ${maxTerm} мес.`,\n                    down_payment: round10k(realityDownPayment), // Округление до 10к\n                    monthly_payment: minPossiblePayment,\n                    term: maxTerm,\n                    rate_text: realityRate.text\n                }\n            }\n        };\n    }\n\n    let lightRateTemp = getSmartRate(maxTerm, minDownPctGlobal); \n    let maxLoanLight = calculateMaxLoan(targetPayment, lightRateTemp.val, maxTerm);\n    let lightDownPayment = price - maxLoanLight;\n    const minProgramDownAbs = price * (minDownPctGlobal / 100);\n    if (lightDownPayment < minProgramDownAbs) lightDownPayment = minProgramDownAbs;\n    \n    const lightDownPct = (lightDownPayment / price) * 100;\n    const lightRateFinal = getSmartRate(maxTerm, lightDownPct);\n    const lightFinalLoan = price - lightDownPayment;\n    const lightFinalPmt = calculatePMT(lightFinalLoan, lightRateFinal.val, maxTerm);\n\n    let fastRateTemp = getSmartRate(minTerm, 50); \n    let maxLoanFast = calculateMaxLoan(targetPayment, fastRateTemp.val, minTerm);\n    let fastDownPayment = price - maxLoanFast;\n    if (fastDownPayment > price * 0.9) fastDownPayment = price * 0.9;\n    \n    const fastDownPct = (fastDownPayment / price) * 100;\n    const fastRateFinal = getSmartRate(minTerm, fastDownPct);\n    const fastFinalLoan = price - fastDownPayment;\n    const fastFinalPmt = calculatePMT(fastFinalLoan, fastRateFinal.val, minTerm);\n\n    return {\n        status: \"success\",\n        scenarios: {\n            light_entry: {\n                title: \"Минимальный взнос\",\n                description: `Срок ${maxTerm} мес, минимальный взнос под платеж`,\n                down_payment: round10k(lightDownPayment), // Округление до 10к\n                monthly_payment: round1k(lightFinalPmt),  // Округление до 1к\n                term: maxTerm,\n                rate_text: lightRateFinal.text\n            },\n            fast_pay: {\n                title: \"Минимальный срок\",\n                description: `Срок ${minTerm} мес, максимальный взнос`,\n                down_payment: round10k(fastDownPayment), // Округление до 10к\n                monthly_payment: round1k(fastFinalPmt),  // Округление до 1к\n                term: minTerm,\n                rate_text: fastRateFinal.text\n            }\n        }\n    };\n}\n\n// ---------------------------------------------------------\n// 3. АГРЕГАЦИЯ ДАННЫХ\n// ---------------------------------------------------------\nconst grouped = {};\n\nfor (const trim of catalogItems) {\n    const trimName = trim.Complectation;\n    // Берем ID строго из колонок комплектации\n    const trimId = (trim['Complectation id'] || trim['Complectation_id'] || trim.Id || \"\").toString();\n\n    // ЛОВИМ НАЗВАНИЕ ВЫБРАННОЙ КОМПЛЕКТАЦИИ ПО ID\n    if (trimId === targetComplectationId) {\n        targetComplectationName = trimName;\n    }\n\n    // Группируем по уникальному ID комплектации\n    if (!grouped[trimId]) {\n        // ОКРУГЛЯЕМ БАЗОВЫЕ ЦЕНЫ ДО 10 000 руб\n        const basePrice = round10k(Number(trim['Price new']));\n        const creditBonus = round10k(Number(trim['Credit bonus']) || 0);\n        const finalPrice = basePrice - creditBonus;\n\n        const rawPics = trim['Pics'] || [];\n        let picsArray = Array.isArray(rawPics) ? rawPics : [];\n        \n        const sortedImages = {};\n        for (const pic of picsArray) {\n            const fName = (pic.title || pic.path || \"\").toLowerCase();\n            let url = extractUrl(pic);\n            \n            if (url && !url.startsWith('http')) {\n                const cleanPath = url.startsWith('/') ? url.substring(1) : url;\n                url = `${MY_NOCO_DOMAIN}/${cleanPath}`;\n            }\n\n            if (url) {\n                if (fName.includes('ext1')) sortedImages.exterior_front = url;\n                else if (fName.includes('ext2')) sortedImages.exterior_rear = url;\n                else if (fName.includes('int1')) sortedImages.interior_dashboard = url;\n                else if (fName.includes('int2')) sortedImages.interior_driver = url;\n                else if (fName.includes('int3')) sortedImages.interior_door = url;\n                else if (fName.includes('int4')) sortedImages.interior_gear = url;\n            }\n        }\n\n        const creditInfo = calculateCreditScenarios(finalPrice, userPayment);\n        \n        let featuresList = trim.Features ? trim.Features.split('\\n').map(s => s.trim()) : [];\n        const minusRaw = trim['Minus Features'] || \"\"; \n        const minusList = minusRaw.split('\\n').map(s => s.trim().toLowerCase()).filter(s => s !== '');\n\n        const finalFeatures = featuresList.filter(f => {\n            if (f === '') return false;\n            if (f.toLowerCase().includes('топовые опции')) return false;\n            const isForbidden = minusList.some(minus => f.toLowerCase().includes(minus));\n            return !isForbidden;\n        });\n\n        grouped[trimId] = {\n            id: trimId, \n            name: trimName,\n            full_name: trim['Model title'] || trimName,\n            specs: {\n                engine: trim.Engine,\n                transmission: trim.Transmission_ru || trim.Transmission,\n                drive: trim.Drivetrain_ru || trim.Drivetrain,\n                acceleration: trim.Acceleration,\n                consumption: trim['Сonsumption']\n            },\n            price: {\n                MSRP: basePrice,\n                credit_price: finalPrice,\n                credit_bonus: creditBonus\n            },\n            features: finalFeatures,\n            images: sortedImages,\n            stock_count: 0, \n            stock_details: { in_stock: 0, in_transit: 0, other: 0 },\n            stock_colors: [], \n            credit_calculation: creditInfo \n        };\n    }\n}\n\n// ---------------------------------------------------------\n// 4. ПОДСЧЕТ СКЛАДА\n// ---------------------------------------------------------\nif (stockItems.length > 0) {\n    for (const car of stockItems) {\n        const carSlug = (car.slug || \"\").toLowerCase(); \n        if (!carSlug) continue;\n\n        const matchedTrimKey = Object.keys(grouped).find(key => {\n            const trimData = grouped[key]; \n            let searchKey = trimData.name.toLowerCase(); \n            searchKey = searchKey.replace('+', '-plus').replace(' ', '-'); \n            return carSlug.includes(searchKey);\n        });\n\n        if (matchedTrimKey) {\n            const trimData = grouped[matchedTrimKey];\n            trimData.stock_count++;\n            const status = (car.Status || \"\").toLowerCase();\n            let statusKey = \"other\";\n            if (status.includes(\"дилер\") || status.includes(\"dealer\") || status.includes(\"stock\")) statusKey = \"in_stock\";\n            else if (status.includes(\"пути\") || status.includes(\"transit\") || status.includes(\"way\")) statusKey = \"in_transit\";\n\n            trimData.stock_details[statusKey]++;\n\n            const colorName = car.Color_ext || \"Не указан\";\n            let colorEntry = trimData.stock_colors.find(c => c.name === colorName);\n            if (!colorEntry) {\n                colorEntry = { name: colorName, total: 0, in_stock: 0, in_transit: 0 };\n                trimData.stock_colors.push(colorEntry);\n            }\n            colorEntry.total++;\n            if (statusKey === 'in_stock') colorEntry.in_stock++;\n            if (statusKey === 'in_transit') colorEntry.in_transit++;\n        }\n    }\n}\n\n// ---------------------------------------------------------\n// 5. ФОРМИРОВАНИЕ ОТВЕТА\n// ---------------------------------------------------------\nreturn {\n    json: { \n        model: catalogItems[0].Model,\n        dealer_id_used: dealerId,\n        user_request: {\n            payment: userPayment, \n            query: query,\n            type: requestType,\n            type_name: requestTypeName,\n            selected_complectation_id: targetComplectationId,\n            selected_complectation_name: targetComplectationName\n        },\n        complectations: Object.values(grouped).sort((a,b) => a.price.MSRP - b.price.MSRP),\n        summary: {\n            total_stock: stockItems.length,\n            model_name: catalogItems[0].Model\n        }\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        368
+      ],
+      "id": "60270b12-bece-4c7f-b1ed-2c92757918c3",
+      "name": "Code in JavaScript_backup"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Catalog": {
+      "main": [
+        [
+          {
+            "node": "Get Stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Program": {
+      "main": [
+        [
+          {
+            "node": "Get Rates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Rates": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Input": {
+      "main": [
+        [
+          {
+            "node": "Get Catalog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Stock": {
+      "main": [
+        [
+          {
+            "node": "Get Program",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "versionId": "9e1e8b6d-6a31-44b9-8fd8-d5be56083e01",
+  "meta": {
+    "instanceId": "65c0178e84d5c3db112ec6489beae5f53a11ae74e53d6537d4d9a5cd140a483b"
+  },
+  "id": "qunUsxh-zt4J-gc38lijX",
+  "tags": []
+}

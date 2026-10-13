@@ -1,0 +1,50 @@
+{
+  "_comment": "Веб-вход (план 2026-09-30-001, U10, R61–R62): таблица соответствий интеграции Tilda → Битрикс для сделки бота (сделка Tilda не нашлась). Ключ — имя переменной формы Tilda в блоке form «открыть сессию» (сравнение без учёта регистра), значение — код поля сделки. Коды — crm.deal.fields, проверено 2026-09-30. bot_owned — переменные, которые кабинет знает сам: значение блока для них не используется, бот пишет своё (каталог, код сессии, конверсия, кабинет). cookie_string_fields — cookie со «;» на конце, как пишет интеграция; cookie_integer_fields — целое без «;». client_ip_field — IP клиента от доверенного прокси (не из блока).",
+  "fields": {
+    "MODEL": "UF_CRM_65B0A4605FA7C",
+    "MODIFICATION": "UF_CRM_65B0A4606E9CA",
+    "COMPLECTATION": "UF_CRM_65B0A46077BCD",
+    "color-select": "UF_CRM_65B0A46085731",
+    "BONUS": "UF_CRM_65B0A5E0ED55D",
+    "OFFER": "UF_CRM_65D5BD2A777E5",
+    "messenger": "UF_CRM_65B0A5E1003B2",
+    "SKU": "UF_CRM_66068DB231026",
+    "QUANTITY": "UF_CRM_66068DB238783",
+    "LINK": "UF_CRM_1708662321",
+    "BRAND": "UF_CRM_66068DB216D55",
+    "DEALER": "UF_CRM_66068DB220F43",
+    "FORMID": "UF_CRM_66068DB229299",
+    "sku-wa": "UF_CRM_I2CRM_CHAT",
+    "CREDIT_DURATION": "UF_CRM_1706098512256",
+    "CREDIT_SUMM": "UF_CRM_1706668886227",
+    "DOWN_PAYMENT_RUB": "UF_CRM_65B1EC7CC365E",
+    "MONTHLY_PAYMENT": "UF_CRM_1706098533386",
+    "CAR_NUMBER": "UF_CRM_1706098554832",
+    "MILEAGE": "UF_CRM_65B0A4607EC41",
+    "FORM_TYPE": "UF_CRM_666D69C9EEE1B",
+    "PRICE_AC": "UF_CRM_67E4E4692881A",
+    "PRICE_OL": "UF_CRM_67E4E4691A18E",
+    "WEBSITE": "UF_CRM_681317C7B3CB1",
+    "LETTER_TITLE": "UF_CRM_1759808650",
+    "utm_source": "UTM_SOURCE",
+    "utm_medium": "UTM_MEDIUM",
+    "utm_campaign": "UTM_CAMPAIGN",
+    "utm_content": "UTM_CONTENT",
+    "utm_term": "UTM_TERM"
+  },
+  "bot_owned": [
+    "MODEL", "MODIFICATION", "COMPLECTATION", "SKU", "LINK", "PRICE_AC", "PRICE_OL",
+    "OFFER", "FORM_TYPE", "sku-wa",
+    "CREDIT_DURATION", "CREDIT_SUMM", "DOWN_PAYMENT_RUB", "MONTHLY_PAYMENT",
+    "CAR_NUMBER", "MILEAGE"
+  ],
+  "cookie_string_fields": {
+    "_ct_session_id": "UF_CRM_65D8414464AF0",
+    "_ym_uid": "UF_CRM_65D841446D593",
+    "WhiteCallback_visit": "UF_CRM_1764591234"
+  },
+  "cookie_integer_fields": {
+    "_ct_session_id": "UF_CRM_1765187737"
+  },
+  "client_ip_field": "UF_CRM_1764493358"
+}

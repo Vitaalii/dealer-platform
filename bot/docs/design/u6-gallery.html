@@ -1,0 +1,1172 @@
+<!-- nominify begin -->
+<style>
+/* ================================================================
+   ГАЛЕРЕЯ — СТАТИЧНЫЙ КОМПОНЕНТ
+================================================================ */
+#uc-gallery-custom {
+    max-width: min(1000px, 85vw);
+    margin: 0 auto;
+    width: 100%;
+    padding: 45px 0 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Главное фото */
+.gal-main {
+    position: relative;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    aspect-ratio: 3/2;
+    border-radius: 12px;
+    background: #f5f5f5;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+/* Swiper внутри главного фото */
+.uc-gal-swiper {
+    width: 100%;
+    height: 100%;
+}
+.uc-gal-swiper .swiper-slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.uc-gal-swiper .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* Кнопки навигации поверх фото */
+.gal-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 40px;
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    z-index: 2;
+    transition: background 0.15s;
+}
+.gal-nav-btn:hover { background: rgba(255,255,255,0.28); }
+.gal-nav-btn.prev { left: 12px; }
+.gal-nav-btn.next { right: 12px; }
+
+/* Миниатюры */
+.gal-thumbs {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.gal-thumb {
+    aspect-ratio: 3/2;
+    border-radius: 6px;
+    background: #f5f5f5;
+    background-size: cover;
+    background-position: center;
+    border: 0.5px solid #e0e0e0;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+/* .gal-thumb.active { border: 1.5px solid #111; } */
+.gal-thumb:hover { border-color: #bbb; }
+
+/* ================================================================
+   ЛАЙТБОКС (без изменений)
+================================================================ */
+#uc-gallery-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 2147483640;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+#uc-gallery-lightbox.uc-lb-open {
+    display: flex;
+}
+#uc-gallery-lightbox img {
+    max-width: 92vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 2px;
+}
+#uc-gallery-lightbox .uc-lb-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    font-size: 28px;
+    color: #fff;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px 8px;
+}
+#uc-gallery-lightbox .uc-lb-prev,
+#uc-gallery-lightbox .uc-lb-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 36px;
+    color: #fff;
+    background: rgba(0,0,0,0.3);
+    border: none;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 4px;
+    line-height: 1;
+}
+#uc-gallery-lightbox .uc-lb-prev { left: 12px; }
+#uc-gallery-lightbox .uc-lb-next { right: 12px; }
+#uc-gallery-lightbox .uc-lb-counter {
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    margin-top: 10px;
+    font-family: Arial, sans-serif;
+}
+
+/* ================================================================
+   КВИЗ ШАГ 2: ХАРАКТЕРИСТИКИ + NAV
+================================================================ */
+.uc-specs-section {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    padding-bottom: 20px;
+    border-bottom: 0.5px solid #efefef;
+    margin-bottom: 20px;
+}
+.uc-selection-title {
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #111111;
+    margin-bottom: 12px;
+}
+.uc-specs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.uc-spec-card {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 8px 14px;
+}
+.uc-spec-value {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #111111;
+    margin-bottom: 2px;
+}
+.uc-spec-label {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #888888;
+}
+
+/* Nav-кнопки шага 2. Разметка навигации здесь — .uc-calc-nav (ниже),
+   а не .uc-quiz-nav: одноимённое правило, которое стояло тут раньше, не
+   матчило в U6 вообще ничего и лишь перебивало .uc-quiz-nav из U3 (Tilda
+   склеивает CSS всех блоков в один документ, U6 идёт ниже → выигрывает при
+   равной специфичности). Из-за него кнопка «ДАЛЕЕ →» на шаге 1 уезжала влево.
+   Правило удалено; кнопки скоупятся под #uc-gallery-custom. */
+#uc-gallery-custom .uc-quiz-btn-next {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 13px 32px;
+    background: #1a1a1a;
+    color: #ffffff;
+    border: none;
+    white-space: nowrap;
+}
+/* nowrap: иначе «← НАЗАД» ломается на две строки на узких экранах */
+#uc-gallery-custom .uc-quiz-btn-back {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 13px 24px;
+    background: transparent;
+    color: #1a1a1a;
+    border: 0.5px solid #d0d0d0;
+    white-space: nowrap;
+}
+#uc-gallery-custom .uc-quiz-btn-next:hover {
+    background: #333333;
+}
+#uc-gallery-custom .uc-quiz-btn-back:hover {
+    border-color: #888888;
+    background: #f8f8f8;
+}
+
+/* Обёртка для выравнивания контента (совпадает с .configurator в U3) */
+.configurator {
+    max-width: min(1000px, 85vw);
+    margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+    #uc-gallery-custom { max-width: 100%; padding-top: 30px; }
+    .configurator { padding: 0 8px; max-width: 100%; }
+    .uc-specs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .uc-specs::-webkit-scrollbar { display: none; }
+    .uc-spec-card { flex-shrink: 0; border-radius: 7px; padding: 6px 11px; }
+    .uc-spec-value { font-size: 15px; white-space: nowrap; }
+    .uc-spec-label { font-size: 13px; white-space: nowrap; }
+
+    /* Фейды для горизонтального скролла пиллсов */
+    .uc-specs-scroll-wrap { position: relative; }
+    .uc-specs-scroll-wrap::before,
+    .uc-specs-scroll-wrap::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        width: 36px;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+        transition: opacity 0.18s;
+        opacity: 0;
+    }
+    .uc-specs-scroll-wrap::before {
+        left: 0;
+        background: linear-gradient(to left, transparent, #fff);
+    }
+    .uc-specs-scroll-wrap::after {
+        right: 0;
+        background: linear-gradient(to right, transparent, #fff);
+    }
+    .uc-specs-scroll-wrap.show-left::before  { opacity: 1; }
+    .uc-specs-scroll-wrap.show-right::after  { opacity: 1; }
+}
+
+/* ================================================================
+   АДАПТИВ
+================================================================ */
+@media (max-width: 640px) {
+    .gal-main {
+        width: 100vw;
+        margin-left: calc((100% - 100vw) / 2);
+        border-radius: 0;
+    }
+    .gal-nav-btn { width: 24px; height: 36px; border-radius: 6px; font-size: 14px; }
+    .gal-thumbs { gap: 4px; width: 100%; margin-left: 0; margin-right: 0; }
+    .gal-thumb { border-radius: 5px; }
+}
+
+/* ================================================================
+   СЕКЦИЯ «РАСЧЁТ ЦЕНЫ» — ниже .gal-thumbs
+   Спецификация из макета Шаг_3_-_Спецификация.html
+================================================================ */
+.uc-calc-section {
+    margin-top: 20px;
+    border-top: 0.5px solid #efefef;
+    padding: 20px 0 45px;
+}
+/* Заголовок-«мостик» — визуальный аналог .bridge из U3.
+   Классы намеренно свои (uc-calc-bridge-*), а не .bridge/.bridge-text из U3:
+   Tilda склеивает CSS всех блоков в один документ, и одноимённый класс с
+   другим значением padding перебивал бы правило U3 (ровно так уехала влево
+   кнопка «ДАЛЕЕ →»). Значения плашки и текста продублированы 1:1;
+   горизонтальный padding — 0, потому что контент .uc-calc-section
+   не имеет собственного отступа 28px, в отличие от .config-col в U3. */
+.uc-calc-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    margin-bottom: 10px;
+}
+.uc-calc-bridge-bar {
+    width: 3px;
+    height: 18px;
+    background: #1a1a1a;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.uc-calc-bridge-text {
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+/* Вкладки «Способ связи»: таб-бар сверху + общее тело активной вкладки снизу,
+   единая рамка на весь блок (замена прежних раздельных карточек-кнопок). */
+.uc-calc-tabs {
+    border: 0.5px solid #e0e0e0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+    margin-bottom: 32px;
+}
+.uc-calc-tabbar {
+    display: flex;
+    background: #fafafa;
+    border-bottom: 0.5px solid #e0e0e0;
+}
+.uc-calc-tabbar__filler { flex: 1; min-width: 0; }
+.uc-calc-method-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 250px;
+    text-align: left;
+    padding: 16px 22px;
+    font-family: Arial, sans-serif;
+    background: #fafafa;
+    border: none;
+    border-right: 0.5px solid #e0e0e0;
+    margin-bottom: -0.5px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.15s;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.uc-calc-method-btn:hover { background: #f1f1f1; }
+.uc-calc-method-btn.uc-calc-method-btn--active {
+    background: #fff;
+    box-shadow: inset 0 3px 0 #1a1a1a;
+}
+.uc-calc-method-btn.uc-calc-method-btn--active:hover { background: #fff; }
+.uc-calc-method-emoji { font-size: 24px; line-height: 1; flex-shrink: 0; }
+.uc-calc-method-name { display: block; font-size: 15px; font-weight: 600; color: #7a7a7a; }
+.uc-calc-method-btn.uc-calc-method-btn--active .uc-calc-method-name { color: #1a1a1a; }
+.uc-calc-method-desc { display: block; font-size: 12px; color: #8a8a8a; line-height: 1.45; }
+.uc-calc-tabpanel { padding: 26px 24px 28px; background: #fff; }
+.uc-messenger-hint {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #8a8a8a;
+    margin: 0 0 18px;
+    line-height: 1.5;
+}
+.uc-messenger-list {
+    display: flex;
+    gap: 16px;
+}
+.uc-messenger-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 22px 20px;
+    border-radius: 12px;
+    border: 0.5px solid #e0e0e0;
+    background: #fff;
+    cursor: pointer;
+    width: 200px;
+    font-family: Arial, sans-serif;
+    -webkit-appearance: none;
+    appearance: none; 
+    -webkit-tap-highlight-color: transparent;
+}
+.uc-messenger-card.uc-messenger-card--active {
+    border: 2px solid #111;
+}
+.uc-messenger-icon {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    display: block;
+    object-fit: cover;
+    border-radius: 14px;
+}
+.uc-messenger-icon--circle { border-radius: 50%; }
+.uc-messenger-icon--site {
+    background: #1a1a1a;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+}
+.uc-messenger-card-name {
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+.uc-messenger-card-desc {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #8a8a8a;
+    text-align: center;
+    line-height: 1.45;
+}
+.uc-calc-phone-section { margin-bottom: 0; }
+.uc-calc-phone-hint {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #8a8a8a;
+    margin: 0 0 18px;
+    line-height: 1.5;
+}
+.uc-calc-phone-row { display: flex; gap: 16px; }
+.uc-calc-phone-field { flex: 1; }
+.uc-calc-phone-label {
+    display: block;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 5px;
+}
+.uc-calc-input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #e6e6e6;
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    color: #1a1a1a;
+    background: #fff;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.uc-calc-input:focus { border-color: #1a1a1a; }
+.uc-calc-input.uc-calc-input--error { border-color: #d00; }
+.uc-calc-agreements { margin-top: 20px; margin-bottom: 0; }
+.uc-calc-agr-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #6a6a6a;
+    line-height: 1.55;
+}
+.uc-calc-agr-item:last-child { margin-bottom: 0; }
+.uc-calc-agr-check {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid #c4c4c4;
+    border-radius: 4px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s;
+    margin-top: 1px;
+    cursor: pointer;
+}
+.uc-calc-agr-item.uc-agr-checked .uc-calc-agr-check { border-color: #1a1a1a; }
+.uc-calc-agr-check::after {
+    content: '';
+    display: none;
+    width: 11px;
+    height: 6px;
+    border-left: 2px solid #1a1a1a;
+    border-bottom: 2px solid #1a1a1a;
+    transform: rotate(-45deg) translateY(-2px);
+}
+.uc-calc-agr-item.uc-agr-checked .uc-calc-agr-check::after { display: block; }
+.uc-calc-agr-text { flex: 1; }
+.uc-calc-agr-text a { color: #8a8a8a; text-decoration: underline; text-underline-offset: 2px; }
+.uc-calc-agr-text a:hover { color: #1a1a1a; }
+.uc-calc-error {
+    display: none;
+    color: #d00;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    margin-top: 10px;
+}
+.uc-calc-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 36px;
+}
+@media (max-width: 640px) {
+    .uc-calc-title { padding: 10px 0; margin-bottom: 20px; }
+    .uc-calc-bridge-bar { height: 16px; }
+    .uc-calc-bridge-text { font-size: 16px; }
+    .uc-calc-tabs { margin-bottom: 24px; }
+    .uc-calc-tabbar__filler { display: none; }
+    .uc-calc-method-btn { flex: 1; min-width: 0; padding: 15px 12px; min-height: 56px; gap: 10px; }
+    .uc-calc-method-btn:last-of-type { border-right: none; }
+    .uc-calc-method-emoji { font-size: 22px; }
+    .uc-calc-method-name { font-size: 14px; }
+    .uc-calc-method-desc { font-size: 11px; }
+    .uc-calc-tabpanel { padding: 16px 12px 18px; }
+    .uc-messenger-list { gap: 10px; }
+    .uc-messenger-card { width: auto; flex: 1; padding: 16px 10px; gap: 10px; }
+    .uc-messenger-icon { width: 48px; height: 48px; }
+    .uc-messenger-icon--site { width: 48px; height: 48px; }
+    .uc-messenger-card-name { font-size: 18px; }
+    .uc-messenger-card-desc { font-size: 11px; }
+    .uc-messenger-hint { font-size: 13px; margin-bottom: 14px; }
+    .uc-calc-agr-item { font-size: 12px; margin-bottom: 24px; }
+    .uc-calc-agr-check { width: 18px; height: 18px; }
+    .uc-calc-phone-row { flex-direction: column; gap: 10px; }
+    .uc-calc-input { font-size: 14px; padding: 11px 12px; }
+    .uc-calc-phone-label { font-size: 11px; }
+    .uc-calc-phone-section { margin-bottom: 0; }
+    .uc-calc-phone-hint { font-size: 13px; margin-bottom: 14px; }
+}
+</style>
+
+<!-- Статичная галерея -->
+<div id="uc-gallery-custom" style="display:none;">
+    <div class="configurator">
+        <div class="uc-quiz-title" style="font-size:26px;font-weight:700;letter-spacing: 0.05em;color:#111111;margin-bottom:32px;">Данные об автомобиле</div>
+        <!-- Квиз шаг 2: информация о выбранной комплектации -->
+        <div class="uc-specs-section">
+            <div class="uc-selection-title" id="uc-gal-info"></div>
+            <div id="uc-specs-scroll-wrap" class="uc-specs-scroll-wrap">
+                <div class="uc-specs" id="uc-gal-specs"></div>
+            </div>
+        </div>
+    </div>
+    <div class="gal-main">
+        <div class="uc-gal-swiper" id="uc-gal-swiper">
+            <div class="swiper-wrapper" id="uc-gal-swiper-wrapper"></div>
+        </div>
+        <button class="gal-nav-btn prev" id="uc-gal-prev" type="button" aria-label="Назад">
+            <i class="ti ti-chevron-left"></i>
+        </button>
+        <button class="gal-nav-btn next" id="uc-gal-next" type="button" aria-label="Вперёд">
+            <i class="ti ti-chevron-right"></i>
+        </button>
+    </div>
+    <div class="configurator">
+        <div class="gal-thumbs" id="uc-gal-thumbs"></div>
+
+        <!-- СЕКЦИЯ «ЦЕНА, КРЕДИТ И TRADE-IN» -->
+        <div class="uc-calc-section" id="uc-calc-section">
+
+            <div class="uc-calc-title">
+                <div class="uc-calc-bridge-bar"></div>
+                <span class="uc-calc-bridge-text">Расчет цены, кредита и trade-in</span>
+            </div>
+
+            <div class="uc-calc-tabs">
+
+                <!-- Способ связи — таб-бар -->
+                <div class="uc-calc-tabbar">
+                    <button class="uc-calc-method-btn uc-calc-method-btn--active" type="button" data-calc-tab="chat">
+                        <span class="uc-calc-method-emoji">🤖</span>
+                        <span>
+                            <span class="uc-calc-method-name">В чате</span>
+                            <span class="uc-calc-method-desc">Инфобот пришлёт расчёт</span>
+                        </span>
+                    </button>
+                    <button class="uc-calc-method-btn" type="button" data-calc-tab="phone">
+                        <span class="uc-calc-method-emoji">👨‍💼</span>
+                        <span>
+                            <span class="uc-calc-method-name">По телефону</span>
+                            <span class="uc-calc-method-desc">Позвонит менеджер</span>
+                        </span>
+                    </button>
+                    <div class="uc-calc-tabbar__filler"></div>
+                </div>
+
+                <!-- Секция «В ЧАТЕ» -->
+                <div id="uc-calc-chat-section" class="uc-calc-tabpanel">
+                    <p class="uc-messenger-hint">Выберите удобный для Вас мессенджер</p>
+                    <div class="uc-messenger-list" id="uc-messenger-list">
+
+                        <!-- «На сайте» — только десктоп, скрывается на мобайле через JS -->
+                        <button class="uc-messenger-card uc-messenger-card--active"
+                                id="uc-ms-site" type="button">
+                            <div class="uc-messenger-icon uc-messenger-icon--site">
+                                <svg width="30" height="28" viewBox="0 0 30 28" fill="none">
+                                    <rect x="1" y="1" width="28" height="19" rx="4.5" fill="white"/>
+                                    <path d="M5 20 L2 27 L13 20 Z" fill="white"/>
+                                    <rect x="6" y="7" width="6" height="2" rx="1" fill="#1a1a1a" opacity=".5"/>
+                                    <rect x="6" y="12" width="12" height="2" rx="1" fill="#1a1a1a" opacity=".3"/>
+                                </svg>
+                            </div>
+                            <span class="uc-messenger-card-name">На сайте</span>
+                            <span class="uc-messenger-card-desc">Дождитесь сообщения<br>в чате</span>
+                        </button>
+
+                        <!-- MAX -->
+                        <button class="uc-messenger-card" id="uc-ms-max" type="button">
+                            <img class="uc-messenger-icon"
+                                 src="https://static.tildacdn.com/tild6531-3562-4165-b431-343365346532/logo_MAX.png"
+                                 alt="MAX"
+                                 style="border-radius:14px;box-shadow:0 4px 14px rgba(91,56,255,.22);">
+                            <span class="uc-messenger-card-name">MAX</span>
+                            <span class="uc-messenger-card-desc">Нажмите НАЧАТЬ<br>после перехода</span>
+                        </button>
+
+                        <!-- Telegram -->
+                        <button class="uc-messenger-card" id="uc-ms-tg" type="button">
+                            <img class="uc-messenger-icon uc-messenger-icon--circle"
+                                 src="https://static.tildacdn.com/tild3063-3137-4532-b562-363666363666/Telegram_logo.png"
+                                 alt="Telegram"
+                                 style="box-shadow:0 4px 14px rgba(41,162,220,.18);">
+                            <span class="uc-messenger-card-name">Telegram</span>
+                            <span class="uc-messenger-card-desc">Нажмите ЗАПУСТИТЬ<br>после перехода</span>
+                        </button>
+
+                    </div>
+                </div>
+
+                <!-- Секция «ПО ТЕЛЕФОНУ» (скрыта по умолчанию) -->
+                <div id="uc-calc-phone-section" class="uc-calc-phone-section uc-calc-tabpanel" style="display:none;">
+                    <p class="uc-calc-phone-hint">Укажите Ваше Имя и Номер телефона для связи</p>
+                    <div class="uc-calc-phone-row">
+                        <div class="uc-calc-phone-field">
+                            <label class="uc-calc-phone-label" for="uc-calc-name">Имя</label>
+                            <input id="uc-calc-name" class="uc-calc-input" type="text"
+                                   placeholder="Ваше имя" autocomplete="given-name">
+                        </div>
+                        <div class="uc-calc-phone-field">
+                            <label class="uc-calc-phone-label" for="uc-calc-phone">Телефон</label>
+                            <input id="uc-calc-phone" class="uc-calc-input" type="tel"
+                                   placeholder="+7 (___) ___-__-__" autocomplete="tel">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Чекбоксы согласий (рендерятся из .uc-tildaform) -->
+            <div class="uc-calc-agreements" id="uc-calc-agreements"></div>
+
+            <!-- Ошибка валидации -->
+            <div class="uc-calc-error" id="uc-calc-error"></div>
+
+            <!-- Навигация (НАЗАД — квизовый back; ДАЛЕЕ/ОТПРАВИТЬ — финальный submit) -->
+            <div class="uc-calc-nav">
+                <button class="uc-quiz-btn-back" id="uc-gal-back" type="button">← НАЗАД</button>
+                <button class="uc-quiz-btn-next" id="uc-gal-submit" type="button">ДАЛЕЕ →</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Лайтбокс (без изменений) -->
+<div id="uc-gallery-lightbox" role="dialog" aria-modal="true">
+    <button class="uc-lb-close" type="button" aria-label="Закрыть">&#215;</button>
+    <button class="uc-lb-prev" type="button" aria-label="Назад">&#8249;</button>
+    <img src="" alt="" id="uc-lb-img">
+    <div class="uc-lb-counter" id="uc-lb-counter"></div>
+    <button class="uc-lb-next" type="button" aria-label="Вперёд">&#8250;</button>
+</div>
+
+<script>
+(function () {
+
+    var galleryUrls     = [];
+    var currentGalIndex = 0;
+    var lbIndex         = 0;
+    var galSwiper       = null;
+    var _lastUseLoop    = null; // R9: loop parameter of the current galSwiper instance
+
+    /* ================================================================
+       CALC-SECTION: состояние
+    ================================================================ */
+    var calcOffer     = 'В чате';   // 'В чате' | 'По телефону'
+    var calcMessenger = 'web';      // 'web' | 'MAX' | 'Telegram'
+    var CALC_DESKTOP  = 480;        // px — порог desktop/mobile
+
+    function initCalcState() {
+        if ($(window).width() > CALC_DESKTOP) {
+            calcMessenger = 'web';
+            $('#uc-ms-site').show().addClass('uc-messenger-card--active');
+            $('#uc-ms-max, #uc-ms-tg').removeClass('uc-messenger-card--active');
+        } else {
+            $('#uc-ms-site').hide();
+            if (calcMessenger === 'web') calcMessenger = 'MAX';
+            $('#uc-ms-max').toggleClass('uc-messenger-card--active', calcMessenger === 'MAX');
+            $('#uc-ms-tg').toggleClass('uc-messenger-card--active', calcMessenger === 'Telegram');
+        }
+        updateCalcBtnText();
+    }
+
+    function updateCalcBtnText() {
+        var text = (calcOffer === 'По телефону') ? 'ОТПРАВИТЬ' : 'ДАЛЕЕ →';
+        $('#uc-gal-submit').text(text);
+    }
+
+    function renderCalcAgreements() {
+        var $container = $('#uc-calc-agreements').empty();
+        var $cbGroups  = $('.uc-tildaform .t-input-group_cb');
+        if (!$cbGroups.length) return;
+
+        $cbGroups.each(function (idx) {
+            var $group    = $(this);
+            var $realCb   = $group.find('input[type="checkbox"]');
+            var $lblClone = $group.find('label.t-checkbox__control').clone();
+            $lblClone.find('input[type="checkbox"], div.t-checkbox__indicator').remove();
+            var titleHtml = $lblClone.html().trim();
+            var isChecked = $realCb.prop('checked') !== false;
+
+            var $item = $('<div class="uc-calc-agr-item' +
+                (isChecked ? ' uc-agr-checked' : '') +
+                '" data-agr-idx="' + idx + '">' +
+                '<div class="uc-calc-agr-check"></div>' +
+                '<span class="uc-calc-agr-text">' + titleHtml + '</span>' +
+                '</div>');
+
+            $item.on('click', function (e) {
+                if ($(e.target).is('a')) return;
+                $(this).toggleClass('uc-agr-checked');
+            });
+
+            $container.append($item);
+        });
+    }
+
+    function syncCalcAgreements() {
+        $('.uc-tildaform .t-input-group_cb').each(function (idx) {
+            var $realCb = $(this).find('input[type="checkbox"]');
+            var isVisualChecked = $('#uc-calc-agreements [data-agr-idx="' + idx + '"]')
+                .hasClass('uc-agr-checked');
+            $realCb.prop('checked', isVisualChecked);
+        });
+    }
+
+    /* ================================================================
+       Инициализация при загрузке данных — вызывается из U2
+    ================================================================ */
+    window.initGallery = function (airData) {
+        if (!airData || !airData.length) return;
+        var sorted = airData.slice().sort(function (a, b) {
+            return Number(a.fields['Complectation id'] || 0) - Number(b.fields['Complectation id'] || 0);
+        });
+        window.updateGallery(sorted[0]);
+    };
+
+    /* ================================================================
+       Основная функция — вызывается из selectComplectation (U3)
+    ================================================================ */
+    window.updateGallery = function (car) {
+        var pics   = (car && car.fields && car.fields['Pics']) || [];
+        var botUrl = window.UNIFIEDBOT_URL || '';
+
+        galleryUrls = [];
+        for (var i = 0; i < pics.length; i++) {
+            var p   = pics[i];
+            var raw = p.url || p.signedPath || p.path || '';
+            if (!raw) continue;
+            galleryUrls.push(
+                raw.startsWith('http') ? raw : botUrl + '/' + raw.replace(/^\//, '')
+            );
+        }
+
+        if (!galleryUrls.length) {
+            $('#uc-gallery-custom').hide();
+            return;
+        }
+
+        currentGalIndex = 0;
+        var useLoop = galleryUrls.length > 1;
+
+        /* R9: update slides in place only when both old and new state have loop=false.
+           Loop mode always uses destroy+recreate to ensure slideChangeTransitionEnd
+           listener is re-registered on the fresh Swiper instance. */
+        if (galSwiper && !useLoop && !_lastUseLoop
+                && typeof galSwiper.removeAllSlides === 'function') {
+            galSwiper.removeAllSlides();
+            var $wrapperInPlace = $('#uc-gal-swiper-wrapper');
+            galleryUrls.forEach(function (url) {
+                $wrapperInPlace.append(
+                    '<div class="swiper-slide">' +
+                    '<img src="' + url + '" alt="" loading="lazy"' +
+                    ' style="width:100%;height:100%;object-fit:contain;">' +
+                    '</div>'
+                );
+            });
+            galSwiper.update();
+            galSwiper.slideTo(0, 0, false);
+            renderThumbs();
+        } else {
+            /* First init or loop parameter changed: destroy + recreate */
+            if (galSwiper) {
+                galSwiper.destroy(true, true);
+                galSwiper = null;
+            }
+
+            var $wrapper = $('#uc-gal-swiper-wrapper').empty();
+            galleryUrls.forEach(function (url) {
+                $wrapper.append(
+                    '<div class="swiper-slide">' +
+                    '<img src="' + url + '" alt="" loading="lazy"' +
+                    ' style="width:100%;height:100%;object-fit:contain;">' +
+                    '</div>'
+                );
+            });
+
+            renderThumbs();
+
+            setTimeout(function () {
+                galSwiper = new Swiper('#uc-gal-swiper', {
+                    slidesPerView: 1,
+                    loop: useLoop,
+                    speed: 350,
+                    allowTouchMove: true
+                });
+
+                galSwiper.on('slideChangeTransitionEnd', function () {
+                    currentGalIndex = galSwiper.activeIndex;
+                    renderThumbs();
+                });
+
+                _lastUseLoop = useLoop;
+            }, 0);
+        }
+
+        $('#uc-gallery-custom').show();
+    };
+
+    /* ================================================================
+       Рендер миниатюр
+    ================================================================ */
+    function renderThumbs() {
+        var thumbHtml = '';
+        for (var i = 0; i < galleryUrls.length; i++) {
+            thumbHtml +=
+                '<div class="gal-thumb' + (i === currentGalIndex ? ' active' : '') + '"' +
+                ' data-idx="' + i + '"' +
+                ' style="background-image:url(\'' + galleryUrls[i] + '\')">' +
+                '</div>';
+        }
+        $('#uc-gal-thumbs').html(thumbHtml);
+    }
+
+    /* ================================================================
+       Навигация: кнопки и миниатюры
+    ================================================================ */
+    $(document).on('click', '#uc-gal-prev', function () {
+        if (galSwiper) galSwiper.slidePrev();
+    });
+
+    $(document).on('click', '#uc-gal-next', function () {
+        if (galSwiper) galSwiper.slideNext();
+    });
+
+    $(document).on('click', '#uc-gal-thumbs .gal-thumb', function () {
+        var idx = parseInt($(this).attr('data-idx'), 10);
+        if (!galSwiper) return;
+        if (galSwiper.params && galSwiper.params.loop) {
+            galSwiper.slideToLoop(idx, 350);
+        } else {
+            galSwiper.slideTo(idx, 350);
+        }
+        currentGalIndex = idx;
+        renderThumbs();
+    });
+
+    /* ================================================================
+       Лайтбокс (без изменений; открытие по клику на фото убрано)
+    ================================================================ */
+    var lbIndex = 0;
+
+    function openLightbox(idx) {
+        if (!galleryUrls.length) return;
+        lbIndex = ((idx % galleryUrls.length) + galleryUrls.length) % galleryUrls.length;
+        showLbPhoto(lbIndex);
+        $('#uc-gallery-lightbox').addClass('uc-lb-open');
+        $('body').css('overflow', 'hidden');
+    }
+
+    function showLbPhoto(idx) {
+        lbIndex = ((idx % galleryUrls.length) + galleryUrls.length) % galleryUrls.length;
+        $('#uc-lb-img').attr('src', galleryUrls[lbIndex]);
+        $('#uc-lb-counter').text((lbIndex + 1) + ' / ' + galleryUrls.length);
+    }
+
+    $(document).on('click', '#uc-gallery-lightbox .uc-lb-close', closeLightbox);
+    $(document).on('click', '#uc-gallery-lightbox .uc-lb-prev', function () { showLbPhoto(lbIndex - 1); });
+    $(document).on('click', '#uc-gallery-lightbox .uc-lb-next', function () { showLbPhoto(lbIndex + 1); });
+
+    $(document).on('click', '#uc-gallery-lightbox', function (e) {
+        if ($(e.target).is('#uc-gallery-lightbox')) closeLightbox();
+    });
+
+    $(document).on('keydown', function (e) {
+        if (!$('#uc-gallery-lightbox').hasClass('uc-lb-open')) return;
+        if (e.key === 'Escape')     closeLightbox();
+        if (e.key === 'ArrowLeft')  showLbPhoto(lbIndex - 1);
+        if (e.key === 'ArrowRight') showLbPhoto(lbIndex + 1);
+    });
+
+    function closeLightbox() {
+        $('#uc-gallery-lightbox').removeClass('uc-lb-open');
+        $('body').css('overflow', '');
+    }
+
+    /* ================================================================
+       КВИЗ ШАГ 2: fillGalInfo — info-строка + spec-пиллсы
+    ================================================================ */
+    function fillGalInfo(car) {
+        if (!car || !car.fields) return;
+        var f    = car.fields;
+        var model = f['Model'] || '';
+        var compl = f['Complectation'] || '';
+        $('#uc-gal-info').text(model + (model && compl ? ' · ' : '') + compl);
+
+        var specs = [
+            { label: 'Двигатель',  key: 'Engine' },
+            { label: 'Коробка',    key: 'Transmission_ru' },
+            { label: 'Привод',     key: 'Drivetrain_ru' },
+            { label: 'Разгон',     key: 'Acceleration' },
+            { label: 'Расход',     key: 'Сonsumption' },
+            // ПРАВКА 5: оба варианта написания поля клиренса
+            { label: 'Клиренс',    key: 'clearance', fallback: 'Clearance' }
+        ];
+
+        var html = '';
+        specs.forEach(function (s) {
+            var val = f[s.key] || (s.fallback ? f[s.fallback] : '');
+            if (!val) return;
+            html += '<div class="uc-spec-card">' +
+                    '<div class="uc-spec-value">' + esc(val) + '</div>' +
+                    '<div class="uc-spec-label">' + esc(s.label) + '</div>' +
+                    '</div>';
+        });
+        $('#uc-gal-specs').html(html);
+        setTimeout(updateSpecsFade, 0);
+        var specsEl = document.getElementById('uc-gal-specs');
+        if (specsEl) {
+            specsEl.removeEventListener('scroll', updateSpecsFade);
+            specsEl.addEventListener('scroll', updateSpecsFade, { passive: true });
+        }
+    }
+
+    function updateSpecsFade() {
+        var sc = document.getElementById('uc-gal-specs');
+        var wr = document.getElementById('uc-specs-scroll-wrap');
+        if (!sc || !wr) return;
+        var atLeft  = sc.scrollLeft <= 1;
+        var atRight = sc.scrollLeft + sc.clientWidth >= sc.scrollWidth - 1;
+        wr.classList.toggle('show-left',  !atLeft);
+        wr.classList.toggle('show-right', !atRight);
+    }
+
+    /* ── Переключение карточек «В чате» / «По телефону» ── */
+    $(document).on('click', '.uc-calc-method-btn', function () {
+        $('.uc-calc-method-btn').removeClass('uc-calc-method-btn--active');
+        $(this).addClass('uc-calc-method-btn--active');
+        calcOffer = $(this).data('calc-tab') === 'chat' ? 'В чате' : 'По телефону';
+
+        if (calcOffer === 'В чате') {
+            $('#uc-calc-chat-section').show();
+            $('#uc-calc-phone-section').hide();
+            $('.uc-tildaform input[name="name"], .uc-tildaform input[name="phone"]')
+                .prop('disabled', true);
+            initCalcState();
+        } else {
+            $('#uc-calc-chat-section').hide();
+            $('#uc-calc-phone-section').show();
+            $('.uc-tildaform input[name="name"], .uc-tildaform input[name="phone"]')
+                .prop('disabled', false);
+        }
+        $('#uc-calc-error').hide();
+        $('#uc-calc-name, #uc-calc-phone').removeClass('uc-calc-input--error');
+        updateCalcBtnText();
+    });
+
+    /* ── Выбор карточки мессенджера ── */
+    $(document).on('click', '#uc-ms-site', function () {
+        calcMessenger = 'web';
+        setActiveMessengerCard('site');
+    });
+    $(document).on('click', '#uc-ms-max', function () {
+        calcMessenger = 'MAX';
+        setActiveMessengerCard('max');
+    });
+    $(document).on('click', '#uc-ms-tg', function () {
+        calcMessenger = 'Telegram';
+        setActiveMessengerCard('tg');
+    });
+
+    function setActiveMessengerCard(which) {
+        $('#uc-ms-site, #uc-ms-max, #uc-ms-tg').removeClass('uc-messenger-card--active');
+        $('#uc-ms-' + which).addClass('uc-messenger-card--active');
+    }
+
+    /* ── Сброс ошибки при вводе ── */
+    $(document).on('input', '#uc-calc-name, #uc-calc-phone', function () {
+        $(this).removeClass('uc-calc-input--error');
+        if (!$('.uc-calc-input--error').length) {
+            $('#uc-calc-error').hide();
+        }
+    });
+
+    /* ── Финальная кнопка submit ── */
+    $(document).on('click', '#uc-gal-submit', function () {
+        $('#uc-calc-name, #uc-calc-phone').removeClass('uc-calc-input--error');
+        $('#uc-calc-error').hide();
+
+        if (calcOffer === 'По телефону') {
+            var name  = $('#uc-calc-name').val().trim();
+            var phone = $('#uc-calc-phone').val().trim();
+            if (!name || !phone) {
+                if (!name)  $('#uc-calc-name').addClass('uc-calc-input--error');
+                if (!phone) $('#uc-calc-phone').addClass('uc-calc-input--error');
+                $('#uc-calc-error').text('Пожалуйста, заполните имя и телефон').show();
+                return;
+            }
+        }
+
+        syncCalcAgreements();
+
+        var isMobile = $(window).width() <= CALC_DESKTOP;
+        var isChat   = (calcOffer === 'В чате');
+        var messenger = '';
+
+        if (isChat) {
+            messenger = calcMessenger;
+        }
+
+        waSend      = isChat;
+        waMessenger = messenger;
+
+        var $f = $('.uc-tildaform');
+
+        if (calcOffer === 'По телефону') {
+            $f.find('input[name="name"]').val($('#uc-calc-name').val().trim());
+            $f.find('input[name="phone"]').val($('#uc-calc-phone').val().trim());
+        }
+
+        $f.find('input[name="offer"]').val(calcOffer);
+        $f.find('input[name="messenger"]').val(messenger);
+        $f.find('input[name="sku-wa"]').val(typeof skuId !== 'undefined' ? skuId : '');
+
+        if (isChat && messenger === 'web') {
+            var payload = (typeof skuId !== 'undefined' ? skuId : '') +
+                          '_' +
+                          (typeof globalModelUtm !== 'undefined' ? globalModelUtm : '');
+            window.isMaxOverlayActive = true;
+            (function (p) {
+                function tryOpen() {
+                    if (typeof window.openTDWidget === 'function') {
+                        window.openTDWidget(p);
+                    } else {
+                        setTimeout(tryOpen, 100);
+                    }
+                }
+                setTimeout(tryOpen, 200);
+            })(payload);
+        }
+
+        var $submitBtn = $f.find('.t-submit');
+        if ($submitBtn.length) {
+            $submitBtn.click();
+        } else {
+            $f.find('form').trigger('submit');
+        }
+    });
+
+    /* ================================================================
+       КВИЗ: uc:step LISTENER
+    ================================================================ */
+    $(document).ready(function () {
+        // Скрыть .t-rec до получения uc:step
+        var $t = $('#uc-gallery-custom').closest('.t-rec');
+        if (!$t.length) $t = $('#uc-gallery-custom').parent();
+        $t.hide();
+        renderCalcAgreements();
+    });
+
+    setTimeout(function () {
+        if (!$('#uc-calc-agreements').children().length) {
+            renderCalcAgreements();
+        }
+    }, 1000);
+
+    window.addEventListener('uc:step', function (e) {
+        var $t = $('#uc-gallery-custom').closest('.t-rec');
+        if (!$t.length) $t = $('#uc-gallery-custom').parent();
+        if (e.detail.step === 2) {
+            $t.show();
+            $('#uc-gallery-custom').show();
+            var el = $t[0];
+            if (el) {
+                el.classList.remove('uc-step-enter');
+                void el.offsetWidth;
+                el.classList.add('uc-step-enter');
+            }
+            var car = window.ucQuiz && window.ucQuiz.selectedCar;
+            if (car) {
+                window.updateGallery(car);
+                fillGalInfo(car);
+            }
+            /* Инициализируем calc-секцию при каждом входе на шаг 2 */
+            initCalcState();
+            renderCalcAgreements();
+            /* Сбрасываем способ связи на «В чате» при каждом входе */
+            $('.uc-calc-method-btn').removeClass('uc-calc-method-btn--active');
+            $('[data-calc-tab="chat"]').addClass('uc-calc-method-btn--active');
+            calcOffer = 'В чате';
+            $('#uc-calc-chat-section').show();
+            $('#uc-calc-phone-section').hide();
+            $('.uc-tildaform input[name="name"], .uc-tildaform input[name="phone"]')
+                .prop('disabled', true);
+            updateCalcBtnText();
+            if (e.detail.scroll) {
+                setTimeout(function() {
+                    var top = $t.offset().top - 20;
+                    window.scrollTo({ top: top, behavior: 'smooth' });
+                }, 50);
+            }
+        } else {
+            $t.hide();
+            $('#uc-gallery-custom').hide();
+        }
+    });
+
+    /* Квиз: nav-кнопки шага 2 */
+    $(document).on('click', '#uc-gal-back', function () { window.ucQuiz.back(); });
+
+    /* Resize-обработчик: пересчёт calc-состояния при смене ориентации */
+    (function () {
+        var _resizeTimer;
+        $(window).on('resize', function () {
+            clearTimeout(_resizeTimer);
+            _resizeTimer = setTimeout(function () {
+                if (calcOffer === 'В чате') {
+                    initCalcState();
+                }
+            }, 200);
+        });
+    })();
+
+    // Вспомогательная функция экранирования (нужна в fillGalInfo)
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+})();
+</script>
+<!-- nominify end -->

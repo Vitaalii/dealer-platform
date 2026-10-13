@@ -1,0 +1,50 @@
+# Секреты — никогда в репозиторий
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+credentials*.json
+google_key*.json
+secrets*.json
+*.secrets
+*token*.txt
+
+# Окружения и зависимости
+venv/
+.venv/
+node_modules/
+
+# Кэши и сборочный мусор
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+
+# Логи, дампы, данные, бэкапы
+*.log
+logs/
+*.sql
+*.dump
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+back_up/
+backups/
+data/
+
+# macOS / Яндекс.Диск
+.DS_Store
+._*
+*.Conflict*
+*(конфликт*
+
+# Локальные настройки инструментов
+.claude/settings.local.json
+.claude/worktrees/
+.idea/
+.vscode/

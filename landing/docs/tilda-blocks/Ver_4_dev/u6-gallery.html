@@ -1,0 +1,3204 @@
+<!-- nominify begin -->
+<style>
+/* ================================================================
+   ГАЛЕРЕЯ — СТАТИЧНЫЙ КОМПОНЕНТ
+================================================================ */
+#uc-gallery-custom {
+    max-width: min(1000px, 85vw);
+    margin: 0 auto;
+    width: 100%;
+    padding: 45px 0 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Главное фото */
+.gal-main {
+    position: relative;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    aspect-ratio: 3/2;
+    border-radius: 12px;
+    background: #f5f5f5;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+/* Swiper внутри главного фото */
+.uc-gal-swiper {
+    width: 100%;
+    height: 100%;
+}
+.uc-gal-swiper .swiper-slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.uc-gal-swiper .swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* Кнопки навигации поверх фото */
+.gal-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 40px;
+    border-radius: 8px;
+    border: 0.5px solid rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    z-index: 2;
+    transition: background 0.15s;
+}
+.gal-nav-btn:hover { background: rgba(255,255,255,0.28); }
+.gal-nav-btn.prev { left: 12px; }
+.gal-nav-btn.next { right: 12px; }
+
+/* Миниатюры */
+.gal-thumbs {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+}
+.gal-thumb {
+    aspect-ratio: 3/2;
+    border-radius: 6px;
+    background: #f5f5f5;
+    background-size: cover;
+    background-position: center;
+    border: 0.5px solid #e0e0e0;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+/* .gal-thumb.active { border: 1.5px solid #111; } */
+.gal-thumb:hover { border-color: #bbb; }
+
+/* ================================================================
+   ЛАЙТБОКС (без изменений)
+================================================================ */
+#uc-gallery-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 2147483640;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+#uc-gallery-lightbox.uc-lb-open {
+    display: flex;
+}
+#uc-gallery-lightbox img {
+    max-width: 92vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 2px;
+}
+#uc-gallery-lightbox .uc-lb-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    font-size: 28px;
+    color: #fff;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px 8px;
+}
+#uc-gallery-lightbox .uc-lb-prev,
+#uc-gallery-lightbox .uc-lb-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 36px;
+    color: #fff;
+    background: rgba(0,0,0,0.3);
+    border: none;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 4px;
+    line-height: 1;
+}
+#uc-gallery-lightbox .uc-lb-prev { left: 12px; }
+#uc-gallery-lightbox .uc-lb-next { right: 12px; }
+#uc-gallery-lightbox .uc-lb-counter {
+    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    margin-top: 10px;
+    font-family: Arial, sans-serif;
+}
+
+/* ================================================================
+   КВИЗ ШАГ 2: ХАРАКТЕРИСТИКИ + NAV
+================================================================ */
+.uc-specs-section {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    padding-bottom: 20px;
+    border-bottom: 0.5px solid #efefef;
+    margin-bottom: 20px;
+}
+.uc-selection-title {
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #111111;
+    margin-bottom: 12px;
+}
+.uc-specs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.uc-spec-card {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 8px 14px;
+}
+.uc-spec-value {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: #111111;
+    margin-bottom: 2px;
+}
+.uc-spec-label {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #888888;
+}
+
+/* Nav-кнопки шага 2. Разметка навигации здесь — .uc-calc-nav (ниже),
+   а не .uc-quiz-nav: одноимённое правило, которое стояло тут раньше, не
+   матчило в U6 вообще ничего и лишь перебивало .uc-quiz-nav из U3 (Tilda
+   склеивает CSS всех блоков в один документ, U6 идёт ниже → выигрывает при
+   равной специфичности). Из-за него кнопка «ДАЛЕЕ →» на шаге 1 уезжала влево.
+   Правило удалено; кнопки скоупятся под #uc-gallery-custom. */
+#uc-gallery-custom .uc-quiz-btn-next {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 13px 32px;
+    /* Из :root блока U2 — одно объявление на оба шага квиза. Второй
+       аргумент var() — подстраховка на случай страницы без U2. */
+    background: var(--uc-btn-next-bg, #2D5467);
+    color: #ffffff;
+    border: none;
+    white-space: nowrap;
+}
+/* nowrap: иначе «← НАЗАД» ломается на две строки на узких экранах */
+#uc-gallery-custom .uc-quiz-btn-back {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 13px 24px;
+    background: transparent;
+    color: #1a1a1a;
+    border: 0.5px solid #d0d0d0;
+    white-space: nowrap;
+}
+/* Hover светлее базового на +10.4 пункта светлоты (та же дельта, что была
+   у пары #1a1a1a → #333333); тон и насыщенность базового сохранены.
+   Цвет кнопки намеренно отвязан от акцента #51565C плашки и плиток. */
+#uc-gallery-custom .uc-quiz-btn-next:hover {
+    background: var(--uc-btn-next-bg-hover, #3C728D);
+}
+/* Состояние отправки. Ширина и min-width не задаются намеренно: U6
+   живёт под content-box, который навязывает tilda-grid-3.0.min.css,
+   и явная ширина сложилась бы с padding: 13px 32px — ровно так
+   «ДАЛЕЕ →» однажды уехала за край экрана. Кнопка тянется по
+   содержимому, надпись «ОТПРАВКА…» подобрана той же длины,
+   что «ОТПРАВИТЬ». */
+#uc-gallery-custom .uc-quiz-btn-next--sending,
+#uc-gallery-custom .uc-quiz-btn-next--sending:hover {
+    /* Тот же базовый цвет, что у обычного состояния: во время отправки
+       кнопка меняет только надпись и спиннер, но не цвет. */
+    background: var(--uc-btn-next-bg, #2D5467);
+    cursor: default;
+}
+#uc-gallery-custom .uc-quiz-btn-next--sending::before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 8px;
+    vertical-align: -1px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    /* transform-анимация, а не изменение геометрии — тот же приём,
+       что в PageSpeed R5 (shimmer) и R8 (прогресс-бар): крутится на
+       композиторе, без релейаута. */
+    animation: uc-btn-spin 0.7s linear infinite;
+}
+@keyframes uc-btn-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+#uc-gallery-custom .uc-quiz-btn-back:hover {
+    border-color: #888888;
+    background: #f8f8f8;
+}
+
+/* Обёртка для выравнивания контента (совпадает с .configurator в U3) */
+.configurator {
+    max-width: min(1000px, 85vw);
+    margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+    #uc-gallery-custom { max-width: 100%; padding-top: 30px; }
+    .configurator { padding: 0 8px; max-width: 100%; }
+    .uc-specs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .uc-specs::-webkit-scrollbar { display: none; }
+    .uc-spec-card { flex-shrink: 0; border-radius: 7px; padding: 6px 11px; }
+    .uc-spec-value { font-size: 15px; white-space: nowrap; }
+    .uc-spec-label { font-size: 13px; white-space: nowrap; }
+
+    /* Фейды для горизонтального скролла пиллсов */
+    .uc-specs-scroll-wrap { position: relative; }
+    .uc-specs-scroll-wrap::before,
+    .uc-specs-scroll-wrap::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        width: 36px;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+        transition: opacity 0.18s;
+        opacity: 0;
+    }
+    .uc-specs-scroll-wrap::before {
+        left: 0;
+        background: linear-gradient(to left, transparent, #fff);
+    }
+    .uc-specs-scroll-wrap::after {
+        right: 0;
+        background: linear-gradient(to right, transparent, #fff);
+    }
+    .uc-specs-scroll-wrap.show-left::before  { opacity: 1; }
+    .uc-specs-scroll-wrap.show-right::after  { opacity: 1; }
+}
+
+/* ================================================================
+   АДАПТИВ
+================================================================ */
+@media (max-width: 640px) {
+    .gal-main {
+        width: 100vw;
+        margin-left: calc((100% - 100vw) / 2);
+        border-radius: 0;
+    }
+    .gal-nav-btn { width: 24px; height: 36px; border-radius: 6px; font-size: 14px; }
+    .gal-thumbs { gap: 4px; width: 100%; margin-left: 0; margin-right: 0; }
+    .gal-thumb { border-radius: 5px; }
+}
+
+/* ================================================================
+   СЕКЦИЯ «РАСЧЁТ ЦЕНЫ» — ниже .gal-thumbs
+   Спецификация из макета Шаг_3_-_Спецификация.html
+================================================================ */
+.uc-calc-section {
+    margin-top: 20px;
+    border-top: 0.5px solid #efefef;
+    padding: 20px 0 45px;
+}
+/* Заголовок-«мостик» — визуальный аналог .bridge из U3.
+   Классы намеренно свои (uc-calc-bridge-*), а не .bridge/.bridge-text из U3:
+   Tilda склеивает CSS всех блоков в один документ, и одноимённый класс с
+   другим значением padding перебивал бы правило U3 (ровно так уехала влево
+   кнопка «ДАЛЕЕ →»). Значения плашки и текста продублированы 1:1;
+   горизонтальный padding — 0, потому что контент .uc-calc-section
+   не имеет собственного отступа 28px, в отличие от .config-col в U3. */
+.uc-calc-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    margin-bottom: 10px;
+}
+.uc-calc-bridge-bar {
+    width: 3px;
+    height: 18px;
+    background: #1a1a1a;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.uc-calc-bridge-text {
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+/* Вкладки «Способ связи»: таб-бар сверху + общее тело активной вкладки снизу,
+   единая рамка на весь блок (замена прежних раздельных карточек-кнопок). */
+.uc-calc-tabs {
+    position: relative;      /* якорь для затухания таб-бара на мобайле */
+    border: 0.5px solid #e0e0e0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+    margin-bottom: 32px;
+}
+.uc-calc-tabbar {
+    display: flex;
+    background: #fafafa;
+    border-bottom: 0.5px solid #e0e0e0;
+    /* Три вкладки шире контейнера уже на планшете (641–990 px) — бар
+       прокручивается на любой ширине; при запасе места прокрутки нет. */
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.uc-calc-tabbar::-webkit-scrollbar { display: none; }
+.uc-calc-method-btn { flex-shrink: 0; }
+.uc-calc-tabbar__filler { flex: 1; min-width: 0; }
+.uc-calc-method-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 250px;
+    text-align: left;
+    padding: 16px 22px;
+    font-family: Arial, sans-serif;
+    background: #fafafa;
+    border: none;
+    border-right: 0.5px solid #e0e0e0;
+    margin-bottom: -0.5px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.15s;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.uc-calc-method-btn--narrow { min-width: 230px; }
+.uc-calc-method-btn:hover { background: #f1f1f1; }
+.uc-calc-method-btn.uc-calc-method-btn--active {
+    background: #fff;
+    box-shadow: inset 0 3px 0 #1a1a1a;
+}
+.uc-calc-method-btn.uc-calc-method-btn--active:hover { background: #fff; }
+.uc-calc-method-emoji { font-size: 24px; line-height: 1; flex-shrink: 0; }
+.uc-calc-method-name { display: block; font-size: 15px; font-weight: 600; color: #7a7a7a; }
+.uc-calc-method-btn.uc-calc-method-btn--active .uc-calc-method-name { color: #1a1a1a; }
+.uc-calc-method-desc { display: block; font-size: 12px; color: #8a8a8a; line-height: 1.45; }
+.uc-calc-tabpanel { padding: 26px 24px 28px; background: #fff; }
+.uc-messenger-hint {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #8a8a8a;
+    margin: 0 0 18px;
+    line-height: 1.5;
+}
+.uc-messenger-list {
+    display: flex;
+    gap: 16px;
+}
+.uc-messenger-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 22px 20px;
+    border-radius: 12px;
+    border: 0.5px solid #e0e0e0;
+    background: #fff;
+    cursor: pointer;
+    width: 200px;
+    font-family: Arial, sans-serif;
+    -webkit-appearance: none;
+    appearance: none; 
+    -webkit-tap-highlight-color: transparent;
+}
+/* Активное состояние НЕ меняет ширину рамки: 0.5px → 2px сдвигали бы
+   границы блока на 1.5px с каждой стороны, карточка «скакала» бы, а
+   соседи по строке съезжали. Видимая рамка в 2px набирается неизменной
+   0.5px-рамкой плюс внутренней тенью — box-shadow на раскладку не влияет
+   и сам повторяет border-radius. Тот же приём уже используется во вкладках
+   «Способ связи» (inset 0 3px 0). */
+.uc-messenger-card.uc-messenger-card--active {
+    border-color: #111;
+    box-shadow: inset 0 0 0 1.5px #111;
+}
+.uc-messenger-icon {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    display: block;
+    object-fit: cover;
+    border-radius: 14px;
+}
+.uc-messenger-icon--circle { border-radius: 50%; }
+.uc-messenger-icon--site {
+    background: #1a1a1a;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+}
+.uc-messenger-card-name {
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+.uc-messenger-card-desc {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #8a8a8a;
+    text-align: center;
+    line-height: 1.45;
+}
+.uc-calc-phone-section { margin-bottom: 0; }
+/* «Где открыть MAX» — только телефон (<= CALC_DESKTOP) и только при
+   выбранной карточке MAX; показывает и прячет JS (ucSyncMaxMode), по
+   тому же признаку ширины, что «На сайте». Значения макета
+   uc-calc-mobile-390.html написаны под border-box, а Tilda навязывает
+   content-box — сброс только на этих элементах. */
+#uc-gallery-custom .uc-calc-maxmode,
+#uc-gallery-custom .uc-calc-maxmode * { box-sizing: border-box; }
+#uc-gallery-custom .uc-calc-maxmode {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 12px;
+    background: #fafafa;
+    border: 0.5px solid #f0f0f0;
+    border-radius: 10px;
+    font-family: Arial, sans-serif;
+}
+#uc-gallery-custom .uc-calc-maxmode--show { display: flex; }
+#uc-gallery-custom .uc-calc-maxmode__title { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+#uc-gallery-custom .uc-calc-maxmode__list { display: flex; gap: 8px; }
+#uc-gallery-custom .uc-calc-maxmode__btn {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 10px;
+    min-height: 52px;
+    border-radius: 8px;
+    border: 0.5px solid #e0e0e0;
+    background: #fff;
+    cursor: pointer;
+    text-align: left;
+    font-family: Arial, sans-serif;
+    -webkit-appearance: none;
+    appearance: none;
+    -webkit-tap-highlight-color: transparent;
+}
+#uc-gallery-custom .uc-calc-maxmode__btn--active { border-color: #111; box-shadow: inset 0 0 0 1.5px #111; }
+#uc-gallery-custom .uc-calc-maxmode__btn:focus-visible { outline: 2px solid #1a1a1a; outline-offset: 2px; }
+#uc-gallery-custom .uc-calc-maxmode__icon { font-size: 18px; line-height: 1; flex-shrink: 0; }
+#uc-gallery-custom .uc-calc-maxmode__name { display: block; font-size: 13px; font-weight: 600; color: #7a7a7a; }
+#uc-gallery-custom .uc-calc-maxmode__btn--active .uc-calc-maxmode__name { color: #1a1a1a; }
+#uc-gallery-custom .uc-calc-maxmode__desc { display: block; font-size: 11px; color: #8a8a8a; line-height: 1.4; }
+.uc-calc-phone-hint {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #8a8a8a;
+    margin: 0 0 18px;
+    line-height: 1.5;
+}
+.uc-calc-phone-row { display: flex; gap: 16px; }
+.uc-calc-phone-field { flex: 1; }
+.uc-calc-phone-label {
+    display: block;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 5px;
+}
+.uc-calc-input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #e6e6e6;
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    color: #1a1a1a;
+    background: #fff;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.uc-calc-input:focus { border-color: #1a1a1a; }
+.uc-calc-input.uc-calc-input--error { border-color: #d00; }
+.uc-calc-agreements { margin-top: 20px; margin-bottom: 0; }
+.uc-calc-agr-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    color: #6a6a6a;
+    line-height: 1.55;
+}
+.uc-calc-agr-item:last-child { margin-bottom: 0; }
+.uc-calc-agr-check {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid #c4c4c4;
+    border-radius: 4px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s;
+    margin-top: 1px;
+    cursor: pointer;
+}
+.uc-calc-agr-item.uc-agr-checked .uc-calc-agr-check { border-color: #1a1a1a; }
+/* Отказ из-за неотмеченного согласия. Скоупим под #uc-gallery-custom
+   (правило про склейку CSS блоков из CLAUDE.md) и ставим ниже правила
+   .uc-agr-checked: отмеченный пункт ошибочным не бывает, но если
+   классы всё же окажутся вместе, красная рамка должна победить. */
+#uc-gallery-custom .uc-calc-agr-item--error .uc-calc-agr-check { border-color: #d00; }
+.uc-calc-agr-check::after {
+    content: '';
+    display: none;
+    width: 11px;
+    height: 6px;
+    border-left: 2px solid #1a1a1a;
+    border-bottom: 2px solid #1a1a1a;
+    transform: rotate(-45deg) translateY(-2px);
+}
+.uc-calc-agr-item.uc-agr-checked .uc-calc-agr-check::after { display: block; }
+.uc-calc-agr-text { flex: 1; }
+.uc-calc-agr-text a { color: #8a8a8a; text-decoration: underline; text-underline-offset: 2px; }
+.uc-calc-agr-text a:hover { color: #1a1a1a; }
+.uc-calc-error {
+    display: none;
+    color: #d00;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    margin-top: 10px;
+}
+.uc-calc-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 36px;
+}
+
+/* ================================================================
+   ВКЛАДКА «В ЛИЧНОМ КАБИНЕТЕ»
+   Макет: uc-calc-lk-states.html (репозиторий бота, docs/design).
+
+   Значения макета рассчитаны под border-box, а U6 живёт под
+   content-box, который навязывает tilda-grid-3.0.min.css (CLAUDE.md).
+   Поэтому сброс — только под корнем этой панели и у обёртки
+   подсказки кнопки; остальной U6 не трогаем.
+
+   Все правила скоуплены под #uc-gallery-custom (правило о склейке
+   CSS блоков): родовые имена макета (.tab, .row, .field, .plate…)
+   заменены на uc-calc-*.
+================================================================ */
+#uc-gallery-custom .uc-calc-lk,
+#uc-gallery-custom .uc-calc-lk *,
+#uc-gallery-custom .uc-calc-lk *::before,
+#uc-gallery-custom .uc-calc-lk *::after,
+#uc-gallery-custom .uc-calc-tipw,
+#uc-gallery-custom .uc-calc-tipw * { box-sizing: border-box; }
+
+#uc-gallery-custom .uc-calc-lk { font-family: Arial, sans-serif; color: #1a1a1a; }
+#uc-gallery-custom .uc-calc-lk-hint { font-size: 14px; color: #8a8a8a; margin: 0 0 18px; line-height: 1.5; }
+
+/* способ покупки */
+#uc-gallery-custom .uc-calc-buys { display: flex; gap: 16px; margin-bottom: 28px; }
+#uc-gallery-custom .uc-calc-buy {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 22px 20px; border-radius: 12px; border: 0.5px solid #e0e0e0;
+    background: #fff; cursor: pointer; width: 220px;
+    font-family: Arial, sans-serif; text-align: center;
+    -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent;
+}
+#uc-gallery-custom .uc-calc-buy--wide { width: 260px; }
+/* Тот же приём, что у карточек мессенджеров: рамка не меняет ширину,
+   выделение — внутренней тенью, соседи не съезжают. */
+#uc-gallery-custom .uc-calc-buy--active { border-color: #111; box-shadow: inset 0 0 0 1.5px #111; }
+#uc-gallery-custom .uc-calc-buy__icon {
+    width: 56px; height: 56px; border-radius: 14px; background: #f2f3f4;
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    font-size: 28px; line-height: 1; box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+#uc-gallery-custom .uc-calc-buy__icon--duo { font-size: 19px; }
+#uc-gallery-custom .uc-calc-buy__name { font-size: 15px; font-weight: 600; letter-spacing: 0.04em; color: #7a7a7a; }
+#uc-gallery-custom .uc-calc-buy--active .uc-calc-buy__name { color: #1a1a1a; }
+#uc-gallery-custom .uc-calc-buy__desc { font-size: 12px; color: #8a8a8a; line-height: 1.45; }
+
+/* второй уровень */
+#uc-gallery-custom .uc-calc-lvl2 { border-top: 0.5px solid #efefef; padding-top: 24px; }
+#uc-gallery-custom .uc-calc-lvl2-block { display: none; }
+#uc-gallery-custom .uc-calc-lvl2-block--show { display: block; }
+#uc-gallery-custom .uc-calc-lvl2-block--show + .uc-calc-lvl2-block--show .uc-calc-lvl2-title { margin-top: 16px; }
+#uc-gallery-custom .uc-calc-lvl2-title { font-size: 14px; color: #8a8a8a; margin: 0 0 14px; line-height: 1.5; }
+#uc-gallery-custom .uc-calc-pane {
+    background: #fafafa; border: 0.5px solid #f0f0f0; border-radius: 12px;
+    padding: 20px; display: flex; flex-direction: column; gap: 16px;
+}
+/* Значения плашек — из макета, а он свёрстан под border-box (см.
+   CLAUDE.md: Tilda навязывает content-box). Сброс только внутри
+   плашек второго уровня — остальная вёрстка U6 настроена под content-box. */
+#uc-gallery-custom .uc-calc-pane,
+#uc-gallery-custom .uc-calc-pane * { box-sizing: border-box; }
+/* Строка: подпись над полем, поля в ряд, низ по одной линии */
+#uc-gallery-custom .uc-calc-v2row { display: flex; align-items: flex-end; gap: 32px; }
+#uc-gallery-custom .uc-calc-v2col { display: flex; flex-direction: column; gap: 8px; }
+#uc-gallery-custom .uc-calc-v2col--grow { flex: 1; min-width: 0; padding-bottom: 4px; }
+#uc-gallery-custom .uc-calc-v2col--grow[hidden] { display: none; }
+#uc-gallery-custom .uc-calc-v2label { display: block; font-size: 13px; font-weight: 600; color: #1a1a1a; line-height: normal; }
+#uc-gallery-custom .uc-calc-note { display: flex; align-items: flex-start; gap: 8px; border-top: 0.5px solid #ececec; padding-top: 14px; }
+#uc-gallery-custom .uc-calc-note__i {
+    flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%;
+    background: #e4e8ea; color: #5c6b74; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; margin-top: 1px;
+}
+#uc-gallery-custom .uc-calc-note__text { font-size: 13px; color: #6a6a6a; line-height: 1.5; }
+
+/* ползунок: заливка дорожки — --uc-calc-fill, её выставляет JS */
+#uc-gallery-custom .uc-calc-slider { flex: 1; min-width: 0; }
+#uc-gallery-custom .uc-calc-range {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 24px;
+    background: transparent; cursor: pointer; display: block; margin: 0; padding: 0;
+}
+#uc-gallery-custom .uc-calc-range::-webkit-slider-runnable-track {
+    height: 4px; border-radius: 2px;
+    background: linear-gradient(to right, #1a1a1a 0, #1a1a1a var(--uc-calc-fill, 0%), #ececec var(--uc-calc-fill, 0%), #ececec 100%);
+}
+#uc-gallery-custom .uc-calc-range::-moz-range-track { height: 4px; border-radius: 2px; background: #ececec; }
+#uc-gallery-custom .uc-calc-range::-moz-range-progress { height: 4px; border-radius: 2px; background: #1a1a1a; }
+#uc-gallery-custom .uc-calc-range::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 22px; height: 22px; margin-top: -9px; border-radius: 50%;
+    background: #fff; border: 2px solid #1a1a1a; box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+}
+#uc-gallery-custom .uc-calc-range::-moz-range-thumb {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid #1a1a1a;
+    background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+}
+#uc-gallery-custom .uc-calc-range:focus-visible { outline: 2px solid #1a1a1a; outline-offset: 4px; }
+#uc-gallery-custom .uc-calc-range-ends { display: flex; justify-content: space-between; font-size: 12px; color: #999; margin-top: 2px; }
+
+/* поле с суффиксом */
+#uc-gallery-custom .uc-calc-field { position: relative; width: 218px; }
+#uc-gallery-custom .uc-calc-field__input {
+    width: 100%; padding: 13px 52px 13px 14px; border: 1px solid #e6e6e6; border-radius: 8px;
+    font-family: Arial, sans-serif; font-size: 18px; font-weight: 600; color: #1a1a1a;
+    background: #fff; outline: none; margin: 0;
+}
+#uc-gallery-custom .uc-calc-field__input:focus { border-color: #1a1a1a; }
+#uc-gallery-custom .uc-calc-field__input::placeholder { color: #c0c0c0; font-weight: 600; }
+#uc-gallery-custom .uc-calc-field__suffix {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 13px; font-weight: 600; color: #a0a0a0; pointer-events: none;
+}
+
+/* госномер */
+#uc-gallery-custom .uc-calc-plate {
+    display: inline-flex; align-items: stretch; border: 2px solid #111;
+    border-radius: 8px; background: #fff; overflow: hidden;
+}
+#uc-gallery-custom .uc-calc-plate__main {
+    width: 144px; border: none; outline: none; padding: 8px 10px; margin: 0; background: transparent;
+    font-family: Arial, sans-serif; font-size: 24px; font-weight: 700; color: #111;
+}
+#uc-gallery-custom .uc-calc-plate__main::placeholder,
+#uc-gallery-custom .uc-calc-plate__regnum::placeholder { color: #c8c8c8; }
+#uc-gallery-custom .uc-calc-plate__sep { width: 2px; background: #111; }
+#uc-gallery-custom .uc-calc-plate__region {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 4px 7px; gap: 1px;
+}
+#uc-gallery-custom .uc-calc-plate__regnum {
+    width: 40px; border: none; outline: none; padding: 0; margin: 0; background: transparent; text-align: center;
+    font-family: Arial, sans-serif; font-size: 18px; font-weight: 700; color: #111;
+}
+#uc-gallery-custom .uc-calc-plate:focus-within { box-shadow: 0 0 0 3px rgba(17,17,17,0.12); }
+#uc-gallery-custom .uc-calc-plate__rus { display: flex; align-items: center; gap: 3px; }
+#uc-gallery-custom .uc-calc-plate__rus span { font-size: 8px; font-weight: 700; letter-spacing: 0.08em; color: #111; }
+#uc-gallery-custom .uc-calc-flag { display: flex; flex-direction: column; width: 10px; height: 6px; border: 0.5px solid #bbb; }
+#uc-gallery-custom .uc-calc-flag i { flex: 1; }
+#uc-gallery-custom .uc-calc-flag i:nth-child(1) { background: #fff; }
+#uc-gallery-custom .uc-calc-flag i:nth-child(2) { background: #1e50a2; }
+#uc-gallery-custom .uc-calc-flag i:nth-child(3) { background: #c8202f; }
+#uc-gallery-custom .uc-calc-plate--err { border-color: #b3261e; }
+#uc-gallery-custom .uc-calc-plate--err .uc-calc-plate__sep { background: #b3261e; }
+#uc-gallery-custom .uc-calc-plate--err .uc-calc-plate__main,
+#uc-gallery-custom .uc-calc-plate--err .uc-calc-plate__regnum { color: #b3261e; }
+#uc-gallery-custom .uc-calc-ferr { margin: -6px 0 0; font-size: 13px; line-height: 1.5; color: #b3261e; font-weight: 600; }
+#uc-gallery-custom .uc-calc-ferr[hidden] { display: none; }
+
+/* «Далее» неактивна на вид: не disabled (иначе нет наведения, фокуса
+   и подсказки), а aria-disabled. Цвет — из макета. */
+#uc-gallery-custom .uc-quiz-btn-next.uc-quiz-btn-next--inactive,
+#uc-gallery-custom .uc-quiz-btn-next.uc-quiz-btn-next--inactive:hover {
+    background: #c7d0d4;
+    cursor: not-allowed;
+}
+#uc-gallery-custom .uc-calc-tipw { position: relative; display: inline-flex; }
+#uc-gallery-custom .uc-calc-tip {
+    position: absolute; right: 0; bottom: calc(100% + 10px);
+    background: #1a1a1a; color: #fff; font-family: Arial, sans-serif;
+    font-size: 13px; line-height: 1.4; padding: 8px 12px; border-radius: 6px; white-space: nowrap;
+    opacity: 0; visibility: hidden; transform: translateY(4px);
+    transition: opacity .15s, transform .15s, visibility .15s;
+    z-index: 5; pointer-events: none;
+}
+#uc-gallery-custom .uc-calc-tip::after {
+    content: ''; position: absolute; right: 28px; top: 100%;
+    border: 6px solid transparent; border-top-color: #1a1a1a;
+}
+#uc-gallery-custom .uc-calc-tipw.is-inactive:hover .uc-calc-tip,
+#uc-gallery-custom .uc-calc-tipw.is-inactive .uc-quiz-btn-next:focus-visible + .uc-calc-tip,
+#uc-gallery-custom .uc-calc-tipw.is-inactive .uc-calc-tip--open {
+    opacity: 1; visibility: visible; transform: none;
+}
+/* Ожидание после «Далее» во вкладке ЛК (кадр 4): кнопка со спиннером,
+   без дополнительного текста; вкладки, поля, способ покупки, согласие
+   и «Назад» недоступны. Спиннер — тот же, что у «ОТПРАВКА…». */
+#uc-gallery-custom .uc-quiz-btn-next.uc-quiz-btn-next--lk-busy,
+#uc-gallery-custom .uc-quiz-btn-next.uc-quiz-btn-next--lk-busy:hover {
+    background: var(--uc-btn-next-bg, #2D5467);
+    cursor: default;
+}
+#uc-gallery-custom .uc-quiz-btn-next--lk-busy::before {
+    content: '';
+    display: inline-block;
+    width: 12px; height: 12px; margin-right: 8px; vertical-align: -1px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: uc-btn-spin 0.7s linear infinite;
+}
+#uc-gallery-custom .uc-calc-locked { opacity: .5; pointer-events: none; }
+
+/* Сбой открытия кабинета (кадр 5): одна плашка на все причины. */
+#uc-gallery-custom .uc-calc-fail {
+    display: flex; gap: 12px; margin-top: 28px; padding: 16px 18px;
+    background: #fdf4f3; border: 0.5px solid #f0d3cf; border-radius: 12px;
+    font-family: Arial, sans-serif; box-sizing: border-box;
+}
+#uc-gallery-custom .uc-calc-fail[hidden] { display: none; }
+#uc-gallery-custom .uc-calc-fail__i {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+    background: #b3261e; color: #fff; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; margin-top: 1px;
+}
+#uc-gallery-custom .uc-calc-fail__body { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+#uc-gallery-custom .uc-calc-fail__text { font-size: 14px; line-height: 1.5; color: #1a1a1a; outline: none; }
+#uc-gallery-custom .uc-calc-fail__text b { display: block; }
+#uc-gallery-custom .uc-calc-fail__alts { display: flex; flex-wrap: wrap; gap: 8px; }
+#uc-gallery-custom .uc-calc-alt {
+    display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px;
+    border: 0.5px solid #d0d0d0; border-radius: 8px; background: #fff;
+    font-family: Arial, sans-serif; font-size: 13px; font-weight: 600; color: #1a1a1a;
+    cursor: pointer; box-sizing: border-box;
+}
+#uc-gallery-custom .uc-calc-alt:hover { border-color: #888; }
+#uc-gallery-custom .uc-calc-alt span { font-size: 16px; line-height: 1; }
+#uc-gallery-custom .uc-calc-fail + .uc-calc-nav { margin-top: 20px; }
+@media (max-width: 640px) {
+    #uc-gallery-custom .uc-calc-fail { margin: 0 0 16px; padding: 14px; }
+    #uc-gallery-custom .uc-calc-fail__text { font-size: 13px; }
+    #uc-gallery-custom .uc-calc-alt { flex: 1; justify-content: center; padding: 11px 10px; min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #uc-gallery-custom .uc-calc-tip { transition: none; }
+}
+
+/* Таб-бар прокручивается только по горизонтали. При overflow-x: auto
+   браузер вычисляет overflow-y тоже в auto, а кнопки нарочно заходят
+   на нижнюю рамку бара (margin-bottom -0.5px) — у бара появляется
+   вертикальный ход в полпикселя. Колесо и трекпад над баром захватывал
+   он, а не страница: содержимое бара сдвигалось вверх, верхняя полоса
+   активной вкладки срезалась (замер 2026-10-08, план 2026-10-08-001).
+   hidden — не clip: при прокручиваемой оси x clip всё равно станет hidden. */
+#uc-gallery-custom .uc-calc-tabbar { overflow-y: hidden; }
+
+/* Затухание у края прокручиваемого таб-бара: подсказывает, что за
+   краем есть вкладки. Классы is-fit / is-mid / is-end и высоту бара
+   (--uc-tabbar-h: под content-box она больше, чем в макете) ставит JS
+   по прокрутке и размеру. */
+#uc-gallery-custom .uc-calc-tabs::before,
+#uc-gallery-custom .uc-calc-tabs::after {
+    content: ''; position: absolute; top: 0; height: var(--uc-tabbar-h, 58px); width: 28px;
+    pointer-events: none; z-index: 1; transition: opacity .2s;
+}
+#uc-gallery-custom .uc-calc-tabs::after { right: 0; background: linear-gradient(to right, rgba(250,250,250,0), #fafafa); }
+#uc-gallery-custom .uc-calc-tabs::before { left: 0; background: linear-gradient(to left, rgba(250,250,250,0), #fafafa); opacity: 0; }
+#uc-gallery-custom .uc-calc-tabs.is-end::after { opacity: 0; }
+#uc-gallery-custom .uc-calc-tabs.is-mid::before,
+#uc-gallery-custom .uc-calc-tabs.is-end::before { opacity: 1; }
+#uc-gallery-custom .uc-calc-tabs.is-fit::before,
+#uc-gallery-custom .uc-calc-tabs.is-fit::after { opacity: 0; }
+
+@media (max-width: 640px) {
+    #uc-gallery-custom .uc-calc-lk-hint { font-size: 13px; margin-bottom: 12px; }
+    #uc-gallery-custom .uc-calc-lk-hint-tail { display: none; }
+    #uc-gallery-custom .uc-calc-buys { flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    #uc-gallery-custom .uc-calc-buy {
+        flex-direction: row; align-items: center; gap: 12px; width: auto;
+        padding: 12px 14px; border-radius: 10px; text-align: left;
+    }
+    #uc-gallery-custom .uc-calc-buy__icon { width: 38px; height: 38px; border-radius: 10px; font-size: 19px; box-shadow: none; flex-shrink: 0; }
+    #uc-gallery-custom .uc-calc-buy__icon--duo { font-size: 13px; gap: 2px; }
+    #uc-gallery-custom .uc-calc-buy__name { flex: 1; min-width: 0; font-size: 14px; }
+    #uc-gallery-custom .uc-calc-buy__desc { display: none; }
+    #uc-gallery-custom .uc-calc-lvl2 { padding-top: 18px; }
+    #uc-gallery-custom .uc-calc-lvl2-title { font-size: 13px; margin-bottom: 10px; }
+    #uc-gallery-custom .uc-calc-pane { padding: 16px 14px; gap: 16px; }
+    #uc-gallery-custom .uc-calc-v2row { flex-direction: column; align-items: stretch; gap: 16px; }
+    #uc-gallery-custom .uc-calc-v2col--grow { padding-bottom: 0; }
+    #uc-gallery-custom .uc-calc-plate { align-self: flex-start; }
+    /* Ошибка номера — сразу под номером, а не под пробегом: строка
+       распадается на элементы плашки, порядок задаётся order */
+    #uc-gallery-custom #uc-calc-lk-car .uc-calc-v2row { display: contents; }
+    #uc-gallery-custom #uc-calc-lk-car .uc-calc-v2col:first-child { order: 1; }
+    #uc-gallery-custom #uc-calc-lk-car .uc-calc-ferr { order: 2; }
+    #uc-gallery-custom #uc-calc-lk-car .uc-calc-v2col + .uc-calc-v2col { order: 3; }
+    #uc-gallery-custom #uc-calc-lk-car .uc-calc-note { order: 4; }
+    #uc-gallery-custom .uc-calc-note { padding-top: 12px; }
+    #uc-gallery-custom .uc-calc-note__text { font-size: 12px; }
+    #uc-gallery-custom .uc-calc-range { height: 28px; }
+    #uc-gallery-custom .uc-calc-range::-webkit-slider-thumb { width: 26px; height: 26px; margin-top: -11px; }
+    #uc-gallery-custom .uc-calc-range::-moz-range-thumb { width: 26px; height: 26px; }
+    #uc-gallery-custom .uc-calc-range-ends { font-size: 11px; }
+    #uc-gallery-custom .uc-calc-field { width: auto; }
+    #uc-gallery-custom .uc-calc-field__input { padding: 12px 48px 12px 12px; font-size: 17px; }
+    #uc-gallery-custom .uc-calc-field__suffix { right: 12px; font-size: 12px; }
+    #uc-gallery-custom .uc-calc-plate__main { width: 128px; padding: 8px 9px; font-size: 22px; }
+    #uc-gallery-custom .uc-calc-plate__regnum { width: 38px; font-size: 16px; }
+    #uc-gallery-custom .uc-calc-plate__region { padding: 4px 6px; }
+    #uc-gallery-custom .uc-calc-ferr { margin: -4px 0 0; font-size: 12px; }
+    #uc-gallery-custom .uc-calc-tip { font-size: 12px; }
+
+    #uc-gallery-custom .uc-calc-tabs.is-mid::before,
+    #uc-gallery-custom .uc-calc-tabs.is-end::before { opacity: 1; }
+}
+
+@media (max-width: 640px) {
+    .uc-calc-title { padding: 10px 0; margin-bottom: 20px; }
+    .uc-calc-bridge-bar { height: 16px; }
+    .uc-calc-bridge-text { font-size: 16px; }
+    .uc-calc-tabs { margin-bottom: 24px; }
+    .uc-calc-tabbar__filler { display: none; }
+    /* Три вкладки в 390 px не делятся поровну — таб-бар прокручивается
+       (макет uc-calc-lk-mockup.html), подписи в одну строку. */
+    .uc-calc-method-btn { flex: 0 0 auto; min-width: 0; padding: 13px 14px; min-height: 58px; gap: 8px; }
+    .uc-calc-method-btn--narrow { min-width: 0; }
+    .uc-calc-method-btn:last-of-type { border-right: none; }
+    .uc-calc-method-emoji { font-size: 22px; }
+    .uc-calc-method-name { font-size: 14px; white-space: nowrap; }
+    .uc-calc-method-desc { font-size: 11px; white-space: nowrap; }
+    .uc-calc-tabpanel { padding: 16px 12px 18px; }
+    .uc-messenger-list { gap: 10px; }
+    .uc-messenger-card { width: auto; flex: 1; padding: 16px 10px; gap: 10px; }
+    .uc-messenger-icon { width: 48px; height: 48px; }
+    .uc-messenger-icon--site { width: 48px; height: 48px; }
+    .uc-messenger-card-name { font-size: 18px; }
+    .uc-messenger-card-desc { font-size: 11px; }
+    .uc-messenger-hint { font-size: 13px; margin-bottom: 14px; }
+    .uc-calc-agr-item { font-size: 12px; margin-bottom: 24px; }
+    .uc-calc-agr-check { width: 18px; height: 18px; }
+    .uc-calc-phone-row { flex-direction: column; gap: 10px; }
+    .uc-calc-input { font-size: 14px; padding: 11px 12px; }
+    .uc-calc-phone-label { font-size: 11px; }
+    .uc-calc-phone-section { margin-bottom: 0; }
+    .uc-calc-phone-hint { font-size: 13px; margin-bottom: 14px; }
+}
+</style>
+
+<!-- Статичная галерея -->
+<div id="uc-gallery-custom" style="display:none;">
+    <div class="configurator">
+        <div class="uc-quiz-title" style="font-size:26px;font-weight:700;letter-spacing: 0.05em;color:#111111;margin-bottom:32px;">Об автомобиле</div>
+        <!-- Квиз шаг 2: информация о выбранной комплектации -->
+        <div class="uc-specs-section">
+            <div class="uc-selection-title" id="uc-gal-info"></div>
+            <div id="uc-specs-scroll-wrap" class="uc-specs-scroll-wrap">
+                <div class="uc-specs" id="uc-gal-specs"></div>
+            </div>
+        </div>
+    </div>
+    <div class="gal-main">
+        <div class="uc-gal-swiper" id="uc-gal-swiper">
+            <div class="swiper-wrapper" id="uc-gal-swiper-wrapper"></div>
+        </div>
+        <button class="gal-nav-btn prev" id="uc-gal-prev" type="button" aria-label="Назад">
+            <i class="ti ti-chevron-left"></i>
+        </button>
+        <button class="gal-nav-btn next" id="uc-gal-next" type="button" aria-label="Вперёд">
+            <i class="ti ti-chevron-right"></i>
+        </button>
+    </div>
+    <div class="configurator">
+        <div class="gal-thumbs" id="uc-gal-thumbs"></div>
+
+        <!-- СЕКЦИЯ «ЦЕНА, КРЕДИТ И TRADE-IN» -->
+        <div class="uc-calc-section" id="uc-calc-section">
+
+            <div class="uc-calc-title">
+                <div class="uc-calc-bridge-bar"></div>
+                <span class="uc-calc-bridge-text">Расчет цены, кредита и trade-in</span>
+            </div>
+
+            <div class="uc-calc-tabs">
+
+                <!-- Способ связи — таб-бар -->
+                <div class="uc-calc-tabbar" id="uc-calc-tabbar">
+                    <button class="uc-calc-method-btn uc-calc-method-btn--narrow uc-calc-method-btn--active" type="button" data-calc-tab="chat">
+                        <span class="uc-calc-method-emoji">🤖</span>
+                        <span>
+                            <span class="uc-calc-method-name">В чате</span>
+                            <span class="uc-calc-method-desc">Инфобот пришлёт расчёт</span>
+                        </span>
+                    </button>
+                    <button class="uc-calc-method-btn" type="button" data-calc-tab="lk">
+                        <span class="uc-calc-method-emoji">🔑</span>
+                        <span>
+                            <span class="uc-calc-method-name">В личном кабинете</span>
+                            <span class="uc-calc-method-desc">Получить расчет на сайте</span>
+                        </span>
+                    </button>
+                    <button class="uc-calc-method-btn uc-calc-method-btn--narrow" type="button" data-calc-tab="phone">
+                        <span class="uc-calc-method-emoji">👨‍💼</span>
+                        <span>
+                            <span class="uc-calc-method-name">По телефону</span>
+                            <span class="uc-calc-method-desc">Позвонит менеджер</span>
+                        </span>
+                    </button>
+                    <div class="uc-calc-tabbar__filler"></div>
+                </div>
+
+                <!-- Секция «В ЛИЧНОМ КАБИНЕТЕ» (скрыта по умолчанию) -->
+                <div id="uc-calc-lk-section" class="uc-calc-tabpanel uc-calc-lk" style="display:none;">
+                    <p class="uc-calc-lk-hint">Укажите способ и параметры покупки<span class="uc-calc-lk-hint-tail"> для получения расчета</span></p>
+
+                    <div class="uc-calc-buys" role="radiogroup" aria-label="Способ покупки">
+                        <button class="uc-calc-buy uc-calc-buy--active" type="button" role="radio" aria-checked="true" data-scenario="credit">
+                            <span class="uc-calc-buy__icon" aria-hidden="true">💳</span>
+                            <span class="uc-calc-buy__name">В КРЕДИТ</span>
+                            <span class="uc-calc-buy__desc" id="uc-calc-lk-buy-min">в месяц</span>
+                        </button>
+                        <button class="uc-calc-buy" type="button" role="radio" aria-checked="false" data-scenario="tradein">
+                            <span class="uc-calc-buy__icon" aria-hidden="true">🔄</span>
+                            <span class="uc-calc-buy__name">В ТРЕЙД-ИН</span>
+                            <span class="uc-calc-buy__desc">Зачтем ваш<br>автомобиль</span>
+                        </button>
+                        <button class="uc-calc-buy uc-calc-buy--wide" type="button" role="radio" aria-checked="false" data-scenario="combo">
+                            <span class="uc-calc-buy__icon uc-calc-buy__icon--duo" aria-hidden="true"><span>💳</span><span>🔄</span></span>
+                            <span class="uc-calc-buy__name">В КРЕДИТ + ТРЕЙД-ИН</span>
+                            <span class="uc-calc-buy__desc">Платеж с учетом<br>вашего автомобиля</span>
+                        </button>
+                    </div>
+
+                    <div class="uc-calc-lvl2">
+                        <!-- Параметры кредита (компоновка — docs/designs/uc-calc-lk-frame0.html) -->
+                        <div class="uc-calc-lvl2-block uc-calc-lvl2-block--show" id="uc-calc-lk-credit">
+                            <p class="uc-calc-lvl2-title">Параметры кредита</p>
+                            <div class="uc-calc-pane">
+                                <div class="uc-calc-v2row">
+                                    <div class="uc-calc-v2col">
+                                        <label class="uc-calc-v2label" for="uc-calc-lk-sum">Ежемесячный платёж</label>
+                                        <div class="uc-calc-field">
+                                            <input class="uc-calc-field__input" id="uc-calc-lk-sum" type="text"
+                                                   inputmode="numeric" autocomplete="off">
+                                            <span class="uc-calc-field__suffix" aria-hidden="true">₽</span>
+                                        </div>
+                                    </div>
+                                    <div class="uc-calc-v2col uc-calc-v2col--grow" id="uc-calc-lk-scale">
+                                        <div class="uc-calc-slider">
+                                            <input class="uc-calc-range" id="uc-calc-lk-range" type="range"
+                                                   min="10000" max="160000" step="5000" value="30000"
+                                                   aria-label="Ежемесячный платёж, шкала">
+                                            <div class="uc-calc-range-ends">
+                                                <span id="uc-calc-lk-min"></span><span id="uc-calc-lk-max"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="uc-calc-note">
+                                    <span class="uc-calc-note__i" aria-hidden="true">i</span>
+                                    <span class="uc-calc-note__text">Под этот платёж подберём оптимальный кредит</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Автомобиль в зачёт -->
+                        <div class="uc-calc-lvl2-block" id="uc-calc-lk-car">
+                            <p class="uc-calc-lvl2-title">Автомобиль в зачёт</p>
+                            <div class="uc-calc-pane">
+                                <div class="uc-calc-v2row">
+                                    <div class="uc-calc-v2col">
+                                        <span class="uc-calc-v2label" id="uc-calc-lk-plate-label">Гос. номер</span>
+                                        <div class="uc-calc-plate" id="uc-calc-lk-plate" role="group" aria-labelledby="uc-calc-lk-plate-label">
+                                            <input class="uc-calc-plate__main" id="uc-calc-lk-plate-main" type="text"
+                                                   placeholder="А 123 ВС" autocomplete="off"
+                                                   autocapitalize="characters" spellcheck="false"
+                                                   aria-label="Буквы и цифры номера" aria-describedby="uc-calc-lk-plate-err">
+                                            <div class="uc-calc-plate__sep"></div>
+                                            <div class="uc-calc-plate__region">
+                                                <input class="uc-calc-plate__regnum" id="uc-calc-lk-plate-reg" type="text"
+                                                       placeholder="77" maxlength="3" inputmode="numeric" autocomplete="off"
+                                                       aria-label="Код региона" aria-describedby="uc-calc-lk-plate-err">
+                                                <div class="uc-calc-plate__rus" aria-hidden="true">
+                                                    <span>RUS</span>
+                                                    <div class="uc-calc-flag"><i></i><i></i><i></i></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="uc-calc-v2col">
+                                        <label class="uc-calc-v2label" for="uc-calc-lk-mileage">Пробег</label>
+                                        <div class="uc-calc-field">
+                                            <input class="uc-calc-field__input" id="uc-calc-lk-mileage" type="text"
+                                                   inputmode="numeric" placeholder="120 000" autocomplete="off">
+                                            <span class="uc-calc-field__suffix" aria-hidden="true">км</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="uc-calc-ferr" id="uc-calc-lk-plate-err" hidden>Номер указан с ошибкой. Проверьте буквы, цифры и код региона.</div>
+                                <div class="uc-calc-note">
+                                    <span class="uc-calc-note__i" aria-hidden="true">i</span>
+                                    <span class="uc-calc-note__text">Проверим цены сделок по похожим автомобилям</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Секция «В ЧАТЕ» (открыта по умолчанию: первая вкладка) -->
+                <div id="uc-calc-chat-section" class="uc-calc-tabpanel">
+                    <p class="uc-messenger-hint">Выберите удобный для Вас мессенджер</p>
+                    <div class="uc-messenger-list" id="uc-messenger-list">
+
+                        <!-- «На сайте» — только десктоп, скрывается на мобайле через JS -->
+                        <button class="uc-messenger-card uc-messenger-card--active"
+                                id="uc-ms-site" type="button">
+                            <div class="uc-messenger-icon uc-messenger-icon--site">
+                                <svg width="30" height="28" viewBox="0 0 30 28" fill="none">
+                                    <rect x="1" y="1" width="28" height="19" rx="4.5" fill="white"/>
+                                    <path d="M5 20 L2 27 L13 20 Z" fill="white"/>
+                                    <rect x="6" y="7" width="6" height="2" rx="1" fill="#1a1a1a" opacity=".5"/>
+                                    <rect x="6" y="12" width="12" height="2" rx="1" fill="#1a1a1a" opacity=".3"/>
+                                </svg>
+                            </div>
+                            <span class="uc-messenger-card-name">На сайте</span>
+                            <span class="uc-messenger-card-desc">Дождитесь сообщения<br>в чате</span>
+                        </button>
+
+                        <!-- MAX -->
+                        <button class="uc-messenger-card" id="uc-ms-max" type="button">
+                            <img class="uc-messenger-icon"
+                                 src="https://static.tildacdn.com/tild6531-3562-4165-b431-343365346532/logo_MAX.png"
+                                 alt="MAX"
+                                 style="border-radius:14px;box-shadow:0 4px 14px rgba(91,56,255,.22);">
+                            <span class="uc-messenger-card-name">MAX</span>
+                            <span class="uc-messenger-card-desc">Нажмите НАЧАТЬ<br>после перехода</span>
+                        </button>
+
+                        <!-- Telegram -->
+                        <button class="uc-messenger-card" id="uc-ms-tg" type="button">
+                            <img class="uc-messenger-icon uc-messenger-icon--circle"
+                                 src="https://static.tildacdn.com/tild3063-3137-4532-b562-363666363666/Telegram_logo.png"
+                                 alt="Telegram"
+                                 style="box-shadow:0 4px 14px rgba(41,162,220,.18);">
+                            <span class="uc-messenger-card-name">Telegram</span>
+                            <span class="uc-messenger-card-desc">Нажмите ЗАПУСТИТЬ<br>после перехода</span>
+                        </button>
+
+                    </div>
+
+                    <!-- «Где открыть MAX» — только телефон и только при MAX -->
+                    <div class="uc-calc-maxmode" id="uc-calc-maxmode">
+                        <span class="uc-calc-maxmode__title" id="uc-calc-maxmode-title">Где открыть MAX</span>
+                        <div class="uc-calc-maxmode__list" role="radiogroup" aria-labelledby="uc-calc-maxmode-title">
+                            <button class="uc-calc-maxmode__btn uc-calc-maxmode__btn--active" type="button" role="radio" aria-checked="true" data-max-mode="app">
+                                <span class="uc-calc-maxmode__icon" aria-hidden="true">📱</span>
+                                <span><span class="uc-calc-maxmode__name">Приложение</span><span class="uc-calc-maxmode__desc">на телефоне</span></span>
+                            </button>
+                            <button class="uc-calc-maxmode__btn" type="button" role="radio" aria-checked="false" data-max-mode="web">
+                                <span class="uc-calc-maxmode__icon" aria-hidden="true">🌐</span>
+                                <span><span class="uc-calc-maxmode__name">WEB-версия</span><span class="uc-calc-maxmode__desc">в браузере</span></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Секция «ПО ТЕЛЕФОНУ» (скрыта по умолчанию) -->
+                <div id="uc-calc-phone-section" class="uc-calc-phone-section uc-calc-tabpanel" style="display:none;">
+                    <p class="uc-calc-phone-hint">Укажите Ваше Имя и Номер телефона для связи</p>
+                    <div class="uc-calc-phone-row">
+                        <div class="uc-calc-phone-field">
+                            <label class="uc-calc-phone-label" for="uc-calc-name">Имя</label>
+                            <input id="uc-calc-name" class="uc-calc-input" type="text"
+                                   placeholder="Ваше имя" autocomplete="given-name">
+                        </div>
+                        <div class="uc-calc-phone-field">
+                            <label class="uc-calc-phone-label" for="uc-calc-phone">Телефон</label>
+                            <input id="uc-calc-phone" class="uc-calc-input" type="tel"
+                                   placeholder="+7 (___) ___-__-__" autocomplete="tel">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Чекбоксы согласий (рендерятся из .uc-tildaform) -->
+            <div class="uc-calc-agreements" id="uc-calc-agreements"></div>
+
+            <!-- Ошибка валидации -->
+            <div class="uc-calc-error" id="uc-calc-error"></div>
+
+            <!-- Сбой открытия личного кабинета (вкладка ЛК, кадр 5) -->
+            <div class="uc-calc-fail" id="uc-calc-lk-fail" hidden>
+                <span class="uc-calc-fail__i" aria-hidden="true">!</span>
+                <div class="uc-calc-fail__body">
+                    <div class="uc-calc-fail__text" id="uc-calc-lk-fail-text" tabindex="-1"><b>Не удалось открыть личный кабинет.</b> Попробуйте ещё раз или получите расчёт другим способом</div>
+                    <div class="uc-calc-fail__alts">
+                        <button class="uc-calc-alt" type="button" data-calc-alt="chat"><span aria-hidden="true">🤖</span>В чате</button>
+                        <button class="uc-calc-alt" type="button" data-calc-alt="phone"><span aria-hidden="true">👨‍💼</span>По телефону</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Навигация (НАЗАД — квизовый back; ДАЛЕЕ/ОТПРАВИТЬ — финальный submit) -->
+            <div class="uc-calc-nav">
+                <button class="uc-quiz-btn-back" id="uc-gal-back" type="button">← НАЗАД</button>
+                <!-- Обёртка — для подсказки у неактивной «Далее» во вкладке ЛК -->
+                <span class="uc-calc-tipw" id="uc-calc-tipw">
+                    <button class="uc-quiz-btn-next" id="uc-gal-submit" type="button">ДАЛЕЕ →</button>
+                    <span class="uc-calc-tip" id="uc-calc-tip" role="tooltip"></span>
+                </span>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Лайтбокс (без изменений) -->
+<div id="uc-gallery-lightbox" role="dialog" aria-modal="true">
+    <button class="uc-lb-close" type="button" aria-label="Закрыть">&#215;</button>
+    <button class="uc-lb-prev" type="button" aria-label="Назад">&#8249;</button>
+    <img src="" alt="" id="uc-lb-img">
+    <div class="uc-lb-counter" id="uc-lb-counter"></div>
+    <button class="uc-lb-next" type="button" aria-label="Вперёд">&#8250;</button>
+</div>
+
+<script>
+(function () {
+
+    var galleryUrls     = [];
+    var currentGalIndex = 0;
+    var lbIndex         = 0;
+    var galSwiper       = null;
+    var _lastUseLoop    = null; // R9: loop parameter of the current galSwiper instance
+
+    /* ================================================================
+       CALC-SECTION: состояние
+    ================================================================ */
+    /* Вкладка способа связи. 'ЛК' — внутренний маркер вкладки «В личном
+       кабинете»: в поле offer формы он не пишется (там будет «ЛК с
+       сайта»). 'В чате' и 'По телефону' уходят в offer как есть. */
+    var calcOffer     = 'В чате';   // 'В чате' | 'ЛК' | 'По телефону' — первая вкладка открыта
+    var calcMessenger = 'web';      // 'web' | 'MAX' | 'Telegram'
+    var CALC_DESKTOP  = 480;        // px — порог desktop/mobile
+    /* Где открыть MAX на телефоне: 'app' — max.ru (приложение), 'web' —
+       web.max.ru. Не сбрасывается ни при входе на шаг 2, ни при resize
+       (мобильные браузеры шлют resize, пряча адресную строку при
+       прокрутке), ни при выборе Telegram — как calcMessenger. */
+    var calcMaxMode   = 'app';
+
+    /* Состояние отправки формы (путь «По телефону») */
+    var _submitting    = false;
+    var _submitWatch   = null;      // сторожевой таймер
+    var UC_SEND_WATCH  = 20000;     // мс — у XHR Tilda нет timeout
+
+    function initCalcState() {
+        if ($(window).width() > CALC_DESKTOP) {
+            calcMessenger = 'web';
+            $('#uc-ms-site').show().addClass('uc-messenger-card--active');
+            $('#uc-ms-max, #uc-ms-tg').removeClass('uc-messenger-card--active');
+        } else {
+            $('#uc-ms-site').hide();
+            if (calcMessenger === 'web') calcMessenger = 'MAX';
+            $('#uc-ms-max').toggleClass('uc-messenger-card--active', calcMessenger === 'MAX');
+            $('#uc-ms-tg').toggleClass('uc-messenger-card--active', calcMessenger === 'Telegram');
+        }
+        ucSyncMaxMode();
+        updateCalcBtnText();
+    }
+
+    /* Блок «Где открыть MAX»: виден на телефоне при выбранном MAX,
+       активна кнопка calcMaxMode. Вариант здесь не меняется. */
+    function ucSyncMaxMode() {
+        $('#uc-calc-maxmode').toggleClass('uc-calc-maxmode--show',
+            $(window).width() <= CALC_DESKTOP && calcMessenger === 'MAX');
+        $('#uc-calc-maxmode .uc-calc-maxmode__btn').each(function () {
+            var on = $(this).data('max-mode') === calcMaxMode;
+            $(this).toggleClass('uc-calc-maxmode__btn--active', on).attr('aria-checked', on ? 'true' : 'false');
+        });
+    }
+
+    function updateCalcBtnText() {
+        /* Во время отправки надпись принадлежит ucSetSending. Без
+           этого выхода переключение вкладки затёрло бы «ОТПРАВКА…». */
+        if (_submitting || lkBusy) return;
+        var text = (calcOffer === 'По телефону') ? 'ОТПРАВИТЬ'
+                 : (calcOffer === 'ЛК' && lkFailed) ? '↻ ПОВТОРИТЬ' : 'ДАЛЕЕ →';
+        $('#uc-gal-submit').text(text);
+        ucLkSyncNext();
+    }
+
+    /* Вход и выход из состояния отправки.
+
+       Спиннер — CSS-псевдоэлемент, а не вложенный <span>: надпись
+       ставится через .text(), которая снесла бы любого потомка.
+
+       Порядок при выходе важен: флаг сбрасывается ДО вызова
+       updateCalcBtnText(), иначе тот упрётся в свой ранний return
+       и кнопка останется с надписью «ОТПРАВКА…». */
+    function ucSetSending(on) {
+        var $btn = $('#uc-gal-submit');
+
+        clearTimeout(_submitWatch);
+        _submitWatch = null;
+
+        if (on) {
+            _submitting = true;
+            $btn.addClass('uc-quiz-btn-next--sending')
+                .prop('disabled', true)
+                .text('ОТПРАВКА…');
+            _submitWatch = setTimeout(function () {
+                ucSendFailed('Не удалось отправить заявку. Попробуйте ещё раз.');
+            }, UC_SEND_WATCH);
+        } else {
+            _submitting = false;
+            $btn.removeClass('uc-quiz-btn-next--sending')
+                .prop('disabled', false);
+            updateCalcBtnText();
+        }
+    }
+
+    function ucSendFailed(message) {
+        if (!_submitting) return;
+        ucSetSending(false);
+        $('#uc-calc-error').text(message).show();
+    }
+
+    function renderCalcAgreements() {
+        var $container = $('#uc-calc-agreements').empty();
+        var $cbGroups  = $('.uc-tildaform .t-input-group_cb');
+        if (!$cbGroups.length) return;
+
+        $cbGroups.each(function (idx) {
+            var $group    = $(this);
+            var $realCb   = $group.find('input[type="checkbox"]');
+            var $lblClone = $group.find('label.t-checkbox__control').clone();
+            $lblClone.find('input[type="checkbox"], div.t-checkbox__indicator').remove();
+            var titleHtml = $lblClone.html().trim();
+            var isChecked = $realCb.prop('checked') !== false;
+
+            var $item = $('<div class="uc-calc-agr-item' +
+                (isChecked ? ' uc-agr-checked' : '') +
+                '" data-agr-idx="' + idx + '">' +
+                '<div class="uc-calc-agr-check"></div>' +
+                '<span class="uc-calc-agr-text">' + titleHtml + '</span>' +
+                '</div>');
+
+            $item.on('click', function (e) {
+                if ($(e.target).is('a')) return;
+                $(this).toggleClass('uc-agr-checked')
+                       .removeClass('uc-calc-agr-item--error');
+                ucHideErrorIfClean();
+            });
+
+            $container.append($item);
+        });
+    }
+
+    function syncCalcAgreements() {
+        $('.uc-tildaform .t-input-group_cb').each(function (idx) {
+            var $realCb = $(this).find('input[type="checkbox"]');
+            var isVisualChecked = $('#uc-calc-agreements [data-agr-idx="' + idx + '"]')
+                .hasClass('uc-agr-checked');
+            $realCb.prop('checked', isVisualChecked);
+        });
+    }
+
+    /* ── Согласие на обработку данных ─────────────────────────────
+
+       Проверяем сами, а не полагаемся на валидацию Tilda. Причина в
+       её устройстве: обязательность поля включает только атрибут
+       data-tilda-req (см. window.tildaForm.validate в
+       tilda-forms-1.0.min.js), а у нашего чекбокса его нет. Снятая
+       галочка сегодня роняет отправку лишь побочно — это
+       единственное поле формы с js-tilda-rule, и без него Tilda
+       считает форму целиком пустой. Любое второе валидируемое поле в
+       форме молча снимет эту защиту.
+
+       Источник истины — визуальные пункты, с которыми работал
+       человек. syncCalcAgreements() вызывается строкой выше, поэтому
+       настоящие чекбоксы Tilda к этому моменту отражают то же самое.
+
+       Проверяются ВСЕ отрисованные пункты: renderCalcAgreements()
+       идёт циклом по всем группам t-input-group_cb. Сегодня группа
+       одна, но привязка к этому и породила исходный баг. */
+    function ucAgrItems() {
+        return $('#uc-calc-agreements .uc-calc-agr-item');
+    }
+
+    /* 'ok' — все отмечены, 'unchecked' — есть неотмеченные,
+       'empty' — пунктов нет вовсе (форма ещё не пришла). Три исхода,
+       а не булево: «не отмечено» и «нечего отмечать» требуют разных
+       сообщений. */
+    function ucConsentState() {
+        var $items = ucAgrItems();
+        if (!$items.length) return 'empty';
+        return $items.not('.uc-agr-checked').length ? 'unchecked' : 'ok';
+    }
+
+    /* Единая точка показа ошибки валидации — общая для имени,
+       телефона и согласия (R5). Пишем прямо в #uc-calc-error, а не
+       через ucSendFailed: отправки не было, гасить нечего, и это
+       обязано работать на обоих путях, где _submitting различается. */
+    function ucShowCalcError(message, $targets) {
+        if ($targets) {
+            $targets.each(function () {
+                var $el = $(this);
+                $el.addClass($el.hasClass('uc-calc-agr-item')
+                    ? 'uc-calc-agr-item--error'
+                    : 'uc-calc-input--error');
+            });
+        }
+        $('#uc-calc-error').text(message).show();
+    }
+
+    /* Снимает только подсветку ошибки. Состояние самих галочек не
+       трогаем никогда: renderCalcAgreements() восстанавливает его из
+       чекбокса Tilda и в общем случае затрёт выбор пользователя. */
+    function ucClearAgrError() {
+        ucAgrItems().removeClass('uc-calc-agr-item--error');
+    }
+
+    /* Прячет текст ошибки, только когда на экране не осталось ни
+       одного подсвеченного элемента — ни поля, ни пункта согласия.
+       Иначе отметка галочки убирала бы сообщение, которое всё ещё
+       относится к незаполненному имени. */
+    function ucHideErrorIfClean() {
+        if (!$('.uc-calc-input--error, .uc-calc-agr-item--error').length) {
+            $('#uc-calc-error').hide();
+        }
+    }
+
+    /* ================================================================
+       Инициализация при загрузке данных — вызывается из U2
+    ================================================================ */
+    window.initGallery = function (airData) {
+        if (!airData || !airData.length) return;
+        var sorted = airData.slice().sort(function (a, b) {
+            return Number(a.fields['Complectation id'] || 0) - Number(b.fields['Complectation id'] || 0);
+        });
+        window.updateGallery(sorted[0]);
+    };
+
+    /* ================================================================
+       Основная функция — вызывается из selectComplectation (U3)
+    ================================================================ */
+    window.updateGallery = function (car) {
+        var pics   = (car && car.fields && car.fields['Pics']) || [];
+        var botUrl = window.UNIFIEDBOT_URL || '';
+
+        galleryUrls = [];
+        for (var i = 0; i < pics.length; i++) {
+            var p   = pics[i];
+            var raw = p.url || p.signedPath || p.path || '';
+            if (!raw) continue;
+            galleryUrls.push(
+                raw.startsWith('http') ? raw : botUrl + '/' + raw.replace(/^\//, '')
+            );
+        }
+
+        if (!galleryUrls.length) {
+            $('#uc-gallery-custom').hide();
+            return;
+        }
+
+        currentGalIndex = 0;
+        var useLoop = galleryUrls.length > 1;
+
+        /* R9: update slides in place only when both old and new state have loop=false.
+           Loop mode always uses destroy+recreate to ensure slideChangeTransitionEnd
+           listener is re-registered on the fresh Swiper instance. */
+        if (galSwiper && !useLoop && !_lastUseLoop
+                && typeof galSwiper.removeAllSlides === 'function') {
+            galSwiper.removeAllSlides();
+            var $wrapperInPlace = $('#uc-gal-swiper-wrapper');
+            galleryUrls.forEach(function (url) {
+                $wrapperInPlace.append(
+                    '<div class="swiper-slide">' +
+                    '<img src="' + url + '" alt="" loading="lazy"' +
+                    ' style="width:100%;height:100%;object-fit:contain;">' +
+                    '</div>'
+                );
+            });
+            galSwiper.update();
+            galSwiper.slideTo(0, 0, false);
+            renderThumbs();
+        } else {
+            /* First init or loop parameter changed: destroy + recreate */
+            if (galSwiper) {
+                galSwiper.destroy(true, true);
+                galSwiper = null;
+            }
+
+            var $wrapper = $('#uc-gal-swiper-wrapper').empty();
+            galleryUrls.forEach(function (url) {
+                $wrapper.append(
+                    '<div class="swiper-slide">' +
+                    '<img src="' + url + '" alt="" loading="lazy"' +
+                    ' style="width:100%;height:100%;object-fit:contain;">' +
+                    '</div>'
+                );
+            });
+
+            renderThumbs();
+
+            setTimeout(function () {
+                galSwiper = new Swiper('#uc-gal-swiper', {
+                    slidesPerView: 1,
+                    loop: useLoop,
+                    speed: 350,
+                    allowTouchMove: true
+                });
+
+                galSwiper.on('slideChangeTransitionEnd', function () {
+                    currentGalIndex = galSwiper.activeIndex;
+                    renderThumbs();
+                });
+
+                _lastUseLoop = useLoop;
+            }, 0);
+        }
+
+        $('#uc-gallery-custom').show();
+    };
+
+    /* ================================================================
+       Рендер миниатюр
+    ================================================================ */
+    function renderThumbs() {
+        var thumbHtml = '';
+        for (var i = 0; i < galleryUrls.length; i++) {
+            thumbHtml +=
+                '<div class="gal-thumb' + (i === currentGalIndex ? ' active' : '') + '"' +
+                ' data-idx="' + i + '"' +
+                ' style="background-image:url(\'' + galleryUrls[i] + '\')">' +
+                '</div>';
+        }
+        $('#uc-gal-thumbs').html(thumbHtml);
+    }
+
+    /* ================================================================
+       Навигация: кнопки и миниатюры
+    ================================================================ */
+    $(document).on('click', '#uc-gal-prev', function () {
+        if (galSwiper) galSwiper.slidePrev();
+    });
+
+    $(document).on('click', '#uc-gal-next', function () {
+        if (galSwiper) galSwiper.slideNext();
+    });
+
+    $(document).on('click', '#uc-gal-thumbs .gal-thumb', function () {
+        var idx = parseInt($(this).attr('data-idx'), 10);
+        if (!galSwiper) return;
+        if (galSwiper.params && galSwiper.params.loop) {
+            galSwiper.slideToLoop(idx, 350);
+        } else {
+            galSwiper.slideTo(idx, 350);
+        }
+        currentGalIndex = idx;
+        renderThumbs();
+    });
+
+    /* ================================================================
+       Лайтбокс (без изменений; открытие по клику на фото убрано)
+    ================================================================ */
+    var lbIndex = 0;
+
+    function openLightbox(idx) {
+        if (!galleryUrls.length) return;
+        lbIndex = ((idx % galleryUrls.length) + galleryUrls.length) % galleryUrls.length;
+        showLbPhoto(lbIndex);
+        $('#uc-gallery-lightbox').addClass('uc-lb-open');
+        $('body').css('overflow', 'hidden');
+    }
+
+    function showLbPhoto(idx) {
+        lbIndex = ((idx % galleryUrls.length) + galleryUrls.length) % galleryUrls.length;
+        $('#uc-lb-img').attr('src', galleryUrls[lbIndex]);
+        $('#uc-lb-counter').text((lbIndex + 1) + ' / ' + galleryUrls.length);
+    }
+
+    $(document).on('click', '#uc-gallery-lightbox .uc-lb-close', closeLightbox);
+    $(document).on('click', '#uc-gallery-lightbox .uc-lb-prev', function () { showLbPhoto(lbIndex - 1); });
+    $(document).on('click', '#uc-gallery-lightbox .uc-lb-next', function () { showLbPhoto(lbIndex + 1); });
+
+    $(document).on('click', '#uc-gallery-lightbox', function (e) {
+        if ($(e.target).is('#uc-gallery-lightbox')) closeLightbox();
+    });
+
+    $(document).on('keydown', function (e) {
+        if (!$('#uc-gallery-lightbox').hasClass('uc-lb-open')) return;
+        if (e.key === 'Escape')     closeLightbox();
+        if (e.key === 'ArrowLeft')  showLbPhoto(lbIndex - 1);
+        if (e.key === 'ArrowRight') showLbPhoto(lbIndex + 1);
+    });
+
+    function closeLightbox() {
+        $('#uc-gallery-lightbox').removeClass('uc-lb-open');
+        $('body').css('overflow', '');
+    }
+
+    /* ================================================================
+       КВИЗ ШАГ 2: fillGalInfo — info-строка + spec-пиллсы
+    ================================================================ */
+    function fillGalInfo(car) {
+        if (!car || !car.fields) return;
+        var f    = car.fields;
+        var model = f['Model'] || '';
+        var compl = f['Complectation'] || '';
+        $('#uc-gal-info').text(model + (model && compl ? ' · ' : '') + compl);
+
+        var specs = [
+            { label: 'Двигатель',  key: 'Engine' },
+            { label: 'Коробка',    key: 'Transmission_ru' },
+            { label: 'Привод',     key: 'Drivetrain_ru' },
+            { label: 'Разгон',     key: 'Acceleration' },
+            { label: 'Расход',     key: 'Сonsumption' },
+            // ПРАВКА 5: оба варианта написания поля клиренса
+            { label: 'Клиренс',    key: 'clearance', fallback: 'Clearance' }
+        ];
+
+        var html = '';
+        specs.forEach(function (s) {
+            var val = f[s.key] || (s.fallback ? f[s.fallback] : '');
+            if (!val) return;
+            html += '<div class="uc-spec-card">' +
+                    '<div class="uc-spec-value">' + esc(val) + '</div>' +
+                    '<div class="uc-spec-label">' + esc(s.label) + '</div>' +
+                    '</div>';
+        });
+        $('#uc-gal-specs').html(html);
+        setTimeout(updateSpecsFade, 0);
+        var specsEl = document.getElementById('uc-gal-specs');
+        if (specsEl) {
+            specsEl.removeEventListener('scroll', updateSpecsFade);
+            specsEl.addEventListener('scroll', updateSpecsFade, { passive: true });
+        }
+    }
+
+    function updateSpecsFade() {
+        var sc = document.getElementById('uc-gal-specs');
+        var wr = document.getElementById('uc-specs-scroll-wrap');
+        if (!sc || !wr) return;
+        var atLeft  = sc.scrollLeft <= 1;
+        var atRight = sc.scrollLeft + sc.clientWidth >= sc.scrollWidth - 1;
+        wr.classList.toggle('show-left',  !atLeft);
+        wr.classList.toggle('show-right', !atRight);
+    }
+
+    /* ── Переключение вкладок «В чате» / «В личном кабинете» / «По телефону» ──
+
+       Единая точка: её зовут клик по вкладке и вход на шаг 2 (а в U7 —
+       кнопки-вкладки плашки ошибки). tab — значение data-calc-tab. */
+    var CALC_TAB_OFFER = { lk: 'ЛК', chat: 'В чате', phone: 'По телефону' };
+
+    function ucShowCalcTab(tab) {
+        if (!CALC_TAB_OFFER[tab]) tab = 'chat';
+        calcOffer = CALC_TAB_OFFER[tab];
+
+        $('.uc-calc-method-btn').removeClass('uc-calc-method-btn--active');
+        var $active = $('.uc-calc-method-btn[data-calc-tab="' + tab + '"]').addClass('uc-calc-method-btn--active');
+        /* Прокручиваемый таб-бар: активная вкладка не должна остаться за краем */
+        var bar = document.getElementById('uc-calc-tabbar');
+        if (bar && $active[0]) {
+            var b = $active[0];
+            if (b.offsetLeft < bar.scrollLeft || b.offsetLeft + b.offsetWidth > bar.scrollLeft + bar.clientWidth) {
+                bar.scrollLeft = Math.max(0, b.offsetLeft - 8);
+            }
+        }
+
+        $('#uc-calc-lk-section').toggle(tab === 'lk');
+        if (tab === 'lk') ucLkWarm();
+        $('#uc-calc-chat-section').toggle(tab === 'chat');
+        $('#uc-calc-phone-section').toggle(tab === 'phone');
+
+        /* Имя и телефон формы Tilda нужны только «По телефону» */
+        $('.uc-tildaform input[name="name"], .uc-tildaform input[name="phone"]')
+            .prop('disabled', tab !== 'phone');
+        if (tab === 'chat') initCalcState();
+
+        $('#uc-calc-error').hide();
+        $('#uc-calc-name, #uc-calc-phone').removeClass('uc-calc-input--error');
+        ucClearAgrError();
+        ucLkHideTip();
+        ucLkClearFail();
+        updateCalcBtnText();
+    }
+
+    $(document).on('click', '.uc-calc-method-btn', function () {
+        ucShowCalcTab($(this).data('calc-tab'));
+        ucTabbarFade();
+    });
+
+    /* ── Выбор карточки мессенджера ── */
+    $(document).on('click', '#uc-ms-site', function () {
+        calcMessenger = 'web';
+        setActiveMessengerCard('site');
+    });
+    $(document).on('click', '#uc-ms-max', function () {
+        calcMessenger = 'MAX';
+        setActiveMessengerCard('max');
+    });
+    $(document).on('click', '#uc-ms-tg', function () {
+        calcMessenger = 'Telegram';
+        setActiveMessengerCard('tg');
+    });
+
+    function setActiveMessengerCard(which) {
+        $('#uc-ms-site, #uc-ms-max, #uc-ms-tg').removeClass('uc-messenger-card--active');
+        $('#uc-ms-' + which).addClass('uc-messenger-card--active');
+        ucSyncMaxMode();
+    }
+
+    $(document).on('click', '#uc-calc-maxmode .uc-calc-maxmode__btn', function () {
+        calcMaxMode = $(this).data('max-mode') === 'web' ? 'web' : 'app';
+        ucSyncMaxMode();
+    });
+
+    /* ================================================================
+       МАСКА ТЕЛЕФОНА (#uc-calc-phone)
+
+       Канонический носитель состояния — 10 национальных цифр.
+       Отображаемая строка каждый раз строится заново, а не правится
+       по месту: так одинаково предсказуемо отрабатывают и посимвольный
+       ввод, и вставка из буфера, и удаление из середины.
+
+       Нецифровые символы не блокируются по коду клавиши — их
+       выбрасывает сам форматтер. Блокировка на keypress ломала бы
+       вставку, IME и Android-клавиатуры, где события клавиш
+       недостоверны.
+    ================================================================ */
+
+    /* Поддерживает ли движок beforeinput с inputType. На Android
+       keydown отдаёт keyCode 229 вместо Backspace, поэтому там
+       beforeinput — единственный надёжный путь. */
+    var UC_HAS_BEFOREINPUT = (typeof window.InputEvent === 'function' &&
+                              'inputType' in window.InputEvent.prototype);
+
+    /* Произвольный ввод → не более 10 национальных цифр.
+
+       Два разных источника ведущей семёрки, и путать их нельзя:
+
+       1. Префикс самой маски. В поле уже написано «+7 (912…», и эта
+          семёрка — наша собственная разметка, а не цифра номера.
+          Снимаем её текстом, до выделения цифр. Если этого не
+          сделать, при наборе «9», «1» строка «+7 (91» даст цифры
+          «791» и в поле появится «+7 (791».
+
+       2. Код страны или междугородний префикс, введённый человеком:
+          вставка «89123456789» либо первое нажатие «8». Отбрасываем
+          только когда однозначно — цифр 11 и больше (префикс лишний
+          по длине) или цифра ровно одна (человек набирает привычное
+          «8, потом номер»). Десятизначный набор не трогаем: иначе
+          стационарный 8125553535 превратился бы в 125553535 — девять
+          цифр и ложная ошибка «введите номер полностью» вместо
+          честной «укажите мобильный».
+
+       Когда префикс маски уже снят, остаток национальный по
+       построению — второе правило к нему не применяется. Поэтому
+       лишняя цифра в конце 812-го номера просто отсекается по длине,
+       а не съедает его код.
+
+       dropped — сколько цифр исчезло слева; на него опирается
+       пересчёт позиции каретки. */
+    function ucPhoneParse(value) {
+        var s = String(value == null ? '' : value);
+        var dropped = 0;
+
+        var pref = s.match(/^\s*\+\s*7/);
+        if (pref) {
+            s = s.slice(pref[0].length);
+            dropped = 1;
+        }
+
+        var d = s.replace(/\D/g, '');
+
+        if (!pref) {
+            var lead = d.charAt(0);
+            if ((lead === '7' || lead === '8') && (d.length >= 11 || d.length === 1)) {
+                d = d.slice(1);
+                dropped = 1;
+            }
+        }
+
+        return { digits: d.slice(0, 10), dropped: dropped };
+    }
+
+    function ucPhoneDigits(value) {
+        return ucPhoneParse(value).digits;
+    }
+
+    /* Цифры → «+7 (912) 345-67-89». Частичный ввод форматируется по
+       мере набора. Пустой вход даёт пустую строку, а не префикс
+       «+7 (» — иначе пропадёт плейсхолдер, который объясняет формат. */
+    function ucPhoneFormat(digits) {
+        if (!digits.length) return '';
+        var out = '+7 (' + digits.slice(0, 3);
+        if (digits.length >= 4) out += ') ' + digits.slice(3, 6);
+        if (digits.length >= 7) out += '-' + digits.slice(6, 8);
+        if (digits.length >= 9) out += '-' + digits.slice(8, 10);
+        return out;
+    }
+
+    /* Позиция каретки сразу после n-й национальной цифры.
+       Отсчёт с индекса 4: первые символы «+7 (» содержат цифру
+       страны, которая в national-нумерации не участвует. */
+    function ucPhoneCaretFor(formatted, n) {
+        if (!formatted.length) return 0;
+        if (n <= 0) return 4;
+        var seen = 0;
+        for (var i = 4; i < formatted.length; i++) {
+            var c = formatted.charAt(i);
+            if (c >= '0' && c <= '9') {
+                seen++;
+                if (seen === n) return i + 1;
+            }
+        }
+        return formatted.length;
+    }
+
+    function ucPhoneApply(el) {
+        var raw   = el.value;
+        var caret = (typeof el.selectionStart === 'number')
+            ? el.selectionStart : raw.length;
+
+        /* Якорь каретки — сколько цифр слева от неё, а не позиция
+           в строке: длина разделителей при перестроении меняется. */
+        var before = raw.slice(0, caret).replace(/\D/g, '').length;
+
+        var parsed    = ucPhoneParse(raw);
+        var formatted = ucPhoneFormat(parsed.digits);
+
+        /* Префикс съеден, национальных цифр пока нет — показываем
+           «+7 (». Иначе первое нажатие «8» выглядело бы как
+           несработавшая клавиша, а второе «8» в наборе 8-800/8-812
+           опять принималось бы за префикс (поле-то снова пустое) и
+           код терялся. Пустым поле остаётся только пока в нём вообще
+           ничего не набрано — тогда виден плейсхолдер. */
+        if (!formatted && parsed.dropped) formatted = '+7 (';
+
+        if (parsed.dropped && before > 0) before -= 1;
+        if (before > parsed.digits.length) before = parsed.digits.length;
+
+        if (formatted !== raw) el.value = formatted;
+
+        if (document.activeElement === el) {
+            var pos = ucPhoneCaretFor(formatted, before);
+            try { el.setSelectionRange(pos, pos); } catch (e) {}
+        }
+    }
+
+    /* Backspace через разделитель. Без этого удаление «)» в
+       «+7 (912) 345» не меняет набор цифр, перерисовка выдаёт ту же
+       строку, и каретка отпрыгивает — приходится жать дважды.
+       Перед удалением переводим каретку влево за все нецифры. */
+    function ucPhoneBackspaceFix(el) {
+        if (el.selectionStart !== el.selectionEnd) return;
+        var pos = el.selectionStart;
+        while (pos > 0 && !/[0-9]/.test(el.value.charAt(pos - 1))) pos--;
+        if (pos !== el.selectionStart) {
+            try { el.setSelectionRange(pos, pos); } catch (e) {}
+        }
+    }
+
+    /* change — ради автозаполнения по autocomplete="tel": часть
+       браузеров при нём не бросает input. */
+    $(document).on('input change', '#uc-calc-phone', function () {
+        ucPhoneApply(this);
+    });
+
+    $(document).on('beforeinput', '#uc-calc-phone', function (e) {
+        var oe = e.originalEvent || e;
+        if (oe.inputType === 'deleteContentBackward') ucPhoneBackspaceFix(this);
+    });
+
+    $(document).on('keydown', '#uc-calc-phone', function (e) {
+        if (UC_HAS_BEFOREINPUT) return;           // уже обработано выше
+        if (e.key !== 'Backspace' && e.which !== 8 && e.keyCode !== 8) return;
+        ucPhoneBackspaceFix(this);
+    });
+
+    /* ================================================================
+       ВАЛИДАЦИЯ ТЕЛЕФОНА
+
+       Собственные поля Tilda name="phone"/name="name" — это
+       type="hidden" без js-tilda-rule, поэтому её встроенная проверка
+       телефона по ним не отрабатывает вообще. Вся валидация наша.
+
+       Возвращает null при успехе либо текст ошибки. Функция чистая:
+       DOM не трогает, тексты подставляет вызывающий код.
+    ================================================================ */
+    function ucPhoneValidate(value) {
+        var d = ucPhoneDigits(value);
+
+        /* V1 — полнота */
+        if (d.length < 10) return 'Введите номер полностью';
+
+        /* V2 — только мобильные: менеджер перезванивает, но канал
+           подтверждения мобильный. Стационарные 495/812/343 отсекаем
+           намеренно. */
+        if (d.charAt(0) !== '9') {
+            return 'Укажите мобильный номер, начинается с +7 9…';
+        }
+
+        /* V3 — все десять цифр одинаковые */
+        if (/^(\d)\1{9}$/.test(d)) return 'Проверьте правильность номера';
+
+        /* V4 — серия из 6+ одинаковых подряд. Основное рабочее
+           правило: ловит 9001111111, 9990000000 и подобное. */
+        if (/(\d)\1{5,}/.test(d)) return 'Проверьте правильность номера';
+
+        /* V5 — номер целиком строго возрастает или строго убывает
+           с шагом 1. Проверяется ТОЛЬКО по всей длине: если применить
+           к семи абонентским цифрам, под отсев попадёт совершенно
+           обычный +7 (912) 345-67-89, где 3456789 возрастает.
+           В связке с V2 правило ловит ровно 9876543210 — оставлено
+           дешёвой страховкой на случай ослабления V2. */
+        var asc = true, desc = true;
+        for (var i = 1; i < d.length; i++) {
+            var diff = Number(d.charAt(i)) - Number(d.charAt(i - 1));
+            if (diff !== 1)  asc  = false;
+            if (diff !== -1) desc = false;
+        }
+        if (asc || desc) return 'Проверьте правильность номера';
+
+        return null;
+    }
+
+    /* ── Сброс ошибки при вводе ── */
+    $(document).on('input', '#uc-calc-name, #uc-calc-phone', function () {
+        $(this).removeClass('uc-calc-input--error');
+        ucHideErrorIfClean();
+    });
+
+    /* ── Финальная кнопка submit ── */
+    $(document).on('click', '#uc-gal-submit', function () {
+        /* Свой предохранитель от повторных кликов. У Tilda он тоже
+           есть (tildaSendingStatus глушит дубли), но пользователю он
+           невидим — а тут кнопка ещё и заблокирована. */
+        if (_submitting || lkBusy) return;
+
+        /* Неактивная «Далее» во вкладке ЛК: не отправляем, показываем
+           причину (на мобайле наведения нет — подсказка по нажатию). */
+        if (calcOffer === 'ЛК' && ucLkBlockReason()) {
+            ucLkShowTip();
+            return;
+        }
+
+        /* Исходный form_type запоминается до того, как его перепишет
+           вкладка ЛК (U7), и возвращается в форму на «В чате» /
+           «По телефону» ниже. */
+        ucFormTypeBase();
+
+        $('#uc-calc-name, #uc-calc-phone').removeClass('uc-calc-input--error');
+        ucClearAgrError();
+        $('#uc-calc-error').hide();
+
+        if (calcOffer === 'По телефону') {
+            var name  = $('#uc-calc-name').val().trim();
+            var phone = $('#uc-calc-phone').val().trim();
+            if (!name || !phone) {
+                var $empty = $();
+                if (!name)  $empty = $empty.add('#uc-calc-name');
+                if (!phone) $empty = $empty.add('#uc-calc-phone');
+                ucShowCalcError('Пожалуйста, заполните имя и телефон', $empty);
+                return;
+            }
+            var phoneErr = ucPhoneValidate(phone);
+            if (phoneErr) {
+                ucShowCalcError(phoneErr, $('#uc-calc-phone'));
+                return;
+            }
+        }
+
+        /* ── Согласие: единый запрет для обоих путей ──────────────
+
+           Место выбрано намеренно: ДО ветки веб-виджета, до
+           присваивания waSend/waMessenger, до ucSetSending и до
+           сабмита. Один return закрывает и «По телефону», и «В чате»
+           (включая Telegram/MAX), и window.isMaxOverlayActive не
+           успевает испортиться — иначе снятая галочка навсегда
+           отключала бы перезагрузку после следующей удачной заявки.
+
+           Раньше проверки не было вообще: телефонный путь случайно
+           упирался в валидацию Tilda, а чатовый открывал виджет
+           раньше, чем она успевала отказать.
+
+           Порядок с syncCalcAgreements() важен: сначала проверка,
+           потом синхронизация. Проверка читает визуальные пункты,
+           синхронизация пишет из них в чекбокс Tilda. При обратном
+           порядке ветка восстановления ниже ломается: sync успел бы
+           снять настоящий чекбокс по пустому контейнеру, а
+           перерисовка прочитала бы состояние уже из него и получила
+           «не отмечено» на ровном месте. Отказ вдобавок не трогает
+           форму Tilda — незачем оставлять её с «согласие отозвано». */
+        var consent = ucConsentState();
+
+        if (consent === 'empty') {
+            /* Пунктов нет — форма ещё не пришла в DOM (см. ранний
+               return в renderCalcAgreements). Просить отметить
+               нечего, но и отправлять персональные данные без
+               показанного согласия нельзя. Пробуем отрисовать и
+               перепроверяем; перерисовка безопасна ровно потому, что
+               терять тут нечего. */
+            renderCalcAgreements();
+            consent = ucConsentState();
+        }
+
+        if (consent !== 'ok') {
+            if (consent === 'empty') {
+                $('#uc-calc-error')
+                    .text('Форма ещё загружается — попробуйте ещё раз через пару секунд')
+                    .show();
+            } else {
+                ucShowCalcError('Отметьте согласие на обработку персональных данных',
+                                ucAgrItems().not('.uc-agr-checked'));
+            }
+            return;
+        }
+
+        /* Вкладка ЛК: форма Tilda + «открыть сессию» (см. ucLkSubmit).
+           Стоит после проверки согласия — согласие обязательно и здесь. */
+        if (calcOffer === 'ЛК') {
+            ucLkSubmit();
+            return;
+        }
+
+        syncCalcAgreements();
+
+        var isChat   = (calcOffer === 'В чате');
+        var messenger = '';
+
+        if (isChat) {
+            messenger = calcMessenger;
+        }
+
+        waSend      = isChat;
+        waMessenger = messenger;
+        /* Открывать ли MAX через max.ru — для адреса в U2 (ucMaxUrl).
+           Компьютер (то же условие, что показывает «На сайте») — нет,
+           web.max.ru; телефон — по выбору в «Где открыть MAX». На каждом
+           клике. */
+        window.ucMsgMobile = $(window).width() <= CALC_DESKTOP && calcMaxMode === 'app';
+        /* Флаг ветки ЛК присваивается на каждом клике (см. U2) */
+        window.ucLkSending = false;
+
+        var $f = $('.uc-tildaform');
+
+        if (calcOffer === 'По телефону') {
+            $f.find('input[name="name"]').val($('#uc-calc-name').val().trim());
+            $f.find('input[name="phone"]').val($('#uc-calc-phone').val().trim());
+        }
+
+        $f.find('input[name="offer"]').val(calcOffer);
+        $f.find('input[name="form_type"]').val(ucFormTypeBase());
+        /* Номер и пробег — только для заявки из вкладки ЛК; после попытки
+           ЛК слепок возвращает их в форму, здесь они не нужны. */
+        ucFormFieldCI(LK_FIELD_PLATE).val('');
+        ucFormFieldCI(LK_FIELD_MILEAGE).val('');
+        $f.find('input[name="messenger"]').val(messenger);
+        $f.find('input[name="sku-wa"]').val(typeof skuId !== 'undefined' ? skuId : '');
+
+        if (isChat && messenger === 'web') {
+            var payload = (typeof skuId !== 'undefined' ? skuId : '') +
+                          '_' +
+                          (typeof globalModelUtm !== 'undefined' ? globalModelUtm : '');
+            window.isMaxOverlayActive = true;
+            (function (p) {
+                function tryOpen() {
+                    if (typeof window.openTDWidget === 'function') {
+                        window.openTDWidget(p);
+                    } else {
+                        setTimeout(tryOpen, 100);
+                    }
+                }
+                setTimeout(tryOpen, 200);
+            })(payload);
+        }
+
+        /* Индикация только для пути «По телефону»: у «В чате» на
+           десктопе виджет открывается через 200 мс (см. выше), а
+           ветки мессенджеров сознательно оставлены прежними. */
+        if (calcOffer === 'По телефону') ucSetSending(true);
+
+        var $submitBtn = $f.find('.t-submit');
+        if ($submitBtn.length) {
+            $submitBtn.click();
+        } else {
+            $f.find('form').trigger('submit');
+        }
+
+        /* Здесь раньше стояла проверка класса t-btn_sending на
+           следующем тике — попытка поймать отказ валидации Tilda и
+           назвать причиной согласие. Она была построена на неверной
+           посылке («Tilda не бросает события при отказе своей
+           валидации») и не срабатывала никогда: showErrors бросает
+           tildaform:aftererror синхронно, слушатель ниже успевает
+           погасить _submitting, и до этой проверки очередь не
+           доходила. Пользователь всегда видел общий текст.
+
+           Проверка согласия теперь стоит до сабмита и до открытия
+           виджета — см. ucConsentState() выше. */
+    });
+
+    /* Отказ на стороне Tilda. Событие прилетает на сам <form>, не на
+       обёртку .uc-tildaform — отсюда closest(), см.
+       docs/solutions/integration-issues/tilda-aftersuccess-event-target-mismatch.md
+
+       tildaform:aftererror у Tilda означает две разные вещи: отказ её
+       валидации (синхронно, до запроса) и настоящий сбой отправки
+       (асинхронно, из колбэка XHR). Общий текст здесь оправдан ровно
+       потому, что первый случай стал недостижим: согласие — её
+       единственное поле с js-tilda-rule, и проверка выше не пускает
+       дальше неотмеченную галочку. Появится в форме второе
+       валидируемое поле — заводите для него свою проверку рядом с
+       именем и телефоном, иначе этот текст снова начнёт подменять
+       собой ошибку валидации.
+
+       На aftersuccess состояние сознательно НЕ снимается: U2
+       перезагружает страницу через секунду, и кнопка, ожившая на эту
+       секунду, читалась бы как сорвавшаяся отправка. */
+    document.addEventListener('tildaform:aftererror', function (e) {
+        if ($(e.target).closest('.uc-tildaform').length > 0) {
+            ucSendFailed('Не удалось отправить заявку. Попробуйте ещё раз.');
+        }
+    });
+
+    /* Успех: состояние не снимаем (KTD-7), но сторож обязан замолчать.
+
+       Иначе срабатывает такой сценарий: window.isMaxOverlayActive
+       выставляется в true в ветке «В чате»+web (и в U2 для MAX) и
+       никогда не сбрасывается обратно. После такой отправки
+       перезагрузка в mySuccessFunction отключена навсегда —
+       `if (!window.isMaxOverlayActive)`. Значит пользователь, который
+       сперва отправил через чат, а потом вернулся и отправил «По
+       телефону», страницу не перезагрузит, и через 20 секунд сторож
+       написал бы «не удалось отправить» поверх успешно ушедшей
+       заявки. Ложный отказ провоцирует повторную отправку — это хуже,
+       чем крутящийся спиннер, поэтому гасим только таймер. */
+    document.addEventListener('tildaform:aftersuccess', function (e) {
+        if (_submitting && $(e.target).closest('.uc-tildaform').length > 0) {
+            clearTimeout(_submitWatch);
+            _submitWatch = null;
+        }
+    });
+
+    /* ================================================================
+       ВКЛАДКА «В ЛИЧНОМ КАБИНЕТЕ»: сценарий, шкала, госномер, пробег
+
+       Шкала — только прикидка, чтобы клиент указал желаемый платёж;
+       расчёт делает кабинет. Границы — от «Price new» выбранной
+       позиции: минимум при взносе 90 % и 36 мес (ставка — Rate строки
+       таблицы ставок дилера с минимальным Downpayment_From), максимум
+       при взносе 15 % и 36 мес (ставка — getSmartRate кабинета для
+       15 % и 36 мес; решение владельца 2026-10-04). Таблицу отдаёт U2
+       через window._ratesReady; нет таблицы или сбой — 16 %, как
+       запасная ставка кабинета (calc_engine.browser.js). Если после
+       округления максимум не больше минимума, шкала сжимается в одну
+       точку — минимум: ползунок и подписи краёв прячутся, остаётся
+       поле (при 16 % — на позициях до ~330 000 ₽).
+
+       Отправка вкладки (форма Tilda + «открыть сессию») — отдельный
+       шаг; здесь только ввод и состояние кнопки.
+    ================================================================ */
+    var LK_STEP          = 5000;     // шаг шкалы, ₽
+    var LK_DEFAULT_PAY   = 30000;    // платёж по умолчанию, ₽
+    var LK_FALLBACK_RATE = 0.16;     // годовая, доля
+    var LK_MAX_DOWN_PCT  = 15;       // максимум шкалы: взнос, %
+    var LK_MAX_TERM      = 36;       //                 срок, мес
+    var LK_MILEAGE_MAX   = 1000000;  // км
+
+    var lk = {
+        chosen:    'credit',   // выбор клиента: 'credit' | 'tradein' | 'combo'
+        scenario:  'credit',   // действующий сценарий: без цены — всегда 'tradein'
+        price:     0,          // «Price new» выбранной позиции
+        rate:      LK_FALLBACK_RATE,   // для минимума шкалы
+        rateMax:   LK_FALLBACK_RATE,   // для максимума шкалы
+        bounds:    null,       // { min, max } или null, если цены нет
+        payment:   null,       // null — ещё не выбирали, возьмём 30 000
+        _ratesSrc: null        // промис ставок, к которому уже подписались
+    };
+
+    /* Исходный form_type формы (из редактора или настроек дилера).
+       Запоминается при первом клике «Далее» — раньше, чем вкладка ЛК
+       впишет туда сценарий, — и возвращается на «В чате» / «По телефону». */
+    var _formTypeBase = null;
+    function ucFormTypeBase() {
+        if (_formTypeBase === null) {
+            var $ft = $('.uc-tildaform input[name="form_type"]');
+            if (!$ft.length) return '';          // формы ещё нет — не запоминаем пустое
+            _formTypeBase = $ft.val() || '';
+        }
+        return _formTypeBase;
+    }
+
+    /* ── чистые функции ─────────────────────────────────────────── */
+
+    /* 1234567 → «1 234 567» (обычный пробел: строка уходит в поле ввода) */
+    function ucLkFmt(n) {
+        return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+
+    /* Аннуитетный платёж — та же формула, что calculatePMT кабинета */
+    function ucLkPmt(loan, rateYear, months) {
+        var m = rateYear / 12;
+        if (m <= 0.00001) return loan / months;
+        return (loan * m) / (1 - Math.pow(1 + m, -months));
+    }
+
+    /* Поле строки NocoDB без учёта регистра, пробелов и «_» */
+    function ucLkField(row, name) {
+        if (!row) return undefined;
+        if (Object.prototype.hasOwnProperty.call(row, name)) return row[name];
+        var target = name.toLowerCase().replace(/[\s_]/g, '');
+        for (var k in row) {
+            if (Object.prototype.hasOwnProperty.call(row, k) &&
+                k.toLowerCase().replace(/[\s_]/g, '') === target) return row[k];
+        }
+        return undefined;
+    }
+
+    function ucLkNum(v) {
+        if (v === null || v === undefined || v === '') return NaN;
+        return Number(String(v).replace(',', '.').replace(/\s/g, ''));
+    }
+
+    /* Строка ставок с минимальным Downpayment_From; при равенстве —
+       с меньшим Term_From. Rate — в процентах. Строки без числового
+       Rate или Downpayment_From пропускаются. */
+    function ucLkPickRate(rows) {
+        if (!Array.isArray(rows)) return LK_FALLBACK_RATE;
+        var best = null;
+        rows.forEach(function (r) {
+            var rate = ucLkNum(ucLkField(r, 'Rate'));
+            var down = ucLkNum(ucLkField(r, 'Downpayment_From'));
+            if (!isFinite(rate) || rate < 0 || !isFinite(down)) return;   // 0 % — допустимая акция
+            var term = ucLkNum(ucLkField(r, 'Term_From'));
+            if (!isFinite(term)) term = Infinity;
+            if (!best || down < best.down || (down === best.down && term < best.term)) {
+                best = { rate: rate, down: down, term: term };
+            }
+        });
+        return best ? best.rate / 100 : LK_FALLBACK_RATE;
+    }
+
+    /* Перенос getSmartRate из calc_engine.browser.js кабинета (те же
+       шаги и запасные значения), чтобы максимум шкалы совпадал с его
+       расчётом: строка, где срок и взнос попадают в диапазоны
+       (Downpayment_To пусто — 100); иначе среди строк с подходящим
+       сроком — с меньшим Downpayment_From; иначе 16 %. */
+    function ucLkSmartRate(rows, term, downPct) {
+        if (!Array.isArray(rows) || rows.length === 0) return LK_FALLBACK_RATE;
+        var match = null, byTerm = [];
+        rows.forEach(function (r) {
+            var tFrom = Number(ucLkField(r, 'Term_From')), tTo = Number(ucLkField(r, 'Term_To'));
+            var dFrom = Number(ucLkField(r, 'Downpayment_From'));
+            var dToRaw = ucLkField(r, 'Downpayment_To');
+            var dTo = (dToRaw !== undefined && dToRaw !== null && dToRaw !== '') ? Number(dToRaw) : 100;
+            if (term >= tFrom && term <= tTo) {
+                byTerm.push(r);
+                if (!match && downPct >= dFrom && downPct <= dTo) match = r;
+            }
+        });
+        if (match) return Number(ucLkField(match, 'Rate')) / 100;
+        if (byTerm.length) {
+            byTerm.sort(function (a, b) {
+                return Number(ucLkField(a, 'Downpayment_From')) - Number(ucLkField(b, 'Downpayment_From'));
+            });
+            return Number(ucLkField(byTerm[0], 'Rate')) / 100;
+        }
+        return LK_FALLBACK_RATE;
+    }
+
+    /* Границы шкалы, округлённые до шага: минимум вверх, максимум вниз.
+       Максимум не больше минимума — шкала из одной точки (минимум). */
+    function ucLkBounds(price, rateMin, rateMax) {
+        if (!(price > 0)) return null;
+        var min = Math.ceil(ucLkPmt(price * 0.1, rateMin, 36) / LK_STEP) * LK_STEP;
+        var max = Math.floor(ucLkPmt(price * (1 - LK_MAX_DOWN_PCT / 100), rateMax, LK_MAX_TERM) / LK_STEP) * LK_STEP;
+        if (max < min) max = min;
+        return { min: min, max: max };
+    }
+
+    /* Ближайшее кратное шагу в пределах шкалы */
+    function ucLkSnap(v, b) {
+        var s = Math.round(v / LK_STEP) * LK_STEP;
+        return Math.min(b.max, Math.max(b.min, s));
+    }
+
+    /* Госномер: буква, три цифры, две буквы + регион из 2–3 цифр.
+       Только 12 букв, совпадающих с латиницей; латинские двойники
+       заменяются кириллицей. Символы, не подходящие к своей позиции,
+       отбрасываются — поэтому «неверного» номера ввести нельзя, можно
+       только недописанный. Цифры сверх основной части уходят в регион
+       (вставка «а 123 вс 777» целиком). */
+    var LK_PLATE_LETTERS = 'АВЕКМНОРСТУХ';
+    var LK_PLATE_LATIN   = { A: 'А', B: 'В', E: 'Е', K: 'К', M: 'М', H: 'Н',
+                             O: 'О', P: 'Р', C: 'С', T: 'Т', Y: 'У', X: 'Х' };
+
+    function ucPlateParse(str) {
+        var main = '', over = '';
+        var src = String(str == null ? '' : str).toUpperCase();
+        for (var i = 0; i < src.length; i++) {
+            var ch = LK_PLATE_LATIN[src.charAt(i)] || src.charAt(i);
+            var pos = main.length;
+            if (pos < 6) {
+                var needLetter = (pos === 0 || pos >= 4);
+                if (needLetter ? LK_PLATE_LETTERS.indexOf(ch) !== -1 : /[0-9]/.test(ch)) main += ch;
+            } else if (/[0-9]/.test(ch) && over.length < 3) {
+                over += ch;
+            }
+        }
+        return { main: main, over: over };
+    }
+
+    /* «А123ВС» → «А 123 ВС», частичный ввод — по мере набора */
+    function ucPlateFormat(main) {
+        var out = main.slice(0, 1);
+        if (main.length > 1) out += ' ' + main.slice(1, 4);
+        if (main.length > 4) out += ' ' + main.slice(4, 6);
+        return out;
+    }
+
+    /* Регион — то же правило, что строгий канон бота (payload_v2.py):
+       2–3 цифры, не «00», трёхзначный начинается с 1, 7 или 9. */
+    function ucPlateRegionOk(reg) {
+        if (!/^[0-9]{2,3}$/.test(reg)) return false;
+        if (reg === '00') return false;
+        if (reg.length === 3 && '179'.indexOf(reg.charAt(0)) === -1) return false;
+        return true;
+    }
+
+    function ucPlateValue() {
+        return {
+            main: ucPlateParse($('#uc-calc-lk-plate-main').val()).main,
+            reg:  ($('#uc-calc-lk-plate-reg').val() || '').replace(/[^0-9]/g, '')
+        };
+    }
+
+    function ucPlateValid() {
+        var p = ucPlateValue();
+        return p.main.length === 6 && ucPlateRegionOk(p.reg);
+    }
+
+    /* Число цифр слева от каретки — якорь, который переживает
+       перестроение строки (тот же приём, что у маски телефона). */
+    function ucCountBefore(el, re) {
+        var caret = (typeof el.selectionStart === 'number') ? el.selectionStart : el.value.length;
+        return (el.value.slice(0, caret).match(re) || []).length;
+    }
+    function ucCaretAfter(el, n, re) {
+        if (document.activeElement !== el) return;
+        var pos = 0, seen = 0, v = el.value;
+        if (n > 0) {
+            for (pos = 0; pos < v.length; pos++) {
+                if (re.test(v.charAt(pos))) { seen++; if (seen === n) { pos++; break; } }
+            }
+        }
+        try { el.setSelectionRange(pos, pos); } catch (e) {}
+    }
+
+    /* ── отрисовка ──────────────────────────────────────────────── */
+
+    function ucLkRenderScale() {
+        var b = lk.bounds;
+        var $range = $('#uc-calc-lk-range');
+        if (!b) return;
+        if (lk.payment === null) lk.payment = LK_DEFAULT_PAY;
+        lk.payment = ucLkSnap(lk.payment, b);
+
+        $range.attr({ min: b.min, max: b.max, step: LK_STEP }).val(lk.payment);
+        /* Шкала из одной точки — ползунок и подписи краёв не нужны */
+        $('#uc-calc-lk-scale').prop('hidden', b.max === b.min);
+        /* Неразрывные пробелы: подпись не рвётся посреди числа */
+        $('#uc-calc-lk-min').text(ucLkFmt(b.min).replace(/ /g, '\u00A0') + '\u00A0₽');
+        $('#uc-calc-lk-max').text(ucLkFmt(b.max).replace(/ /g, '\u00A0') + '\u00A0₽');
+        $('#uc-calc-lk-buy-min').html('Платеж от ' + ucLkFmt(b.min).replace(/ /g, '&nbsp;') + '&nbsp;₽<br>в месяц');
+        ucLkRenderPayment();
+    }
+
+    /* Поле суммы, заливка дорожки и озвучка ползунка — из lk.payment */
+    function ucLkRenderPayment() {
+        var b = lk.bounds;
+        if (!b) return;
+        var range = document.getElementById('uc-calc-lk-range');
+        var fill  = (b.max > b.min) ? (lk.payment - b.min) / (b.max - b.min) * 100 : 100;
+        if (range) {
+            range.style.setProperty('--uc-calc-fill', fill + '%');
+            range.setAttribute('aria-valuetext', ucLkFmt(lk.payment) + ' рублей в месяц');
+        }
+        var sum = document.getElementById('uc-calc-lk-sum');
+        if (sum && document.activeElement !== sum) sum.value = ucLkFmt(lk.payment);
+    }
+
+    /* Действующий сценарий: выбор клиента, а для позиции без цены —
+       трейд-ин. Выбор клиента при этом не затирается: вернулась цена —
+       вернулся и его кредит. */
+    function ucLkSetScenario(s) {
+        if (!lk.bounds && s !== 'tradein') s = 'tradein';   // без цены — только трейд-ин
+        lk.scenario = s;
+        $('.uc-calc-buy').each(function () {
+            var on = $(this).data('scenario') === s;
+            $(this).toggleClass('uc-calc-buy--active', on).attr('aria-checked', on ? 'true' : 'false');
+        });
+        $('#uc-calc-lk-credit').toggleClass('uc-calc-lvl2-block--show', s !== 'tradein');
+        $('#uc-calc-lk-car').toggleClass('uc-calc-lvl2-block--show', s !== 'credit');
+        ucLkHideTip();
+        ucLkSyncNext();
+    }
+
+    /* Вход на шаг 2: цена новой машины, ставки, шкала. Платёж и
+       данные трейд-ина сохраняются между входами; платёж прижимается
+       к новым границам. */
+    function ucLkOnEnter(car) {
+        var f = (car && car.fields) || {};
+        lk.price = ucLkNum(f['Price new']);
+        if (!isFinite(lk.price)) lk.price = 0;
+        ucLkAttachRates();
+        ucLkRecalc();
+    }
+
+    function ucLkRecalc() {
+        lk.bounds = ucLkBounds(lk.price, lk.rate, lk.rateMax);
+        /* Позиция без цены: кредит и комбо считать не из чего */
+        $('.uc-calc-buy[data-scenario="credit"], .uc-calc-buy[data-scenario="combo"]').toggle(!!lk.bounds);
+        ucLkRenderScale();
+        ucLkSetScenario(lk.chosen);
+    }
+
+    /* Ставки приходят от U2 промисом. Пока его нет — 16 %; пришли
+       позже — шкала пересчитывается, выбранный платёж прижимается. */
+    function ucLkAttachRates() {
+        var src = window._ratesReady;
+        if (!src || typeof src.then !== 'function' || src === lk._ratesSrc) return;
+        lk._ratesSrc = src;
+        src.then(function (rows) {
+            var rate = ucLkPickRate(rows);
+            var rateMax = ucLkSmartRate(rows, LK_MAX_TERM, LK_MAX_DOWN_PCT);
+            if (!isFinite(rateMax) || rateMax < 0) rateMax = LK_FALLBACK_RATE;
+            if (rate !== lk.rate || rateMax !== lk.rateMax) { lk.rate = rate; lk.rateMax = rateMax; ucLkRecalc(); }
+        }, function () { /* сбой — остаётся 16 % */ });
+    }
+
+    /* ── обработчики ввода ──────────────────────────────────────── */
+
+    $(document).on('click', '.uc-calc-buy', function () {
+        lk.chosen = $(this).data('scenario');
+        ucLkSetScenario(lk.chosen);
+    });
+
+    $(document).on('input', '#uc-calc-lk-range', function () {
+        lk.payment = Number(this.value);
+        ucLkRenderPayment();
+        $('#uc-calc-lk-sum').val(ucLkFmt(lk.payment));
+    });
+
+    /* Ручной ввод суммы: во время набора — только цифры с разделителем,
+       при уходе из поля — ближайшее кратное 5 000 в пределах шкалы
+       (32 400 → 30 000; 7 000 при минимуме 10 000 → 10 000). */
+    $(document).on('input', '#uc-calc-lk-sum', function () {
+        var before = ucCountBefore(this, /[0-9]/g);
+        var d = this.value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '').slice(0, 7);
+        this.value = d ? ucLkFmt(Number(d)) : '';
+        ucCaretAfter(this, Math.min(before, d.length), /[0-9]/);
+    });
+    $(document).on('change blur', '#uc-calc-lk-sum', function () {
+        if (!lk.bounds) return;
+        var d = this.value.replace(/[^0-9]/g, '');
+        if (d) lk.payment = ucLkSnap(Number(d), lk.bounds);
+        this.value = ucLkFmt(lk.payment);
+        $('#uc-calc-lk-range').val(lk.payment);
+        ucLkRenderPayment();
+    });
+
+    /* Госномер, основная часть */
+    $(document).on('input', '#uc-calc-lk-plate-main', function (e) {
+        var oe = e.originalEvent || e;
+        var re = /[0-9A-Za-zА-Яа-яЁё]/;
+        /* Якорь каретки — сколько символов слева от неё переживут маску
+           (отброшенный символ не должен сдвигать каретку вправо). */
+        var caretPos = (typeof this.selectionStart === 'number') ? this.selectionStart : this.value.length;
+        var before = ucPlateParse(this.value.slice(0, caretPos)).main.length;
+        var parsed = ucPlateParse(this.value);
+        var prevLen = (this.getAttribute('data-uc-len') | 0);
+        this.value = ucPlateFormat(parsed.main);
+        this.setAttribute('data-uc-len', parsed.main.length);
+        ucCaretAfter(this, Math.min(before, parsed.main.length), re);
+
+        var $reg = $('#uc-calc-lk-plate-reg');
+        if (parsed.over) {
+            /* Лишние цифры — это регион (вставка или набор подряд) */
+            $reg.val((($reg.val() || '') + parsed.over).replace(/[^0-9]/g, '').slice(0, 3));
+            $reg.trigger('focus');
+        } else if (parsed.main.length === 6 && prevLen < 6 &&
+                   (!oe.inputType || oe.inputType.indexOf('insert') === 0) &&
+                   this.selectionStart === this.value.length) {
+            /* Основная часть дописана — курсор в регион */
+            $reg.trigger('focus');
+        }
+        ucPlateRefreshError(false);
+        ucLkSyncNext();
+    });
+
+    /* Госномер, регион: только цифры, не больше трёх */
+    $(document).on('input', '#uc-calc-lk-plate-reg', function () {
+        var d = this.value.replace(/[^0-9]/g, '').slice(0, 3);
+        if (d !== this.value) this.value = d;
+        ucPlateRefreshError(false);
+        ucLkSyncNext();
+    });
+    /* Backspace в пустом регионе — назад в основную часть */
+    $(document).on('keydown', '#uc-calc-lk-plate-reg', function (e) {
+        if ((e.key === 'Backspace' || e.which === 8) && !this.value) {
+            var main = document.getElementById('uc-calc-lk-plate-main');
+            if (main) {
+                /* Иначе браузер применит этот же Backspace к основной
+                   части, куда уже ушёл фокус, и сотрёт её последний символ */
+                e.preventDefault();
+                main.focus();
+                try { main.setSelectionRange(main.value.length, main.value.length); } catch (er) {}
+            }
+        }
+    });
+
+    /* Ошибка номера — только при уходе из номера целиком (не при
+       переходе между его двумя полями) и только для недописанного или
+       неверного номера. Пустой номер ошибкой не считается: что номер
+       нужен, объясняет подсказка у кнопки. Исправленный номер снимает
+       ошибку сразу, во время ввода. */
+    function ucPlateRefreshError(onLeave) {
+        var p = ucPlateValue();
+        var valid = p.main.length === 6 && ucPlateRegionOk(p.reg);
+        var empty = !p.main && !p.reg;
+        var $err  = $('#uc-calc-lk-plate-err');
+        var shown = !$err.prop('hidden');
+        var show  = valid || empty ? false : (onLeave ? true : shown);
+        $err.prop('hidden', !show);
+        $('#uc-calc-lk-plate').toggleClass('uc-calc-plate--err', show);
+        $('#uc-calc-lk-plate-main, #uc-calc-lk-plate-reg').attr('aria-invalid', show ? 'true' : 'false');
+    }
+    $(document).on('focusout', '#uc-calc-lk-plate', function (e) {
+        var next = e.relatedTarget;
+        if (next && this.contains(next)) return;
+        ucPlateRefreshError(true);
+    });
+
+    /* Пробег: только цифры с разделителем тысяч, не больше 1 000 000 —
+       цифра сверх лимита просто не вводится. */
+    $(document).on('input', '#uc-calc-lk-mileage', function () {
+        var before = ucCountBefore(this, /[0-9]/g);
+        var d = this.value.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '');
+        var prev = this.getAttribute('data-uc-prev') || '';
+        if (d && Number(d) > LK_MILEAGE_MAX) { d = prev; before = d.length; }
+        this.setAttribute('data-uc-prev', d);
+        this.value = d ? ucLkFmt(Number(d)) : '';
+        ucCaretAfter(this, Math.min(before, d.length), /[0-9]/);
+        ucLkSyncNext();
+    });
+
+    /* ── «Далее» неактивна на вид ───────────────────────────────── */
+
+    /* Тексты подсказки (решение владельца 2026-10-02) */
+    var LK_TIPS = {
+        plateEmpty: 'Внесите гос. номер, чтобы продолжить',
+        plateBad:   'Исправьте гос. номер, чтобы продолжить',
+        mileage:    'Укажите пробег, чтобы продолжить'
+    };
+
+    /* Причина, по которой продолжить нельзя, или null. Только вкладка
+       ЛК, только трейд-ин и комбо. Не хватает нескольких полей —
+       называется первое по порядку на экране: номер выше пробега. */
+    function ucLkBlockReason() {
+        if (!lk || calcOffer !== 'ЛК' || lk.scenario === 'credit') return null;
+        if (!ucPlateValid()) {
+            var p = ucPlateValue();
+            return (!p.main && !p.reg) ? 'plateEmpty' : 'plateBad';
+        }
+        if (!$('#uc-calc-lk-mileage').val()) return 'mileage';
+        return null;
+    }
+
+    /* Не disabled: у disabled-кнопки нет наведения и фокуса, и
+       подсказку было бы не показать. aria-disabled + aria-describedby
+       сообщают то же самое скринридеру. */
+    function ucLkSyncNext() {
+        var $btn = $('#uc-gal-submit');
+        var reason = ucLkBlockReason();
+        $('#uc-calc-tipw').toggleClass('is-inactive', !!reason);
+        $btn.toggleClass('uc-quiz-btn-next--inactive', !!reason);
+        if (reason) {
+            $('#uc-calc-tip').text(LK_TIPS[reason]);
+            $btn.attr({ 'aria-disabled': 'true', 'aria-describedby': 'uc-calc-tip' });
+        } else {
+            $btn.removeAttr('aria-disabled aria-describedby');
+            ucLkHideTip();
+        }
+    }
+
+    function ucLkShowTip() { $('#uc-calc-tip').addClass('uc-calc-tip--open'); }
+    function ucLkHideTip() { $('#uc-calc-tip').removeClass('uc-calc-tip--open'); }
+
+    /* Открытая по нажатию подсказка закрывается нажатием вне кнопки
+       и прокруткой страницы. */
+    $(document).on('click', function (e) {
+        if (!$(e.target).closest('#uc-calc-tipw').length) ucLkHideTip();
+    });
+    window.addEventListener('scroll', ucLkHideTip, { passive: true });
+
+    /* ── затухание прокручиваемого таб-бара (мобайл) ────────────── */
+
+    function ucTabbarFade() {
+        var bar = document.getElementById('uc-calc-tabbar');
+        if (!bar) return;
+        var tabs = bar.parentNode;
+        var max  = bar.scrollWidth - bar.clientWidth;
+        var sl   = bar.scrollLeft;
+        tabs.style.setProperty('--uc-tabbar-h', bar.offsetHeight + 'px');
+        tabs.classList.toggle('is-fit', max <= 1);
+        tabs.classList.toggle('is-end', max > 1 && sl >= max - 1);
+        tabs.classList.toggle('is-mid', max > 1 && sl > 1 && sl < max - 1);
+    }
+    $(document).ready(function () {
+        var bar = document.getElementById('uc-calc-tabbar');
+        if (bar) bar.addEventListener('scroll', ucTabbarFade, { passive: true });
+        ucTabbarFade();
+    });
+
+    /* ================================================================
+       ВКЛАДКА «В ЛИЧНОМ КАБИНЕТЕ»: ОТПРАВКА (план U7–U8)
+
+       «Далее» → форма Tilda (offer «ЛК с сайта», form_type по
+       сценарию, код с хвостом из 4 букв) → после её успеха «открыть
+       сессию» у бота → переход по cabinet_url в той же вкладке.
+       Контракт: бриф бота docs/handoff/landing-brief.md.
+
+       Попытка — набор параметров (машина, сценарий, платёж, номер,
+       пробег) и живёт только в памяти страницы (решение владельца).
+       Без изменений повтор берёт тот же код и nonce и форму второй
+       раз не отправляет; изменили параметры — новый код, новый nonce,
+       новая отправка формы. bfcache сохраняет память при «Назад».
+
+       Форма Tilda и «открыть сессию» уходят одновременно (L4b, решение
+       владельца 2026-10-03): бот сделку Tilda не ждёт, код и блок form
+       известны до отправки. Переход по cabinet_url — только когда
+       форма завершилась (успех или ошибка): уход со страницы обрывает
+       её запрос. Ошибка формы при ответе бота — переход всё равно
+       (сделку создаст бот из блока form); ошибка бота — плашка.
+
+       Общий дедлайн — 15 с с момента нажатия, на форму и бота вместе.
+       Адрес кабинета к 15 с есть, а форма ещё не завершилась — переход
+       (как при ошибке формы); адреса нет — плашка (кадр 5) с
+       «ПОВТОРИТЬ» и переходом на «В чате» / «По телефону».
+    ================================================================ */
+    var LK_DEADLINE_MS = 15000;
+    var LK_FORM_TYPES  = { credit: 'В кредит', tradein: 'В трейдин', combo: 'Комбо' };
+    var LK_OFFER       = 'ЛК с сайта';
+    var LK_COOKIES     = ['_ct_session_id', '_ym_uid', 'WhiteCallback_visit'];
+    var LK_UTM         = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+    /* Скрытые поля формы Tilda для трейд-ина (добавлены владельцем 2026-10-03).
+       Имя ищется без учёта регистра: в форме поле называется car_number,
+       в таблице соответствий интеграции — CAR_NUMBER. */
+    var LK_FIELD_PLATE   = 'car_number';
+    var LK_FIELD_MILEAGE = 'mileage';
+
+    function ucFormFieldCI(name) {
+        var want = name.toLowerCase();
+        return $('.uc-tildaform input').filter(function () {
+            return (this.name || '').toLowerCase() === want;
+        });
+    }
+
+    var lkAttempt  = null;    // { fp, dealer_code, lead_code, nonce, params, snapshot, form_sent, cabinet_url }
+    var lkInFlight = null;    // попытка, чья форма Tilda сейчас отправляется
+    var lkBusy     = false;   // ждём форму или бота
+    var lkFailed   = false;   // показана плашка сбоя
+    var lkTimer    = null;
+    var lkAbort    = null;
+
+    /* ── параметры и попытка ─────────────────────────────────────── */
+
+    /* Параметры запроса из текущего ввода; неприменимые к сценарию
+       поля не передаются. */
+    function ucLkParams() {
+        var f = (window.ucQuiz && window.ucQuiz.selectedCar && window.ucQuiz.selectedCar.fields) || {};
+        var p = {
+            model_id:         String(f['Model id'] == null ? '' : f['Model id']),
+            complectation_id: String(f['Complectation id'] == null ? '' : f['Complectation id']),
+            scenario:         lk.scenario
+        };
+        if (lk.scenario !== 'tradein') p.desired_payment = Math.round(lk.payment || 0);
+        if (lk.scenario !== 'credit') {
+            var pl = ucPlateValue();
+            p.plate   = pl.main + pl.reg;
+            p.mileage = Number(($('#uc-calc-lk-mileage').val() || '').replace(/[^0-9]/g, '')) || 0;
+        }
+        return p;
+    }
+
+    function ucLkFingerprint(p) {
+        return [p.model_id, p.complectation_id, p.scenario,
+                p.desired_payment == null ? '' : p.desired_payment,
+                p.plate || '', p.mileage == null ? '' : p.mileage].join('|');
+    }
+
+    function ucLkRandomBytes(n) {
+        var a = new Uint8Array(n);
+        if (window.crypto && window.crypto.getRandomValues) {
+            window.crypto.getRandomValues(a);
+        } else {
+            for (var i = 0; i < n; i++) a[i] = Math.floor(Math.random() * 256);
+        }
+        return a;
+    }
+
+    /* Код того же формата, что skuId (дилер + модель + комплектация),
+       но с хвостом из 4 случайных латинских букв (R52). Глобальный
+       skuId не трогаем: «В чате» / «По телефону» работают со своим. */
+    function ucLkLeadCode(dealerCode, p) {
+        var b = ucLkRandomBytes(4), tail = '';
+        for (var i = 0; i < 4; i++) tail += String.fromCharCode(65 + (b[i] % 26));
+        return dealerCode + p.model_id + p.complectation_id + tail;
+    }
+
+    /* 16 случайных байт в base64url — 22 символа, ^[A-Za-z0-9_-]{22,128}$ */
+    function ucLkNonce() {
+        var b = ucLkRandomBytes(16), s = '';
+        for (var i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+        return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    /* ── форма Tilda ─────────────────────────────────────────────── */
+
+    function ucLkForm() { return document.querySelector('.uc-tildaform form'); }
+
+    /* Слепок всех именованных полей формы на момент отправки. Нужен
+       дважды: из него собирается блок form для бота, и из него же
+       поля возвращаются в форму после успеха — Tilda их очищает, а
+       перезагрузки страницы, которая это скрывала, в ветке ЛК нет. */
+    function ucLkSnapshot() {
+        var form = ucLkForm(), out = [];
+        if (!form) return out;
+        Array.prototype.forEach.call(form.querySelectorAll('input[name], select[name], textarea[name]'), function (el) {
+            out.push({ name: el.name, type: (el.type || '').toLowerCase(), value: el.value,
+                       checked: !!el.checked, disabled: !!el.disabled });
+        });
+        return out;
+    }
+
+    function ucLkRestoreForm(snapshot) {
+        var form = ucLkForm();
+        if (!form || !snapshot) return;
+        snapshot.forEach(function (s) {
+            var el = form.querySelector('[name="' + s.name.replace(/"/g, '\\"') + '"]');
+            if (!el) return;
+            if (s.type === 'checkbox' || s.type === 'radio') el.checked = s.checked;
+            else el.value = s.value;
+        });
+    }
+
+    /* Tilda после успеха сначала показывает окно «Данные успешно
+       отправлены» (его прячет CSS U2), затем очищает поля — асинхронно,
+       после события aftersuccess. Поэтому ждём, пока поле dealer_id
+       опустеет, и возвращаем слепок; окно и блокировку прокрутки
+       снимаем тем же способом, что обработчик visibilitychange в U2. */
+    function ucLkAfterTildaSuccess(attempt) {
+        var started = Date.now();
+        (function tick() {
+            var form = ucLkForm();
+            var dealer = form && form.querySelector('input[name="dealer_id"]');
+            var cleared = !dealer || dealer.value === '';
+            if (cleared || Date.now() - started > 4000) {
+                if (cleared) ucLkRestoreForm(attempt.snapshot);
+                document.querySelectorAll('.t-form-success-popup, .t-form__successbox')
+                    .forEach(function (el) { el.style.display = 'none'; });
+                document.body.classList.remove('t-body_scroll-locked', 't-body_success-popup-showed', 't-body_popupshowed');
+                return;
+            }
+            setTimeout(tick, 50);
+        })();
+    }
+
+    /* Блок form для бота: все поля формы Tilda как есть (те же значения,
+       что ушли в форму), FORMID своей формы, UTM из адреса страницы,
+       сырые cookie. Только строки, пустое не передаётся, служебные поля
+       Tilda (formservices, tildaspec-*, form-spec-comments) — тоже. */
+    function ucLkFormBlock(snapshot) {
+        var block = {}, keys = 0, form = ucLkForm();
+        function put(k, v) {
+            if (v === undefined || v === null) return;
+            v = String(v);
+            if (v === '' || Object.prototype.hasOwnProperty.call(block, k)) return;
+            if (k.length > 64 || v.length > 2000) {
+                console.warn('U6: поле «' + k + '» не передано в form — превышен лимит длины');
+                return;
+            }
+            if (keys >= 80) { console.warn('U6: поле «' + k + '» не передано в form — больше 80 ключей'); return; }
+            block[k] = v; keys++;
+        }
+        (snapshot || []).forEach(function (s) {
+            if (s.disabled) return;
+            if (s.name === 'formservices[]' || /^tildaspec-/i.test(s.name) || s.name === 'form-spec-comments') return;
+            if ((s.type === 'checkbox' || s.type === 'radio') && !s.checked) return;
+            put(s.name, s.value);
+        });
+
+        var formId = form && form.id;
+        if (!formId) {
+            var rec = form && form.closest('.t-rec');
+            var m = rec && rec.id && rec.id.match(/\d+/);
+            formId = m ? 'form' + m[0] : '';
+        }
+        put('FORMID', formId);
+
+        var qs = new URLSearchParams(window.location.search);
+        LK_UTM.forEach(function (k) { put(k, qs.get(k)); });
+
+        var jar = {};
+        document.cookie.split(';').forEach(function (c) {
+            var i = c.indexOf('=');
+            if (i > 0) jar[c.slice(0, i).trim()] = c.slice(i + 1).trim();
+        });
+        LK_COOKIES.forEach(function (k) { put(k, jar[k]); });
+
+        if (JSON.stringify(block).length > 16384) console.warn('U6: блок form больше 16 КБ — бот его отклонит');
+        return block;
+    }
+
+    /* ── ожидание, сбой, переход ─────────────────────────────────── */
+
+    var LK_LOCK = '.uc-calc-tabbar, #uc-calc-lk-section, #uc-calc-agreements, #uc-gal-back, #uc-calc-lk-fail';
+
+    function ucLkLock(on) {
+        var $btn = $('#uc-gal-submit');
+        $(LK_LOCK).toggleClass('uc-calc-locked', on).each(function () {
+            if (on) this.setAttribute('inert', ''); else this.removeAttribute('inert');
+        });
+        $btn.toggleClass('uc-quiz-btn-next--lk-busy', on).prop('disabled', on);
+        if (on) {
+            $btn.text('ДАЛЕЕ').attr({ 'aria-busy': 'true', 'aria-label': 'Открываем личный кабинет' });
+        } else {
+            $btn.removeAttr('aria-busy aria-label');
+        }
+    }
+
+    function ucLkStop() {
+        clearTimeout(lkTimer); lkTimer = null;
+        if (lkAbort) { try { lkAbort.abort(); } catch (e) {} lkAbort = null; }
+    }
+
+    /* Снять ожидание без сбоя: возврат кнопкой «Назад» браузера, смена шага */
+    function ucLkRelease() {
+        if (!lkBusy) return;
+        ucLkStop();
+        lkBusy = false;
+        ucLkLock(false);
+        updateCalcBtnText();
+    }
+
+    function ucLkFail(reason) {
+        if (!lkBusy) return;
+        console.warn('U6: личный кабинет не открылся —', reason);
+        ucLkStop();
+        lkBusy = false;
+        lkFailed = true;
+        ucLkLock(false);
+        var fail = document.getElementById('uc-calc-lk-fail');
+        if (fail) {
+            fail.hidden = false;
+            try { fail.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+            var text = document.getElementById('uc-calc-lk-fail-text');
+            if (text) text.focus({ preventScroll: true });
+        }
+        updateCalcBtnText();
+    }
+
+    function ucLkClearFail() {
+        if (!lkFailed) return;
+        lkFailed = false;
+        var fail = document.getElementById('uc-calc-lk-fail');
+        if (fail) fail.hidden = true;
+        updateCalcBtnText();
+    }
+
+    /* Адрес кабинета принимается, только если это https, хост этой же
+       страницы (бот строит адрес от сайта дилера) и путь кабинета из
+       блока «ТЕСТ / БОЙ». Иначе — сбой, а не переход куда попало. */
+    function ucLkCabinetUrlOk(u) {
+        try {
+            var url = new URL(u);
+            var path = window.UC_SITE && window.UC_SITE.cabinetPath;
+            return url.protocol === 'https:' && url.hostname === window.location.hostname &&
+                   !!path && url.pathname === path;
+        } catch (e) { return false; }
+    }
+
+    function ucLkNavigate(u) {
+        /* Шов для харнесса: location.assign не подменяется в браузере */
+        if (typeof window.__ucLkNavigate === 'function') { window.__ucLkNavigate(u); return; }
+        window.location.assign(u);
+    }
+
+    /* ── «открыть сессию» ────────────────────────────────────────── */
+
+    function ucLkOpen() {
+        var a = lkAttempt;
+        var bot = window.UNIFIEDBOT_URL || '';
+        if (!bot) { ucLkFail('нет адреса бота'); return; }
+        var body = { dealer_code: a.dealer_code, lead_code: a.lead_code, nonce: a.nonce,
+                     form: ucLkFormBlock(a.snapshot) };
+        for (var k in a.params) body[k] = a.params[k];
+
+        var headers = { 'Content-Type': 'application/json' };
+        if (window.UC_SITE && window.UC_SITE.isNgrok) headers['ngrok-skip-browser-warning'] = '1';
+        lkAbort = (typeof AbortController === 'function') ? new AbortController() : null;
+
+        fetch(bot + '/cabinet/api/web/open', {
+            method: 'POST', headers: headers, body: JSON.stringify(body),
+            signal: lkAbort ? lkAbort.signal : undefined
+        }).then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (data) {
+                if (a !== lkAttempt || !lkBusy) return;               // ответ на старую попытку
+                if (!r.ok) { ucLkFail('HTTP ' + r.status + ' ' + (data.error || '')); return; }
+                if (!data.cabinet_url || !ucLkCabinetUrlOk(data.cabinet_url)) { ucLkFail('недопустимый cabinet_url'); return; }
+                a.cabinet_url = data.cabinet_url;
+                ucLkMaybeGo(a);
+            });
+        }).catch(function (e) {
+            if (a === lkAttempt) ucLkFail('сеть: ' + (e && e.name));
+        });
+    }
+
+    /* Переход — когда есть адрес кабинета и форма этой попытки не в
+       полёте (завершилась или в этот раз не отправлялась). */
+    function ucLkMaybeGo(a) {
+        if (a !== lkAttempt || !lkBusy || !a.cabinet_url || lkInFlight === a) return;
+        clearTimeout(lkTimer); lkTimer = null;
+        ucLkNavigate(a.cabinet_url);                               // ожидание не снимаем
+    }
+
+    function ucLkDeadline() {
+        var a = lkAttempt;
+        if (a && a.cabinet_url && lkInFlight === a && lkBusy) {
+            console.warn('U6: форма Tilda не завершилась за 15 с — переход в кабинет без неё');
+            lkInFlight = null;
+            ucLkMaybeGo(a);
+            return;
+        }
+        ucLkFail('нет ответа 15 с');
+    }
+
+    function ucLkSendForm(a) {
+        var $f = $('.uc-tildaform');
+        var $submit = $f.find('.t-submit');
+
+        window.ucLkSending = true;
+        waSend = false; waMessenger = '';
+        $f.find('input[name="offer"]').val(LK_OFFER);
+        $f.find('input[name="form_type"]').val(LK_FORM_TYPES[a.params.scenario]);
+        $f.find('input[name="sku-wa"]').val(a.lead_code);
+        $f.find('input[name="messenger"]').val('');
+        /* Госномер и пробег трейд-ина — в скрытые поля формы: интеграция
+           Tilda → Битрикс пишет их в «Trade-in - номер» и «Trade-in -
+           пробег». Те же значения, что plate и mileage для бота; для
+           кредита — пусто. */
+        ucFormFieldCI(LK_FIELD_PLATE).val(a.params.plate || '');
+        ucFormFieldCI(LK_FIELD_MILEAGE).val(a.params.mileage == null ? '' : String(a.params.mileage));
+        a.snapshot = ucLkSnapshot();
+        lkInFlight = a;
+
+        if ($submit.length) $submit.click();
+        else $f.find('form').trigger('submit');
+    }
+
+    /* Вызывается обработчиком «Далее» после проверки согласия */
+    function ucLkSubmit() {
+        if (lkBusy) return;
+        syncCalcAgreements();
+
+        var p  = ucLkParams();
+        var fp = ucLkFingerprint(p);
+        if (!lkAttempt || lkAttempt.fp !== fp) {
+            var dealer = ($('.uc-tildaform input[name="dealer_id"]').val() || '').trim();
+            lkAttempt = { fp: fp, params: p, dealer_code: dealer, lead_code: ucLkLeadCode(dealer, p),
+                          nonce: ucLkNonce(), snapshot: null, form_sent: false };
+        }
+        var a = lkAttempt;
+
+        ucLkClearFail();
+        lkBusy = true;
+        ucLkLock(true);
+        lkTimer = setTimeout(ucLkDeadline, LK_DEADLINE_MS);
+        a.cabinet_url = null;
+
+        if (!/^\d{6}[A-Z]{4}$/.test(a.lead_code) || !/^\d{2}$/.test(a.dealer_code)) {
+            console.warn('U6: код заявки не по формату контракта:', a.lead_code);
+            ucLkFail('код не по формату');
+            return;
+        }
+        if (!a.form_sent && $('.uc-tildaform .t-submit').hasClass('t-btn_sending')) {
+            ucLkFail('форма Tilda ещё отправляется');
+            return;
+        }
+        /* Форма первой: слепок полей, из которого собирается блок form,
+           снимается в ucLkSendForm. Ошибка проверки Tilda приходит
+           синхронно — к вызову бота форма уже «завершилась». */
+        if (!a.form_sent) ucLkSendForm(a);
+        if (lkBusy) ucLkOpen();
+    }
+
+    /* Исход формы Tilda относится только к попытке «в полёте» */
+    document.addEventListener('tildaform:aftersuccess', function (e) {
+        if (!lkInFlight || !$(e.target).closest('.uc-tildaform').length) return;
+        var a = lkInFlight;
+        lkInFlight = null;
+        a.form_sent = true;
+        ucLkAfterTildaSuccess(a);
+        ucLkMaybeGo(a);
+    });
+    document.addEventListener('tildaform:aftererror', function (e) {
+        if (!lkInFlight || !$(e.target).closest('.uc-tildaform').length) return;
+        var a = lkInFlight;
+        lkInFlight = null;
+        window.ucLkSending = false;
+        /* Не сбой: бот уже открывает сессию и сам создаст сделку из
+           блока form. Сбой — только если бот не ответит. Повтор после
+           плашки отправит форму заново (form_sent не выставлен). */
+        console.warn('U6: форма Tilda не отправилась — кабинет откроется без её сделки');
+        ucLkMaybeGo(a);
+    });
+
+    /* ── L9: прогрев кабинета ─────────────────────────────────────
+       Один раз за загрузку: при входе на шаг 2 (какая бы вкладка ни была
+       открыта) или при показе вкладки ЛК, когда пришли настройки
+       дилера, — в простое браузера открыть соединение с ботом
+       и заранее скачать HTML кабинета и его скрипты, чтобы после
+       «Далее» они пришли из кэша. Браузер берёт prefetch только по
+       точному адресу (без #), поэтому:
+       - preconnect дважды: fetch «открыть сессию» идёт с CORS, скрипты
+         кабинета — без, по разным соединениям;
+       - скрипты — дословно из cabinet_assets (с ?v=). Не через ngrok
+         (тестовая сборка): ngrok отвечает на prefetch своей
+         HTML-страницей-предупреждением, браузер отдаёт её кабинету
+         вместо скриптов (ERR_BLOCKED_BY_ORB) и ломает его (замер
+         2026-10-04, решение владельца);
+       - HTML — по cabinet_page_url из настроек (путь + '?src=web', как
+         начало cabinet_url); пока бот поле не отдаёт — путь кабинета
+         из блока «ТЕСТ / БОЙ» + '?src=web'. Голый /cabinet_dev кэш
+         не попадает: cabinet_url приходит с ?src=web. */
+    var LK_CABINET_QUERY = '?src=web';
+    var lkWarmed = false;
+
+    function ucLkWarm() {
+        if (lkWarmed || !window._dealerConfigReady) return;
+        lkWarmed = true;
+        window._dealerConfigReady.then(function (cfg) {
+            if (!cfg) return;
+            var idle = window.requestIdleCallback ||
+                       function (cb) { return setTimeout(cb, 1000); };
+            idle(function () { ucLkWarmLinks(cfg); }, { timeout: 3000 });
+        }, function () {});
+    }
+
+    /* Адрес страницы кабинета для prefetch: из настроек, если это путь
+       кабинета этого режима, иначе путь + '?src=web' */
+    function ucLkCabinetPageUrl(cfg) {
+        var path = window.UC_SITE && window.UC_SITE.cabinetPath;
+        if (!path) return null;
+        var u = cfg.cabinetPageUrl;
+        try {
+            if (u && new URL(u, window.location.origin).pathname === path) return u;
+        } catch (e) {}
+        return path + LK_CABINET_QUERY;
+    }
+
+    function ucLkWarmLinks(cfg) {
+        var origin, page = ucLkCabinetPageUrl(cfg);
+        try { origin = new URL(window.UNIFIEDBOT_URL).origin; } catch (e) { return; }
+        function link(rel, href, as, cors) {
+            var l = document.createElement('link');
+            l.rel = rel; l.href = href;
+            if (as) l.as = as;
+            if (cors) l.crossOrigin = 'anonymous';
+            document.head.appendChild(l);
+        }
+        link('preconnect', origin, null, true);
+        link('preconnect', origin);
+        if (!(window.UC_SITE && window.UC_SITE.isNgrok)) {
+            (cfg.cabinetAssets || []).forEach(function (p) { link('prefetch', origin + p, 'script'); });
+        }
+        if (page) link('prefetch', page, 'document');
+    }
+
+    /* Плашка сбоя: альтернативы — на соответствующие вкладки */
+    $(document).on('click', '.uc-calc-alt', function () {
+        ucShowCalcTab($(this).data('calc-alt'));
+        ucTabbarFade();
+    });
+
+    /* Изменили параметры после сбоя — плашка уходит, «ДАЛЕЕ →» возвращается */
+    $(document).on('input change click', '#uc-calc-lk-section', function () {
+        if (lkFailed && lkAttempt && ucLkFingerprint(ucLkParams()) !== lkAttempt.fp) ucLkClearFail();
+    });
+
+    /* Возврат кнопкой «Назад» из кабинета: страница из bfcache — снять
+       ожидание; попытка в памяти, «Далее» возьмёт тот же код и nonce. */
+    window.addEventListener('pageshow', function (e) {
+        if (!e.persisted || !lkBusy) return;
+        ucLkRelease();
+        var btn = document.getElementById('uc-gal-submit');
+        if (btn) btn.focus({ preventScroll: true });
+    });
+
+    /* ================================================================
+       КВИЗ: uc:step LISTENER
+    ================================================================ */
+    $(document).ready(function () {
+        // Скрыть .t-rec до получения uc:step
+        var $t = $('#uc-gallery-custom').closest('.t-rec');
+        if (!$t.length) $t = $('#uc-gallery-custom').parent();
+        $t.hide();
+        renderCalcAgreements();
+    });
+
+    setTimeout(function () {
+        if (!$('#uc-calc-agreements').children().length) {
+            renderCalcAgreements();
+        }
+    }, 1000);
+
+    window.addEventListener('uc:step', function (e) {
+        var $t = $('#uc-gallery-custom').closest('.t-rec');
+        if (!$t.length) $t = $('#uc-gallery-custom').parent();
+
+        /* Любая смена шага снимает состояние отправки. Закрывает
+           сценарий «отправил → НАЗАД → снова вперёд», при котором
+           кнопка иначе осталась бы заблокированной до сторожа. */
+        if (_submitting) ucSetSending(false);
+        ucLkRelease();
+
+        if (e.detail.step === 2) {
+            $t.show();
+            $('#uc-gallery-custom').show();
+            var el = $t[0];
+            if (el) {
+                el.classList.remove('uc-step-enter');
+                void el.offsetWidth;
+                el.classList.add('uc-step-enter');
+            }
+            var car = window.ucQuiz && window.ucQuiz.selectedCar;
+            if (car) {
+                window.updateGallery(car);
+                fillGalInfo(car);
+            }
+            /* Инициализируем calc-секцию при каждом входе на шаг 2 */
+            initCalcState();
+            renderCalcAgreements();
+            /* Шкала ЛК — от машины, выбранной на шаге 1 (могла смениться) */
+            ucLkOnEnter(car);
+            /* Прогрев кабинета — на каждом входе в шаг 2, какая бы вкладка
+               ни была открыта (раз за загрузку, см. ucLkWarm). Вызов при
+               показе вкладки ЛК в ucShowCalcTab остаётся. */
+            ucLkWarm();
+            /* Каждый вход открывает первую вкладку — «В чате» */
+            ucShowCalcTab('chat');
+            ucTabbarFade();
+            if (e.detail.scroll) {
+                setTimeout(function() {
+                    var top = $t.offset().top - 20;
+                    /* behavior: 'auto', не 'smooth' — та же причина, что
+                       в слушателе шага 1: показ секции меняет высоту
+                       документа, и браузер обрывает плавную анимацию. */
+                    window.scrollTo({ top: top, behavior: 'auto' });
+                }, 50);
+            }
+        } else {
+            $t.hide();
+            $('#uc-gallery-custom').hide();
+        }
+    });
+
+    /* Квиз: nav-кнопки шага 2 */
+    $(document).on('click', '#uc-gal-back', function () { window.ucQuiz.back(); });
+
+    /* Resize-обработчик: пересчёт calc-состояния при смене ориентации */
+    (function () {
+        var _resizeTimer;
+        $(window).on('resize', function () {
+            clearTimeout(_resizeTimer);
+            _resizeTimer = setTimeout(function () {
+                if (calcOffer === 'В чате') {
+                    initCalcState();
+                }
+                ucTabbarFade();
+            }, 200);
+        });
+    })();
+
+    // Вспомогательная функция экранирования (нужна в fillGalInfo)
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+})();
+</script>
+<!-- nominify end -->

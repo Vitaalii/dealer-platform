@@ -1,0 +1,171 @@
+{
+  "name": "Tool: Resolver Core",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "db874eb9-4a64-5855-940e-c1d7563c3945",
+      "name": "Execute Workflow Trigger"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "pqw76hd7h1lztww",
+        "table": "m29x3p8vdy0jes3",
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        220,
+        0
+      ],
+      "id": "736f2dea-244a-530e-960c-05844d31f50d",
+      "name": "Get Intents",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('Execute Workflow Trigger').first().json;\nconst sc = body.session_context || {};\nconst collected = sc.collected_data || {};\nconst scenario = sc.request_type || \"unknown\";\nconst stage = sc.current_stage || \"data_collect\";\n\nconst expand = (v, u) => (!v || v === \"all\") ? u : String(v).split(\",\").map(s => s.trim());\nconst SCENARIOS = [\"credit\",\"tradein\",\"combo\",\"stock\",\"consult\"];\n\n// R1 (план 2026-07-17-001): стадия — только контекст промпта, НЕ фильтр списка.\n// Stage_Context в таблице — справочное поле; фильтруем только Active и Scenarios.\nconst intents = $('Get Intents').all().map(i => i.json)\n    .filter(i => i.Active)\n    .filter(i => expand(i.Scenarios, SCENARIOS).includes(scenario) || i.Scenarios === \"all\")\n    .sort((a, b) => (Number(b.Priority) || 0) - (Number(a.Priority) || 0));\n\nconst intentList = intents.map(i => `${i.Intent_ID} | ${i.Description} | Примеры: ${i.Example_Phrases}`).join(\"\\n\");\nconst history = (body.recent_history || []).slice(-8)\n    .map(m => `${m.role === \"client\" ? \"Клиент\" : \"Бот\"}: ${m.text}`).join(\"\\n\");\n\nconst prompt = `Ты — классификатор состояния диалога в автосалоне.\nПроанализируй последние сообщения и текущее сообщение клиента.\nОпредели точный момент диалога и верни СТРОГО JSON, без пояснений.\n\nСценарий: ${scenario}\nТекущая стадия системы: ${stage}\nДанные собраны: взнос=${Boolean(collected.payment)}, госномер=${Boolean(collected.plate)}, пробег=${Boolean(collected.mileage)}, телефон=${Boolean(collected.phone_collected)}\nТелефон запрашивался: ${sc.phone_ask_count || 0} раз\n\n--- НАЧАЛО СПИСКА ДОПУСТИМЫХ ИНТЕНТОВ ---\n${intentList}\n--- КОНЕЦ СПИСКА ---\n\nДопустимые client_mode: collector,reference,advocate_tradein,advocate_special,secretary,logistics_block,skeptic,price_compare,direct_agree,resistance\nДопустимые client_signal: moving_forward,hesitating,asking_more,stalling,resisting,scheduling,refusing_softly,refusing_hard,neutral,handoff_requested,satisfied_done\n\nПоследние сообщения:\n${history}\n\nТекущее сообщение клиента: \"${body.message || \"\"}\"\n\nВерни ТОЛЬКО JSON:\n{\n  \"dialog_intent\": \"<значение строго из списка интентов выше>\",\n  \"client_mode\": \"<значение строго из списка client_mode>\",\n  \"client_signal\": \"<значение строго из списка client_signal>\",\n  \"key_data_extracted\": { },\n  \"reasoning\": \"<одно предложение: почему именно этот интент>\"\n}`;\n\nreturn [{ json: {\n    prompt,\n    offered: intents.map(i => i.Intent_ID),\n    start_ts: Date.now(),\n    meta: {\n        session_id: body.session_id || \"\", user_id: body.user_id || \"\",\n        scenario, stage, msg_count: sc.msg_count || 0,\n        client_msg: body.message || \"\",\n    },\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "12c6b07c-9438-53e5-bcf0-cf49bf57168e",
+      "name": "Build Prompt"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        660,
+        0
+      ],
+      "id": "40a55aec-84e4-5a67-8d1f-18bb3f893380",
+      "name": "Resolver LLM",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash-lite",
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        660,
+        200
+      ],
+      "id": "d9f4785b-48b9-5342-bb7d-34a85558fa06",
+      "name": "OpenRouter Flash Lite",
+      "credentials": {
+        "openRouterApi": {
+          "id": "hrFobDiOtSwC9E0F",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const build = $('Build Prompt').first().json;\nconst out = $input.first().json;\nconst latency = Date.now() - build.start_ts;\n\nlet verdict = \"ok\";\nlet parsed = {};\nlet raw = \"\";\n\nif (out.error) {\n    verdict = \"llm_error\";\n    raw = String(out.error).slice(0, 2000);\n} else {\n    raw = String(out.text ?? out.output ?? \"\").trim();\n    let candidate = raw.replace(/^```(json)?/m, \"\").replace(/```$/m, \"\").trim();\n    const m = candidate.match(/\\{[\\s\\S]*\\}/);\n    try {\n        parsed = JSON.parse(m ? m[0] : candidate);\n    } catch (e) {\n        verdict = \"parse_error\";\n    }\n    if (verdict === \"ok\" && !build.offered.includes(parsed.dialog_intent)) {\n        verdict = \"unknown_intent\";\n    }\n}\n\nreturn [{ json: {\n    verdict,\n    dialog_intent: verdict === \"ok\" ? parsed.dialog_intent : \"\",\n    client_mode: parsed.client_mode || \"\",\n    client_signal: parsed.client_signal || \"\",\n    key_data_extracted: parsed.key_data_extracted || {},\n    reasoning: parsed.reasoning || \"\",\n    latency_ms: latency,\n    model: \"google/gemini-2.5-flash-lite\",\n    raw_output: verdict === \"ok\" ? \"\" : raw.slice(0, 3000),\n    meta: build.meta,\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ],
+      "id": "4a4a3d70-de4a-5cf5-80ee-bd5695cf0c40",
+      "name": "Validate"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Intents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Intents": {
+      "main": [
+        [
+          {
+            "node": "Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "Resolver LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolver LLM": {
+      "main": [
+        [
+          {
+            "node": "Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Flash Lite": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Resolver LLM",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "65c0178e84d5c3db112ec6489beae5f53a11ae74e53d6537d4d9a5cd140a483b"
+  }
+}

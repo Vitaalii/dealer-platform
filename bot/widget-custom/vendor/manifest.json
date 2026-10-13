@@ -1,0 +1,65 @@
+{
+  "source": "https://cdn.jsdelivr.net/npm/",
+  "files": {
+    "swiper/11.2.10/swiper-bundle.min.js": {
+      "url": "https://cdn.jsdelivr.net/npm/swiper@11.2.10/swiper-bundle.min.js",
+      "bytes": 154597,
+      "integrity": "sha384-2UI1PfnXFjVMQ7/ZDEF70CR943oH3v6uZrFQGGqJYlvhh4g6z6uVktxYbOlAczav",
+      "license": "MIT",
+      "compressed": [
+        "br",
+        "gz"
+      ]
+    },
+    "swiper/11.2.10/swiper-bundle.min.css": {
+      "url": "https://cdn.jsdelivr.net/npm/swiper@11.2.10/swiper-bundle.min.css",
+      "bytes": 18454,
+      "integrity": "sha384-gAPqlBuTCdtVcYt9ocMOYWrnBZ4XSL6q+4eXqwNycOr4iFczhNKtnYhF3NEXJM51",
+      "license": "MIT",
+      "compressed": [
+        "br",
+        "gz"
+      ]
+    },
+    "swiper/11.2.10/LICENSE": {
+      "url": "https://cdn.jsdelivr.net/npm/swiper@11.2.10/LICENSE",
+      "bytes": 1087,
+      "integrity": "sha384-jwhYrp47kgvqiLX1Rlclklm6i3KH4EYiF9nQDClkB4eS/6d2NfnoXjWZSCOfDKKP",
+      "license": "MIT"
+    },
+    "tabler-icons-webfont/3.44.0/tabler-icons.min.css": {
+      "url": "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css",
+      "bytes": 209066,
+      "integrity": "sha384-ccZHbezhtZWmNy0cg8odL0D/jFU5k5HIls9y78Qd6lWor7rpvFIZtK0fTFG4z456",
+      "license": "MIT",
+      "compressed": [
+        "br",
+        "gz"
+      ]
+    },
+    "tabler-icons-webfont/3.44.0/fonts/tabler-icons.woff2": {
+      "url": "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff2",
+      "bytes": 457384,
+      "integrity": "sha384-FPkp7VVNY4lpgdJjPUrwtb2pod9ZoiZjYcE5E4QQepoZr5o9m4KY2W6NpnYWk8O4",
+      "license": "MIT"
+    },
+    "tabler-icons-webfont/3.44.0/fonts/tabler-icons.woff": {
+      "url": "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.woff",
+      "bytes": 785784,
+      "integrity": "sha384-FRCTSlnBHQPE4rHTp9oAqJa88/wnZOB9J24M8KYkhUsbyQNWWVdEY8BDLmjS+41S",
+      "license": "MIT"
+    },
+    "tabler-icons-webfont/3.44.0/fonts/tabler-icons.ttf": {
+      "url": "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/fonts/tabler-icons.ttf",
+      "bytes": 2810988,
+      "integrity": "sha384-MZQr7GiYLt8ltTgpDIgqlowIaWVDqM1Hxw8RqkWCKX75UZBOGjd/eGR648CNhHKc",
+      "license": "MIT"
+    },
+    "tabler-icons-webfont/3.44.0/LICENSE": {
+      "url": "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/LICENSE",
+      "bytes": 1073,
+      "integrity": "sha384-3vjrpMclxT2jEBFvd7pt/SlXw4zXaw2yR+uloMbLsmH/IbhBIs+spEV2dtZ9VtjT",
+      "license": "MIT"
+    }
+  }
+}

@@ -1,0 +1,358 @@
+{
+ "label": "before-recheck",
+ "workflow": "fQAS3wmAjVqrKATM",
+ "rows": [
+  {
+   "id": "4449",
+   "startedAt": "2026-09-16T06:00:48.160Z",
+   "status": "success",
+   "reply_chars": 24,
+   "split_count": 0,
+   "leaks_in_reply": [],
+   "ctx_model": "",
+   "ctx_trims": [],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": false,
+   "prompt_tokens": 238
+  },
+  {
+   "id": "4444",
+   "startedAt": "2026-09-16T03:29:22.739Z",
+   "status": "success",
+   "reply_chars": 151,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "CITYRAY",
+   "ctx_trims": [
+    "Спорт",
+    "Спорт 1.5T 147 л.с. DCT7 2WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5245
+  },
+  {
+   "id": "4441",
+   "startedAt": "2026-09-16T03:28:47.844Z",
+   "status": "success",
+   "reply_chars": 475,
+   "split_count": 2,
+   "leaks_in_reply": [],
+   "ctx_model": "CITYRAY",
+   "ctx_trims": [
+    "Спорт",
+    "Спорт 1.5T 147 л.с. DCT7 2WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5664
+  },
+  {
+   "id": "4435",
+   "startedAt": "2026-09-15T18:39:32.290Z",
+   "status": "success",
+   "reply_chars": 359,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "Обновленный X70",
+   "ctx_trims": [
+    "Стиль",
+    "Стиль 1.5T 150 л.с. AT 2WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5234
+  },
+  {
+   "id": "4426",
+   "startedAt": "2026-09-15T06:12:50.892Z",
+   "status": "success",
+   "reply_chars": 151,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "S50",
+   "ctx_trims": [
+    "Стиль",
+    "Стиль 1.5 122 л.с. AT 2WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5241
+  },
+  {
+   "id": "4423",
+   "startedAt": "2026-09-15T06:12:19.280Z",
+   "status": "success",
+   "reply_chars": 441,
+   "split_count": 2,
+   "leaks_in_reply": [],
+   "ctx_model": "S50",
+   "ctx_trims": [
+    "Стиль",
+    "Стиль 1.5 122 л.с. AT 2WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5670
+  },
+  {
+   "id": "4418",
+   "startedAt": "2026-09-15T05:32:52.063Z",
+   "status": "success",
+   "reply_chars": 155,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "CITYRAY",
+   "ctx_trims": [
+    "Флагман",
+    "Флагман 1.5T 147 л.с. DCT7 2WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5249
+  },
+  {
+   "id": "4415",
+   "startedAt": "2026-09-15T05:32:15.591Z",
+   "status": "success",
+   "reply_chars": 448,
+   "split_count": 2,
+   "leaks_in_reply": [],
+   "ctx_model": "CITYRAY",
+   "ctx_trims": [
+    "Флагман",
+    "Флагман 1.5T 147 л.с. DCT7 2WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5673
+  },
+  {
+   "id": "4406",
+   "startedAt": "2026-09-14T13:02:27.547Z",
+   "status": "success",
+   "reply_chars": 575,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "CITYRAY",
+   "ctx_trims": [
+    "Люкс",
+    "Люкс 1.5T 147 л.с. DCT7 2WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5446
+  },
+  {
+   "id": "4403",
+   "startedAt": "2026-09-14T13:01:48.758Z",
+   "status": "success",
+   "reply_chars": 302,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "CITYRAY",
+   "ctx_trims": [
+    "Люкс",
+    "Люкс 1.5T 147 л.с. DCT7 2WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5224
+  },
+  {
+   "id": "4398",
+   "startedAt": "2026-09-14T11:59:28.876Z",
+   "status": "success",
+   "reply_chars": 153,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "НОВЫЙ HAVAL F7",
+   "ctx_trims": [
+    "Premium",
+    "Premium 2.0T 190 л.с. AT 4WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5238
+  },
+  {
+   "id": "4395",
+   "startedAt": "2026-09-14T11:58:33.597Z",
+   "status": "success",
+   "reply_chars": 449,
+   "split_count": 2,
+   "leaks_in_reply": [],
+   "ctx_model": "НОВЫЙ HAVAL F7",
+   "ctx_trims": [
+    "Premium",
+    "Premium 2.0T 190 л.с. AT 4WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5653
+  },
+  {
+   "id": "4391",
+   "startedAt": "2026-09-14T07:14:16.401Z",
+   "status": "success",
+   "reply_chars": 302,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "MONJARO",
+   "ctx_trims": [
+    "Люкс",
+    "Люкс 2.0T 238 л.с. AT 4WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5078
+  },
+  {
+   "id": "4384",
+   "startedAt": "2026-09-13T20:35:12.792Z",
+   "status": "success",
+   "reply_chars": 488,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "MONJARO",
+   "ctx_trims": [
+    "Флагман",
+    "Флагман 2.0T 238 л.с. AT 4WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5458
+  },
+  {
+   "id": "4381",
+   "startedAt": "2026-09-13T20:34:40.850Z",
+   "status": "success",
+   "reply_chars": 314,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "MONJARO",
+   "ctx_trims": [
+    "Флагман",
+    "Флагман 2.0T 238 л.с. AT 4WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5235
+  },
+  {
+   "id": "4375",
+   "startedAt": "2026-09-13T17:21:25.730Z",
+   "status": "success",
+   "reply_chars": 109,
+   "split_count": 0,
+   "leaks_in_reply": [],
+   "ctx_model": "",
+   "ctx_trims": [],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": false,
+   "prompt_tokens": null
+  },
+  {
+   "id": "4373",
+   "startedAt": "2026-09-13T17:20:08.595Z",
+   "status": "success",
+   "reply_chars": 273,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "ATLAS",
+   "ctx_trims": [
+    "Люкс",
+    "Люкс 2.0T 200 л.с. AT 4WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 4850
+  },
+  {
+   "id": "4371",
+   "startedAt": "2026-09-13T17:19:22.417Z",
+   "status": "success",
+   "reply_chars": 106,
+   "split_count": 0,
+   "leaks_in_reply": [],
+   "ctx_model": "ATLAS",
+   "ctx_trims": [
+    "Люкс",
+    "Люкс 2.0T 200 л.с. AT 4WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 4464
+  },
+  {
+   "id": "4368",
+   "startedAt": "2026-09-13T17:16:51.497Z",
+   "status": "success",
+   "reply_chars": 355,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "ATLAS",
+   "ctx_trims": [
+    "Люкс",
+    "Люкс 2.0T 200 л.с. AT 4WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5225
+  },
+  {
+   "id": "4362",
+   "startedAt": "2026-09-13T15:28:35.312Z",
+   "status": "success",
+   "reply_chars": 153,
+   "split_count": 1,
+   "leaks_in_reply": [],
+   "ctx_model": "MONJARO",
+   "ctx_trims": [
+    "Люкс",
+    "Люкс 2.0T 238 л.с. AT 4WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5246
+  },
+  {
+   "id": "4359",
+   "startedAt": "2026-09-13T15:27:51.153Z",
+   "status": "success",
+   "reply_chars": 445,
+   "split_count": 2,
+   "leaks_in_reply": [],
+   "ctx_model": "MONJARO",
+   "ctx_trims": [
+    "Люкс",
+    "Люкс 2.0T 238 л.с. AT 4WD"
+   ],
+   "brand_violations": [],
+   "ref_line_in_prompt": false,
+   "placeholder_in_prompt": true,
+   "prompt_tokens": 5668
+  }
+ ],
+ "errors": []
+}

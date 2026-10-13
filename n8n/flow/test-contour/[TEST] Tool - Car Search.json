@@ -1,0 +1,294 @@
+{
+  "name": "[TEST] Tool - Car Search",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// ==========================================\n// ⚙️ НАСТРОЙКИ (Ваш реальный домен NocoDB)\n// ==========================================\nconst MY_NOCO_DOMAIN = 'https://v9dt-o63u-4adx.gw-1a.dockhost.net';\n// ==========================================\n// [U2] Кредитная математика вынесена в саб-воркфлоу \"Tool: Calc Engine\".\n// Эта нода готовит данные и batch-запрос; результат вливает нода Merge Calc.\n\n// 1. ИНИЦИАЛИЗАЦИЯ И ЗАЩИТА ОТ ПУСТЫХ ДАННЫХ\nfunction getSafeAll(nodeName, checkField) {\n    try {\n        const items = $(nodeName).all().map(i => i.json);\n        if (items.length === 1 && !items[0][checkField]) {\n            return [];\n        }\n        return items;\n    } catch (e) { return []; }\n}\n\nfunction getSafeFirst(nodeName, checkField) {\n    try {\n        const item = $(nodeName).first().json;\n        if (!item[checkField]) return null;\n        return item;\n    } catch (e) { return null; }\n}\n\nconst triggerNode = $('Execute Workflow Trigger').first();\nconst triggerData = triggerNode ? triggerNode.json : {};\n\nconst context = triggerData.qualification_context || {};\nconst query = context.model || triggerData.query || \"Авто\";\nconst dealerId = context.dealer_id || (triggerData.dealer_id || \"unknown\");\nconst userPayment = Number(context.payment || context.credit_payment || triggerData.payment) || 0;\nconst requestType = context.request_type || \"catalog_view\";\nlet targetComplectationId = (context.complectation_id || \"00\").toString();\n\nconst requestTypeMap = {\n    \"credit\": \"Расчет кредита\",\n    \"tradein\": \"Оценка авто в трейд-ин\",\n    \"combo\": \"Расчет кредита и трейд-ин\",\n    \"stock\": \"Наличие на складе\",\n    \"consult\": \"Консультация менеджера\"\n};\nconst requestTypeName = requestTypeMap[requestType] || requestType;\n\nlet targetComplectationName = (targetComplectationId === \"00\") ? \"Любая\" : \"Не найдена\";\n\n// [STOCK] Каталог — только активные строки (решение владельца 2026-10-05):\n// неактивные комплектации («Эксклюзив», «Флагман СЕ» у MONJARO дилера 02)\n// попадали в список, который видит Александр.\n// [ACTIVE-FIELD] Имя колонки активности — настройка дилера (бот 3.4.1,\n// data_routing.catalog_active_field; решение владельца 2026-10-06): у дилера 02\n// «Active_1», у остальных «Active». Недопустимое имя или нет ключа — «Active»;\n// колонки нет в таблице вовсе — тоже «Active» (прежнее поведение, а не пустой каталог).\nfunction catalogRouting() {\n    try {\n        let r = triggerData.data_routing;\n        if (typeof r === \"string\") r = JSON.parse(r.trim().replace(/^=/, \"\"));\n        return (r && typeof r === \"object\") ? r : {};\n    } catch (e) { return {}; }\n}\nconst ACTIVE_FIELD_RE = /^Active(_\\d{1,3})?$/;\nconst requestedActiveField = String(catalogRouting().catalog_active_field || \"\").trim();\nconst rawCatalogItems = getSafeAll('Get Catalog', 'Model');\nlet ACTIVE_FIELD = ACTIVE_FIELD_RE.test(requestedActiveField) ? requestedActiveField : \"Active\";\nif (ACTIVE_FIELD !== \"Active\" && rawCatalogItems.length\n        && !rawCatalogItems.some(t => Object.prototype.hasOwnProperty.call(t, ACTIVE_FIELD))) {\n    ACTIVE_FIELD = \"Active\";\n}\nfunction isActiveRow(t) {\n    const a = t[ACTIVE_FIELD];\n    return a === true || a === 1 || a === \"1\" || a === \"true\";\n}\nconst catalogItems = rawCatalogItems.filter(isActiveRow);\nconst stockItems = getSafeAll('Get Stock', 'Model');\nconst ratesList = getSafeAll('Get Rates', 'Rate');\n// [N4] Программа кредитования дилера. До правки программа выбиралась\n// проверкой колонки Program_Name, которой нет ни в одной таблице\n// [brand]_Credit_Programs, — найденная строка превращалась в null, и движок\n// брал умолчания 84 мес. / 20 %.\n//  - признак строки программы — Program_id;\n//  - Model_Pattern — список Model id («11, 12, 13»); программа применяется,\n//    только если Model id модели стоит в нём ОТДЕЛЬНЫМ элементом (решение\n//    владельца 2026-09-30). Прежний фильтр сравнивал с Id строки каталога\n//    подстрокой: Id 1 совпадал с «11», модель из списка с первой строкой Id 6\n//    программу не получала;\n//  - минимальный взнос — ТОЛЬКО Min_Down_Payment, целые проценты (10 = 10 %),\n//    во всех трёх таблицах (HAVAL, GEELY, BELGEE — срез 2026-09-30). Пустое\n//    значение → 20 %, как в боте (решение владельца 2026-09-30). Движок\n//    читает поле Min_Down_Payment_Pct и сам пустое заменил бы на 10 %\n//    (calc_engine.js:53), поэтому 20 подставляется здесь явно.\nconst MIN_DOWN_DEFAULT_PCT = 20;\nfunction pickProgram(rows, modelId) {\n    const id = String(modelId == null ? \"\" : modelId).trim();\n    if (!id) return null;\n    const row = rows.find(r => r && r.Program_id != null && r.Program_id !== \"\" &&\n        String(r.Model_Pattern || \"\").split(\",\").map(s => s.trim()).includes(id));\n    if (!row) return null;\n    const raw = row.Min_Down_Payment;\n    const pct = (raw === undefined || raw === null || String(raw).trim() === \"\" || isNaN(Number(raw)))\n        ? MIN_DOWN_DEFAULT_PCT : Number(raw);\n    return Object.assign({}, row, { Min_Down_Payment_Pct: pct });\n}\nconst program = pickProgram(getSafeAll('Get Program', 'Program_id'),\n                            catalogItems.length ? catalogItems[0]['Model id'] : null);\n\nif (!catalogItems.length) {\n    return {\n        json: {\n            response: {\n                result_text: `По запросу \"${query}\" модели не найдены в каталоге.`,\n                stock_count: 0,\n                complectations: [],\n                summary: { catalog_active_field: ACTIVE_FIELD }\n            },\n            calc_request: { operation: \"noop\" }\n        }\n    };\n}\n\n// ---------------------------------------------------------\n// 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ОКРУГЛЕНИЯ\n// ---------------------------------------------------------\nfunction round10k(val) { return Math.round(val / 10000) * 10000; }\n\nfunction extractUrl(fileObj) {\n    if (!fileObj) return null;\n    if (typeof fileObj === 'string') return fileObj;\n    return fileObj.signedUrl || fileObj.url || fileObj.path || null;\n}\n\n// ---------------------------------------------------------\n// 3. АГРЕГАЦИЯ ДАННЫХ (credit_calculation заполнит Merge Calc)\n// ---------------------------------------------------------\nconst grouped = {};\nconst calcItems = [];\n// [STOCK] slug каталога → комплектация: по нему привязывается сток\nconst slugToTrim = {};\nconst trimsWithSlug = new Set();\n\nfor (const trim of catalogItems) {\n    const trimName = trim.Complectation;\n    const trimId = (trim['Complectation id'] || trim['Complectation_id'] || trim.Id || \"\").toString();\n    const trimSlug = String(trim.slug || \"\").trim().toLowerCase();\n    if (trimSlug) {\n        if (!(trimSlug in slugToTrim)) slugToTrim[trimSlug] = trimId;\n        trimsWithSlug.add(trimId);\n    }\n\n    if (trimId === targetComplectationId) {\n        targetComplectationName = trimName;\n    }\n\n    if (!grouped[trimId]) {\n        // --- ЛОГИКА ПЯТИУРОВНЕВОЙ ЦЕНЫ ---\n        const msrp = round10k(Number(trim['Price old']) || 0);          // Розничная цена (MSRP)\n        const cashBonus = round10k(Number(trim['Cash in hook']) || 0);  // Прямая скидка от салона\n        const basePrice = msrp - cashBonus;\n\n        const creditBonus = round10k(Number(trim['Credit bonus']) || 0);\n        const tradeinBonus = round10k(Number(trim['Trade-in bonus']) || 0);\n\n        const creditPrice = basePrice - creditBonus;   // Базовая цена минус кредит\n        const tradeinPrice = basePrice - tradeinBonus; // Базовая цена минус трейд-ин\n\n        const rawPics = trim['Pics'] || [];\n        let picsArray = Array.isArray(rawPics) ? rawPics : [];\n\n        const sortedImages = {};\n        for (const pic of picsArray) {\n            const fName = (pic.title || pic.path || \"\").toLowerCase();\n            let url = extractUrl(pic);\n\n            if (url && !url.startsWith('http')) {\n                const cleanPath = url.startsWith('/') ? url.substring(1) : url;\n                url = `${MY_NOCO_DOMAIN}/${cleanPath}`;\n            }\n\n            if (url) {\n                if (fName.includes('ext1')) sortedImages.exterior_front = url;\n                else if (fName.includes('ext2')) sortedImages.exterior_rear = url;\n                else if (fName.includes('int1')) sortedImages.interior_dashboard = url;\n                else if (fName.includes('int2')) sortedImages.interior_driver = url;\n                else if (fName.includes('int3')) sortedImages.interior_door = url;\n                else if (fName.includes('int4')) sortedImages.interior_gear = url;\n            }\n        }\n\n        // [U2] Кредитный расчёт уехал в Calc Engine — собираем batch-заявку\n        calcItems.push({ id: trimId, price: creditPrice });\n\n        let featuresList = trim.Features ? trim.Features.split('\\n').map(s => s.trim()) : [];\n        const minusRaw = trim['Minus Features'] || \"\";\n        const minusList = minusRaw.split('\\n').map(s => s.trim().toLowerCase()).filter(s => s !== '');\n\n        const finalFeatures = featuresList.filter(f => {\n            if (f === '') return false;\n            if (f.toLowerCase().includes('топовые опции')) return false;\n            const isForbidden = minusList.some(minus => f.toLowerCase().includes(minus));\n            return !isForbidden;\n        });\n\n        grouped[trimId] = {\n            id: trimId,\n            name: trimName,\n            full_name: trim['Model title'] || trimName,\n            specs: {\n                engine: trim.Engine,\n                transmission: trim.Transmission_ru || trim.Transmission,\n                drive: trim.Drivetrain_ru || trim.Drivetrain,\n                acceleration: trim.Acceleration,\n                consumption: trim['Сonsumption']\n            },\n            price: {\n                MSRP: msrp,\n                cash_bonus: cashBonus,\n                base_price: basePrice,\n                credit_price: creditPrice,\n                credit_bonus: creditBonus,\n                tradein_price: tradeinPrice,\n                tradein_bonus: tradeinBonus\n            },\n            features: finalFeatures,\n            images: sortedImages,\n            stock_count: 0,\n            stock_details: { in_stock: 0, in_transit: 0, other: 0 },\n            stock_colors: [],\n            credit_calculation: null // заполнит Merge Calc\n        };\n    }\n}\n\n// ---------------------------------------------------------\n// 4. ПОДСЧЕТ СКЛАДА\n// ---------------------------------------------------------\nif (stockItems.length > 0) {\n    for (const car of stockItems) {\n        const carSlug = String(car.slug || \"\").trim().toLowerCase();\n        if (!carSlug) continue;\n\n        // [STOCK] Привязка по точному совпадению slug каталога и slug стока.\n        // Прежнее сравнение по названию комплектации не работало для брендов с\n        // кириллическими названиями («флагман» ⊄ «flagship-se-2-0t-…», дилер 02)\n        // и путало одноимённые комплектации (Elite 2WD / Elite 4WD у HAVAL).\n        // Оно оставлено запасным вариантом ТОЛЬКО для комплектаций без slug.\n        let matchedTrimKey = slugToTrim[carSlug];\n        if (!matchedTrimKey) {\n            matchedTrimKey = Object.keys(grouped).find(key => {\n                if (trimsWithSlug.has(key)) return false;\n                const trimData = grouped[key];\n                let searchKey = trimData.name.toLowerCase();\n                searchKey = searchKey.replace('+', '-plus').replace(' ', '-');\n                return carSlug.includes(searchKey);\n            });\n        }\n\n        if (matchedTrimKey) {\n            const trimData = grouped[matchedTrimKey];\n            trimData.stock_count++;\n            const status = (car.Status || \"\").toLowerCase();\n            let statusKey = \"other\";\n            if (status.includes(\"дилер\") || status.includes(\"dealer\") || status.includes(\"stock\")) statusKey = \"in_stock\";\n            else if (status.includes(\"пути\") || status.includes(\"transit\") || status.includes(\"way\")) statusKey = \"in_transit\";\n\n            trimData.stock_details[statusKey]++;\n\n            const colorName = car.Color_ext || \"Не указан\";\n            let colorEntry = trimData.stock_colors.find(c => c.name === colorName);\n            if (!colorEntry) {\n                colorEntry = { name: colorName, total: 0, in_stock: 0, in_transit: 0 };\n                trimData.stock_colors.push(colorEntry);\n            }\n            colorEntry.total++;\n            if (statusKey === 'in_stock') colorEntry.in_stock++;\n            if (statusKey === 'in_transit') colorEntry.in_transit++;\n        }\n    }\n}\n\n// ---------------------------------------------------------\n// 5. ФОРМИРОВАНИЕ ОТВЕТА (без кредитных расчётов) + BATCH-ЗАЯВКА\n// ---------------------------------------------------------\nreturn {\n    json: {\n        response: {\n            user_id: triggerData.user_id,\n            session_id: triggerData.session_id,\n            chatInput: triggerData.chatInput,\n            user_data: triggerData.user_data,\n            data_routing: triggerData.data_routing,\n            qualification_context: triggerData.qualification_context,\n\n            model: catalogItems[0].Model,\n            dealer_id_used: dealerId,\n            deal_id: context.deal_id || triggerData.deal_id || null,\n            user_request: {\n                payment: userPayment,\n                query: query,\n                type: requestType,\n                type_name: requestTypeName,\n                selected_complectation_id: targetComplectationId,\n                selected_complectation_name: targetComplectationName,\n                plate: context.plate || \"\"\n            },\n            complectations: Object.values(grouped).sort((a,b) => a.price.MSRP - b.price.MSRP),\n            summary: {\n                total_stock: stockItems.length,\n                model_name: catalogItems[0].Model,\n                catalog_active_field: ACTIVE_FIELD\n            }\n        },\n        calc_request: {\n            operation: \"credit_scenarios_batch\",\n            target_payment: userPayment,\n            items: calcItems,\n            rates: ratesList,\n            program: program\n        }\n    }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        64
+      ],
+      "id": "b430dfd6-bd38-4719-bad2-470a1a090cd3",
+      "name": "Prepare Data"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.catalog_table_id }}",
+        "returnAll": true,
+        "options": {
+          "where": "={{\n  $('Parse Input').first().json.qualification_context?.model_id\n  ? `(Model id,eq,${$('Parse Input').first().json.qualification_context.model_id})`\n  : `(Model,eq,${$('Parse Input').first().json.query})`\n}}"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        -64,
+        64
+      ],
+      "id": "a8d1f42c-24ee-45a5-8541-228bcbf3c189",
+      "name": "Get Catalog",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -400,
+        64
+      ],
+      "id": "b3d000d5-6234-42fd-bb10-17200aa30c07",
+      "name": "Execute Workflow Trigger"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.program_table_id }}",
+        "options": {
+          "where": "=(Model_Pattern,like,%{{ $('Get Catalog').first().json['Model id'] }}%)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        288,
+        64
+      ],
+      "id": "f2bafdfa-0be9-4ecd-a585-da12008730d7",
+      "name": "Get Program",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.credit_table_id }}",
+        "options": {
+          "where": "="
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        464,
+        64
+      ],
+      "id": "4e34e576-18f8-4bee-a665-b7af7b213265",
+      "name": "Get Rates",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем данные от триггера\nconst item = $input.first().json;\n\n// Проверяем, является ли поле 'query' строкой, похожей на JSON\nif (item.query && typeof item.query === 'string' && (item.query.startsWith('{') || item.query.startsWith('['))) {\n  try {\n    // Пытаемся распарсить строку обратно в объект\n    const parsed = JSON.parse(item.query);\n    \n    // Возвращаем распакованный объект как новые данные\n    return { json: parsed };\n  } catch (e) {\n    // Если ошибка парсинга, возвращаем как было\n    return { json: item };\n  }\n}\n\n// Если данные уже нормальные (не строка), просто пропускаем их дальше\nreturn { json: item };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        64
+      ],
+      "id": "6291696c-4e41-46aa-8f19-e0380801ae0d",
+      "name": "Parse Input"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.stock_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.stock_table_id }}",
+        "returnAll": true,
+        "options": {
+          "where": "=(Dealer_id,eq,{{ $('Parse Input').first().json.qualification_context.dealer_id }})~and(Model,eq,{{ $('Get Catalog').first().json.Model_short }})"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        112,
+        64
+      ],
+      "id": "e8c39e79-37c3-4f5c-a4e3-6c8bdd811336",
+      "name": "Get Stock",
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "1K9aRaJrWRCF4InF",
+          "mode": "list",
+          "cachedResultName": "[TEST] Tool: Calc Engine"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        860,
+        64
+      ],
+      "id": "8f7147c7-b95b-57c5-a3ed-d8ea52a1a485",
+      "name": "Calc Engine"
+    },
+    {
+      "parameters": {
+        "jsCode": "// [U2] Вливает результаты Calc Engine в подготовленный ответ Car Search\nconst prep = $('Prepare Data').first().json;\nconst calc = $input.first().json;\nconst response = prep.response;\n\nif (calc && calc.results) {\n    for (const comp of (response.complectations || [])) {\n        if (calc.results[comp.id] !== undefined) {\n            comp.credit_calculation = calc.results[comp.id];\n        }\n    }\n}\n\nreturn { json: response };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        64
+      ],
+      "id": "3d23eaf8-1b3e-5b98-b3a5-50042713d583",
+      "name": "Merge Calc"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Catalog": {
+      "main": [
+        [
+          {
+            "node": "Get Stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Program": {
+      "main": [
+        [
+          {
+            "node": "Get Rates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Rates": {
+      "main": [
+        [
+          {
+            "node": "Prepare Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Input": {
+      "main": [
+        [
+          {
+            "node": "Get Catalog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Stock": {
+      "main": [
+        [
+          {
+            "node": "Get Program",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Data": {
+      "main": [
+        [
+          {
+            "node": "Calc Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calc Engine": {
+      "main": [
+        [
+          {
+            "node": "Merge Calc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "meta": {
+    "instanceId": "65c0178e84d5c3db112ec6489beae5f53a11ae74e53d6537d4d9a5cd140a483b"
+  }
+}

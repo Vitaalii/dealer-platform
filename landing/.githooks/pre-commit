@@ -1,0 +1,10 @@
+#!/bin/sh
+# Блоки Tilda: в коммите должны быть и исходник Ver_4_dev, и актуальная
+# сборки Ver_4_dev/Production и Production-test (в Tilda вставляются только они).
+# Включается один раз: git config core.hooksPath .githooks
+if git diff --cached --name-only | grep -q '^docs/tilda-blocks/Ver_4_dev/'; then
+    node tools/build-production.mjs --check || {
+        echo "Пересоберите: npm run build:prod — и добавьте Production и Production-test в коммит." >&2
+        exit 1
+    }
+fi

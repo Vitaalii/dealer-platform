@@ -1,0 +1,2405 @@
+{
+  "name": "AI Agent v2.0 MAX",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "a31f6728-8b30-47f2-9e8a-051b206339ce",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -656,
+        -352
+      ],
+      "id": "fb580880-8a7b-4531-a7b8-60c6ba0db7de",
+      "name": "Webhook",
+      "webhookId": "a31f6728-8b30-47f2-9e8a-051b206339ce"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2336,
+        -336
+      ],
+      "id": "e61b4b65-49cb-4da1-9c58-588bcf3016a8",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"user_id\": {{ $json.body.user_id }},\n  \"session_id\": \"{{ $json.body.session_id }}\",\n  \"deal_id\": \"{{ $json.body.qualification_context.deal_id }}\"\n  \"chatInput\": \"{{ $json.body.message }}\",\n  \"user_data\": {{ $json.body.user_data }},\n  \"qualification_context\": {{ $json.body.qualification_context }},\n  \"data_routing\": {\n    \"stock_base_id\": \"{{ $json.body.data_routing.stock_base_id }}\",\n    \"stock_table_id\": \"{{ $json.body.data_routing.stock_table_id }}\",\n    \"catalog_base_id\": \"{{ $json.body.data_routing.catalog_base_id }}\",\n    \"catalog_table_id\": \"{{ $json.body.data_routing.catalog_table_id }}\",\n    \"credit_table_id\": \"{{ $json.body.data_routing.rates_table_id }}\",\n    \"program_table_id\": \"{{ $json.body.data_routing.program_table_id }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -480,
+        -352
+      ],
+      "id": "885e3a67-4b5f-4035-8cbe-dda97ceec19e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "qunUsxh-zt4J-gc38lijX",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/qunUsxh-zt4J-gc38lijX",
+          "cachedResultName": "Tool - Car Search"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -112,
+        -288
+      ],
+      "id": "592abe62-9224-466e-83c3-38888ee342a5",
+      "name": "Call 'Tool - Car Search'"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f782ed8a-9c5f-4fcc-b4a8-4d0bac2aa5a3",
+              "leftValue": "={{ $json.qualification_context.cached_json ? \"YES\" : \"\" }}",
+              "rightValue": "INIT_AI_HANDOFF",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -304,
+        -352
+      ],
+      "id": "d84d80c9-81f6-4aa7-ba77-119475e835d9",
+      "name": "Check Message Type"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "aed7d19f-3e10-486e-93f9-58b49a6b2c9a",
+                    "leftValue": "={{ $json.chatInput }}",
+                    "rightValue": "__SYSTEM_REMINDER__",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.qualification_context?.request_type || $json.user_request?.type }}",
+                    "rightValue": "credit",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "2059e0e8-8529-4f29-8279-3a1e0c8a100e"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "dad74fe6-4e75-4251-a1e0-849557f608c7",
+                    "leftValue": "={{ $json.qualification_context?.request_type || $json.user_request?.type }}",
+                    "rightValue": "consult",
+                    "operator": {
+                      "type": "string",
+                      "operation": "regex"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0dfcfa3d-0941-41ba-9ce2-eafc315f193f",
+                    "leftValue": "={{ $json.qualification_context?.request_type || $json.user_request?.type }}",
+                    "rightValue": "stock",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d8eeb2ff-a0d8-4dad-b6cf-c4228ee84b2e",
+                    "leftValue": "={{ $json.qualification_context?.request_type || $json.user_request?.type }}",
+                    "rightValue": "tradein",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a87ddb03-0ede-473d-b077-eb0c19e974eb",
+                    "leftValue": "={{ $json.qualification_context?.request_type || $json.user_request?.type }}",
+                    "rightValue": "combo",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        -416
+      ],
+      "id": "dd4a401f-12fc-440b-93d9-4e9684b3bea8",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "let data = $input.item.json;\n\n// 1. Умный поиск выбранной комплектации (смотрим в qualification_context)\nlet qc = data.qualification_context || {};\nlet cached = qc.cached_json || {};\nlet req = data.user_request || cached.user_request || {};\n\n// Достаем ID: приоритет на прямой ключ в qualification_context\nlet selectedId = qc.complectation_id || req.selected_complectation_id || cached.complectation_id;\nlet selectedName = req.selected_complectation_name;\n\n// 2. Ищем массив всех машин\nlet rawComps = [];\nif (cached.complectations) {\n    rawComps = cached.complectations;\n} else if (data.complectations) {\n    rawComps = data.complectations;\n}\n\n// 3. Чистим и ФИЛЬТРУЕМ\nlet cleanComplectations = [];\nif (Array.isArray(rawComps)) {\n    let cleaned = rawComps.map(comp => {\n        let c = Object.assign({}, comp);\n        \n        // Удаляем тяжелые данные для экономии контекста (токенов)\n        delete c.features;\n        delete c.images;\n        delete c.stock_details;\n        delete c.stock_colors;\n        delete c.specs;\n        \n        // Мы НЕ удаляем c.price, так как он уже содержит:\n        // MSRP (Price old), cash_bonus (Cash in hook), base_price (Price new),\n        // credit_price и tradein_price.\n        \n        return c;\n    });\n\n    // Если нашли конкретный ID, оставляем только эту машину\n    if (selectedId) {\n        cleanComplectations = cleaned.filter(comp => String(comp.id) === String(selectedId));\n    } \n    \n    // Запасной вариант по имени, если по ID ничего не нашлось\n    if (cleanComplectations.length === 0 && selectedName) {\n        cleanComplectations = cleaned.filter(comp => \n            comp.name === selectedName || comp.full_name === selectedName\n        );\n    }\n\n    // Если всё еще пусто — отдаем весь очищенный список\n    if (cleanComplectations.length === 0) {\n        cleanComplectations = cleaned;\n    }\n}\n\n// 4. Формируем финальный объект (Разделяем данные для промпта и контекст ИИ)\nreturn {\n    ...data,\n\n    ai_clean_context: {\n        \"user_id\": data.user_id || qc.user_id || \"\",\n        \"deal_id\": data.deal_id || qc.deal_id || \"\",\n        \"model\": data.model || qc.model || \"\",\n        \"user_data\": Object.assign({}, cached.user_data || {}, data.user_data || {}),\n        \"user_request\": req,\n        \"complectations\": cleanComplectations // Теперь тут 5 уровней цены для каждой машины\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -464
+      ],
+      "id": "86e2c2ed-551d-4ae9-9389-e688f0665d1a",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Сообщение пользователя: {{ $('Edit Fields').first().json.chatInput }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=={{ $('Edit Fields').first().json.qualification_context.system_prompt }}\n\n<DATA_FROM_DATABASE>\nЭто актуальные данные по автомобилям и запросу клиента. Используй их для ответов:\n{{ JSON.stringify($json.ai_clean_context, null, 2) }}\n\n[СИСТЕМНОЕ НАПОМИНАНИЕ]: ЕСЛИ ПОЛЬЗОВАТЕЛЬ ПРИСЛАЛ КОРРЕКТНЫЙ НОМЕР ТЕЛЕФОНА В ЭТОМ СООБЩЕНИИ, ТЫ ОБЯЗАН ВЫЗВАТЬ ИНСТРУМЕНТ FINALIZE_DEAL.\n</DATA_FROM_DATABASE>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        -592
+      ],
+      "id": "4f155509-141f-415d-94de-7241ee84264d",
+      "name": "AI Credit",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $(\"Edit Fields\").first().json.session_id }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        544,
+        -432
+      ],
+      "id": "ac1c4654-914c-429e-aefb-8a1c67460900",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Получаем входящие данные (не мутируем их, а просто читаем)\nconst input = $input.item.json;\n\n// 2. Умный поиск контекста и данных дилера\nconst qc = input.qualification_context || {};\nconst cached = qc.cached_json || {};\n\n// 3. Берем массив всех комплектаций (без фильтрации, со всеми фото и ТТХ)\nconst rawComps = cached.complectations || input.complectations || [];\n\n// 4. Очищаем только финансовый мусор и склад (фото, опции и ТТХ ОСТАВЛЯЕМ)\nconst cleanComps = rawComps.map(comp => {\n    let c = Object.assign({}, comp);\n    \n    // В Консультанте ОСТАВЛЯЕМ блок price целиком.\n    // Он уже содержит подготовленные в JavaScript1 данные:\n    // MSRP, cash_bonus, base_price, credit_price, tradein_price.\n    \n    // Удаляем только расчетные блоки и данные о складских остатках\n    delete c.images; // <--- ДОБАВЛЕНО\n    delete c.credit_calculation;\n    delete c.combo_calculation;\n    delete c.stock_count;\n    delete c.stock_details;\n    delete c.stock_colors;\n    \n    return c;\n});\n\n// 5. ЯВНО возвращаем новый объект. Разделяем данные для промпта и контекст ИИ.\nreturn {\n    ...input, // Копируем все технические ID и маршрутизацию\n\n    ai_clean_context: {\n        \"user_id\": input.user_id || qc.user_id || \"\",\n        \"deal_id\": input.deal_id || qc.deal_id || \"\",\n        \"model\": input.model || qc.model || \"\",\n        \"user_data\": Object.assign({}, cached.user_data || {}, input.user_data || {}),\n        \"user_request\": input.user_request || cached.user_request || { payment: 0 },\n        \"complectations\": cleanComps // Полный список с характеристиками и 5 уровнями цены\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        -592
+      ],
+      "id": "f6aae264-5e7c-4b38-9430-80152b0e93df",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Сообщение пользователя: {{ $('Edit Fields').first().json.chatInput }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=={{ $('Edit Fields').first().json.qualification_context.system_prompt }}\n\n<DATA_FROM_DATABASE>\nЭто актуальные данные по автомобилям и складу. Используй их для ответов:\n{{ JSON.stringify($json.ai_clean_context, null, 2) }}\n\n[СИСТЕМНОЕ НАПОМИНАНИЕ]: ЕСЛИ ПОЛЬЗОВАТЕЛЬ ПРИСЛАЛ КОРРЕКТНЫЙ НОМЕР ТЕЛЕФОНА В ЭТОМ СООБЩЕНИИ, ТЫ ОБЯЗАН ВЫЗВАТЬ ИНСТРУМЕНТ FINALIZE_DEAL.\n</DATA_FROM_DATABASE>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        992,
+        -592
+      ],
+      "id": "28721818-fd35-49cf-83e2-82ffcd15eef1",
+      "name": "AI Consult"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $(\"Edit Fields\").first().json.session_id }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1088,
+        -448
+      ],
+      "id": "4b7aaa77-8af5-47ad-ba64-0e5542c5dba9",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Сообщение пользователя: {{ $('Edit Fields').first().json.chatInput }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=={{ $('Edit Fields').first().json.qualification_context.system_prompt }}\n\n<DATA_FROM_DATABASE>\nЭто актуальные данные по автомобилям и складу. Используй их для ответов:\n{{ JSON.stringify($json.ai_clean_context, null, 2) }}\n\n[СИСТЕМНОЕ НАПОМИНАНИЕ]: ЕСЛИ ПОЛЬЗОВАТЕЛЬ ПРИСЛАЛ КОРРЕКТНЫЙ НОМЕР ТЕЛЕФОНА В ЭТОМ СООБЩЕНИИ, ТЫ ОБЯЗАН ВЫЗВАТЬ ИНСТРУМЕНТ FINALIZE_DEAL.\n</DATA_FROM_DATABASE>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        480,
+        -128
+      ],
+      "id": "2e65dee7-510f-4030-9706-04798023e00a",
+      "name": "AI TradeIn",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $(\"Edit Fields\").first().json.session_id }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        16
+      ],
+      "id": "ae2afde6-8072-49ea-b61a-ed6475b37b0a",
+      "name": "Simple Memory3"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "google/gemini-3.1-flash-lite",
+          "mode": "list",
+          "cachedResultName": "google/gemini-3.1-flash-lite"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        -432
+      ],
+      "id": "e756ff00-846e-4372-927b-ab97159af086",
+      "name": "OpenAI Chat Model1",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "PtI7CvwiH2WYU1pM",
+          "name": "OpenRouter Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "google/gemini-2.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "google/gemini-2.5-flash-lite"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        896,
+        -448
+      ],
+      "id": "b6489020-09d2-4299-9800-31ce6c138086",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "PtI7CvwiH2WYU1pM",
+          "name": "OpenRouter Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openai/gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "openai/gpt-4.1-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        496,
+        16
+      ],
+      "id": "fb51f3df-0985-4986-9ca7-3ac54135d549",
+      "name": "OpenAI Chat Model3",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "PtI7CvwiH2WYU1pM",
+          "name": "OpenRouter Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// 1. Берем текст ответа от нейросети или запасную фразу\nlet raw_output = $input.item.json.output || $input.item.json.text || \"\";\n\n// Если строка пустая (или состоит только из пробелов) - используем фолбэк\nlet ai_text = raw_output.trim() !== \"\" ? raw_output : \"К сожалению, ваше предыдущее сообщение пришло в виде непонятных символов. Могли бы вы его повторить 🙏\";\n\nlet cache_data = null;\n\n// 2. Ищем кэш. Если это второе сообщение, кэш уже прилетел от Питона в Webhook\nif ($('Webhook').first().json.body.qualification_context && $('Webhook').first().json.body.qualification_context.cached_json) {\n    cache_data = $('Webhook').first().json.body.qualification_context.cached_json;\n}\n// 3. Если это первое сообщение, берем свежие данные напрямую из ноды базы данных\nelse if ($(\"Call 'Tool - Car Search'\").first() && $(\"Call 'Tool - Car Search'\").first().json) {\n    cache_data = $(\"Call 'Tool - Car Search'\").first().json;\n}\n\n// 4. Отдаем идеальный объект\nreturn {\n    output: ai_text,\n    json_cache: cache_data\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2176,
+        -400
+      ],
+      "id": "04cb316d-a95b-4548-aa6b-89d8ba03269f",
+      "name": "Merge Response"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $(\"Edit Fields\").first().json.session_id }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        16
+      ],
+      "id": "f36824c4-06e2-4bf2-816e-c21db1e8e85a",
+      "name": "Simple Memory4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "google/gemini-3.1-flash-lite",
+          "mode": "list",
+          "cachedResultName": "google/gemini-3.1-flash-lite"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        912,
+        16
+      ],
+      "id": "5b20aa06-4fff-47d3-b2e9-ec00a754cd14",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "PtI7CvwiH2WYU1pM",
+          "name": "OpenRouter Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Сообщение пользователя: {{ $('Edit Fields').first().json.chatInput }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=={{ $('Edit Fields').first().json.qualification_context.system_prompt }}\n\n<DATA_FROM_DATABASE>\nЭто актуальные данные по автомобилям и складу. Используй их для ответов:\n{{ JSON.stringify($json.ai_clean_context, null, 2) }}\n\n[СИСТЕМНОЕ НАПОМИНАНИЕ]: ЕСЛИ ПОЛЬЗОВАТЕЛЬ ПРИСЛАЛ КОРРЕКТНЫЙ НОМЕР ТЕЛЕФОНА В ЭТОМ СООБЩЕНИИ, ТЫ ОБЯЗАН ВЫЗВАТЬ ИНСТРУМЕНТ FINALIZE_DEAL.\n</DATA_FROM_DATABASE>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1024,
+        -128
+      ],
+      "id": "c3068910-6287-458a-afbc-325a61256a69",
+      "name": "AI Combo",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "description": "Инструмент для комплексного расчета (оценка авто в Trade-in + подбор кредита).\nПАРАМЕТРЫ:\n\nplate: госномер автомобиля (строка).\n\nmileage: пробег автомобиля (только цифры, например: 50000).\n\nВАЖНО: Если клиент написал \"50 тыс\", обязательно преобразуй это в \"50000\". После получения ответа от этого инструмента ты ОБЯЗАН использовать эти данные для написания текстового ответа клиенту.",
+        "workflowId": {
+          "__rl": true,
+          "value": "y4ee1N5dlH1tZyq4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/y4ee1N5dlH1tZyq4",
+          "cachedResultName": "Tool: Combo Calculator"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "payment": "={{ String($json.qualification_context?.payment || \"0\") }}",
+            "plate": "={{ $fromAI(\"plate\") }}",
+            "mileage": "={{ $fromAI(\"mileage\") }}",
+            "query": "={{ $json.qualification_context.model || $json.qualification_context.query || \"Авто\" }}",
+            "qualification_context": "={{ JSON.stringify($json.qualification_context || {}) }}",
+            "data_routing": "={{ JSON.stringify($('Edit Fields').first().json.data_routing || $('Webhook').first().json.body?.data_routing || {}) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "plate",
+              "displayName": "plate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "mileage",
+              "displayName": "mileage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "payment",
+              "displayName": "payment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "qualification_context",
+              "displayName": "qualification_context",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "data_routing",
+              "displayName": "data_routing",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1264,
+        16
+      ],
+      "id": "be46a2c9-0844-4c3c-9577-8a5cfacdd2bc",
+      "name": "Combo Calculator"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "514412f2-1654-4813-982e-6f682fe15819",
+              "name": "output",
+              "value": "Прошу прощения, но у меня очень нестабильно работает мессенджер 🥲 Могли бы вы прислать номер телефона, чтобы мои коллеги проконсультировали вас по телефону",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2192,
+        -192
+      ],
+      "id": "12ad7cd0-6965-42c5-9801-a5df71d8bf4e",
+      "name": "Fallback_Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "let data = $input.item.json;\n\n// 1. Ищем массив машин (умный поиск)\nlet rawComps = [];\nif (data.qualification_context && data.qualification_context.cached_json && data.qualification_context.cached_json.complectations) {\n    rawComps = data.qualification_context.cached_json.complectations;\n} else if (data.complectations) {\n    rawComps = data.complectations;\n}\n\n// 2. Чистим машины (Оставляем Склад и прозрачные цены за наличку)\nlet cleanComplectations = [];\nif (Array.isArray(rawComps)) {\n    cleanComplectations = rawComps.map(comp => {\n        let c = Object.assign({}, comp);\n        \n        // Удаляем блоки с расчетами условий (в наличии работаем от базы)\n        delete c.credit_calculation;\n        delete c.combo_calculation;\n        \n        // --- ОБНОВЛЕННАЯ ЛОГИКА ЦЕН: Фокус на прозрачности ---\n        if (c.price) {\n            c.price = { \n                MSRP: c.price.MSRP,              // Розничная цена по прайсу\n                cash_bonus: c.price.cash_bonus,  // Прямая скидка от автосалона\n                base_price: c.price.base_price   // Итоговая цена за наличные\n            };\n            // Удаляем кредитные и трейд-ин поля, чтобы ИИ не путал клиента в этой ветке\n        }\n        \n        // Удаляем тяжелые данные для экономии контекста\n        delete c.images;\n        \n        return c;\n    });\n}\n\n// Безопасно обнуляем payment, чтобы бот не заговорил про платежи\nlet cleanUserRequest = data.user_request ? Object.assign({}, data.user_request) : {};\ncleanUserRequest.payment = 0;\n\n// 3. Формируем финальный объект для ИИ (Разделяем данные для промпта и контекст ИИ)\n// Аккуратно достаем user_data из кэша (если он есть), чтобы не делать длинную строку ниже\nlet cachedUserData = (data.qualification_context && data.qualification_context.cached_json) \n    ? data.qualification_context.cached_json.user_data \n    : {};\nreturn {\n    ...data,\n\n    ai_clean_context: {\n        \"user_id\": data.user_id || (data.qualification_context ? data.qualification_context.user_id : \"\"),\n        \"deal_id\": data.deal_id || (data.qualification_context ? data.qualification_context.deal_id : \"\"),\n        \"dealer_id_used\": data.dealer_id_used || (data.qualification_context ? data.qualification_context.dealer_id : \"\"),\n        \"model\": data.model || (data.qualification_context ? data.qualification_context.model : \"\"),\n        \"user_data\": Object.assign({}, cachedUserData || {}, data.user_data || {}),\n        \"user_request\": cleanUserRequest,\n        \"complectations\": cleanComplectations // Теперь тут только MSRP, cash_bonus и base_price\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        -304
+      ],
+      "id": "6457a702-7eb8-47d4-a72c-d003c0096549",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $(\"Edit Fields\").first().json.session_id }}",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1328,
+        -256
+      ],
+      "id": "724b315b-7072-45c9-b500-647c0bcda1b7",
+      "name": "Simple Memory5"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "google/gemini-2.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "google/gemini-2.5-flash-lite"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        -256
+      ],
+      "id": "ae2aa7bd-d599-4b25-ac67-0231839dc391",
+      "name": "OpenAI Chat Model5",
+      "credentials": {
+        "openAiApi": {
+          "id": "PtI7CvwiH2WYU1pM",
+          "name": "OpenRouter Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Сообщение пользователя: {{ $('Edit Fields').first().json.chatInput }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=={{ $('Edit Fields').first().json.qualification_context.system_prompt }}\n\n<DATA_FROM_DATABASE>\nЭто актуальные данные по автомобилям и складу. Используй их для ответов:\n{{ JSON.stringify($json.ai_clean_context, null, 2) }}\n\n[СИСТЕМНОЕ НАПОМИНАНИЕ]: ЕСЛИ ПОЛЬЗОВАТЕЛЬ ПРИСЛАЛ КОРРЕКТНЫЙ НОМЕР ТЕЛЕФОНА В ЭТОМ СООБЩЕНИИ, ТЫ ОБЯЗАН ВЫЗВАТЬ ИНСТРУМЕНТ FINALIZE_DEAL.\n</DATA_FROM_DATABASE>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1232,
+        -400
+      ],
+      "id": "b5909a9e-2f75-4cd8-ab1f-876e7f6452f2",
+      "name": "AI Stock Search"
+    },
+    {
+      "parameters": {
+        "jsCode": "let data = $input.item.json;\n\n// 1. Умный поиск контекста и выбранной комплектации\nlet qc = data.qualification_context || {};\nlet cached = qc.cached_json || {};\nlet req = data.user_request || cached.user_request || {};\n\n// Достаем ID: приоритет на прямой ключ в qualification_context\nlet selectedId = qc.complectation_id || req.selected_complectation_id || cached.complectation_id;\nlet selectedName = req.selected_complectation_name;\n\n// 2. Ищем массив всех машин\nlet rawComps = [];\nif (cached.complectations) {\n    rawComps = cached.complectations;\n} else if (data.complectations) {\n    rawComps = data.complectations;\n}\n\n// 3. Чистим машины и ФИЛЬТРУЕМ\nlet cleanComplectations = [];\nif (Array.isArray(rawComps)) {\n    let cleaned = rawComps.map(comp => {\n        let c = Object.assign({}, comp);\n        \n        // --- ОБНОВЛЕННАЯ ЛОГИКА ЦЕН ДЛЯ ТРЕЙД-ИН ---\n        // Оставляем все 5 уровней, но для этой ветки ИИ будет делать упор на tradein\n        if (c.price) {\n            c.price = { \n                MSRP: c.price.MSRP,              // Цена по прайсу\n                cash_bonus: c.price.cash_bonus,  // Прямая скидка\n                base_price: c.price.base_price,  // Базовая цена (MSRP - cash_bonus)\n                tradein_price: c.price.tradein_price,\n                tradein_bonus: c.price.tradein_bonus\n            };\n        }\n        \n        // Удаляем тяжелый мусор для экономии токенов\n        delete c.features;\n        delete c.images;\n        delete c.stock_count;\n        delete c.stock_details;\n        delete c.stock_colors;\n        delete c.credit_calculation;\n        delete c.combo_calculation;\n        delete c.specs;\n        \n        return c;\n    });\n\n    // ФИЛЬТРАЦИЯ\n    if (selectedId) {\n        cleanComplectations = cleaned.filter(comp => String(comp.id) === String(selectedId));\n    } \n    \n    if (cleanComplectations.length === 0 && selectedName) {\n        cleanComplectations = cleaned.filter(comp => \n            comp.name === selectedName || comp.full_name === selectedName\n        );\n    }\n\n    if (cleanComplectations.length === 0) {\n        cleanComplectations = cleaned;\n    }\n}\n\n// 4. Формируем контекст для ИИ (Разделяем данные для промпта и контекст ИИ)\nreturn {\n    ...data,\n\n    ai_clean_context: {\n        \"user_id\": data.user_id || qc.user_id || \"\",\n        \"deal_id\": data.deal_id || qc.deal_id || \"\",\n        \"dealer_id_used\": data.dealer_id_used || qc.dealer_id || \"\",\n        \"model\": data.model || qc.model || \"\",\n        \"user_data\": Object.assign({}, cached.user_data || {}, data.user_data || {}),\n        \"user_request\": req,\n        \"complectations\": cleanComplectations\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -320
+      ],
+      "id": "33ca2672-4428-47cf-97fe-0686038e6200",
+      "name": "Code in JavaScript6"
+    },
+    {
+      "parameters": {
+        "jsCode": "let data = $input.item.json;\n\n// 1. Умный поиск контекста и выбранной комплектации\nlet qc = data.qualification_context || {};\nlet cached = qc.cached_json || {};\nlet req = data.user_request || cached.user_request || {};\n\n// Достаем ID: приоритет на прямой ключ в qualification_context\nlet selectedId = qc.complectation_id || req.selected_complectation_id || cached.complectation_id;\nlet selectedName = req.selected_complectation_name;\n\n// 2. Ищем массив всех машин\nlet rawComps = [];\nif (cached.complectations) {\n    rawComps = cached.complectations;\n} else if (data.complectations) {\n    rawComps = data.complectations;\n}\n\n// 3. Чистим машины и ФИЛЬТРУЕМ\nlet cleanComplectations = [];\nif (Array.isArray(rawComps)) {\n    let cleaned = rawComps.map(comp => {\n        let c = Object.assign({}, comp);\n        \n        // В Комбо ОСТАВЛЯЕМ блок price целиком. \n        // Он уже содержит: MSRP, cash_bonus, base_price, credit_price, tradein_price.\n        \n        // Удаляем тяжелый мусор для экономии токенов\n        delete c.features;\n        delete c.images;\n        delete c.specs;\n        delete c.stock_count;\n        delete c.stock_details;\n        delete c.stock_colors;\n        \n        // Удаляем базовые кредитные расчеты (ИИ будет оперировать цифрами из price)\n        delete c.credit_calculation;\n        \n        return c;\n    });\n\n    // ФИЛЬТРАЦИЯ: Если нашли ID, оставляем в массиве только одну машину\n    if (selectedId) {\n        cleanComplectations = cleaned.filter(comp => String(comp.id) === String(selectedId));\n    } \n    \n    // Если по ID не нашли, но есть имя — фильтруем по имени\n    if (cleanComplectations.length === 0 && selectedName) {\n        cleanComplectations = cleaned.filter(comp => \n            comp.name === selectedName || comp.full_name === selectedName\n        );\n    }\n\n    // Если всё еще пусто (ничего не выбрано), отдаем весь очищенный список\n    if (cleanComplectations.length === 0) {\n        cleanComplectations = cleaned;\n    }\n}\n\n// 4. Формируем финальный объект (Разделяем данные для промпта и контекст ИИ)\nreturn {\n    ...data,\n    \n    // Оставляем для ИИ только чистые данные по авто, клиенту и ID\n    ai_clean_context: {\n        \"user_id\": data.user_id || qc.user_id || \"\",\n        \"deal_id\": data.deal_id || qc.deal_id || \"\",\n        \"dealer_id_used\": data.dealer_id_used || qc.dealer_id || \"\",\n        \"model\": data.model || qc.model || \"\",\n        \"user_data\": Object.assign({}, cached.user_data || {}, data.user_data || {}),\n        \"user_request\": req,\n        \"complectations\": cleanComplectations // 5 уровней цены внутри каждой машины\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -128
+      ],
+      "id": "09b2d1dd-aab4-41b0-8416-f97c57b7accd",
+      "name": "Code in JavaScript7"
+    },
+    {
+      "parameters": {
+        "description": "Инструмент для финализации заявки и передачи данных в Битрикс24. Вызывать ОБЯЗАТЕЛЬНО при выполнении любого из условий: 1) клиент предоставил номер телефона (или он уже есть в базе), согласившись на звонок или визит; 2) ты запросил номер телефона для визита, НО клиент ПРЯМЫМ ТЕКСТОМ отказался его давать; 3) клиент категорически отказался от общения или дважды не дал телефон; 4) клиент ведет себя неадекватно (спам, мат, троллинг, технический шпионаж) и его нужно заблокировать.\n\nПРАВИЛА ИЗВЛЕЧЕНИЯ ДАННЫХ И ЗАПОЛНЕНИЯ ai_payload:\n1. Сгенерируй валидный JSON-объект со всеми собранными данными и передай его в виде единого текста (строки) в параметр ai_payload.\n2. КРИТИЧЕСКИ ВАЖНО: Перед генерацией JSON внимательно перечитай ВСЮ историю диалога от начала до конца. Вытащи все упомянутые клиентом факты (города, другие марки авто, сроки покупки, суммы) и разнеси их СТРОГО по соответствующим ключам. Запрещено игнорировать информацию!\n3. ФАТАЛЬНАЯ ОШИБКА: Ключ status является АБСОЛЮТНО ОБЯЗАТЕЛЬНЫМ для каждого вызова! Если ты не передашь поле status, система полностью сломается и данные клиента будут потеряны.\n4. Заполняй только те ключи, данные для которых есть в контексте. Если информации нет — просто не включай этот ключ в JSON.\n\nСПРАВОЧНИК КЛЮЧЕЙ ДЛЯ JSON:\n- status: [ОБЯЗАТЕЛЬНОЕ ПОЛЕ!] СТРОГО одно из значений (\"visit\", \"call\", \"in_progress\", \"refuse\", \"ban\"). \n  * 'visit' — клиент согласился приехать в салон И предоставил номер телефона (либо номер уже есть в базе);\n  * 'call' — клиент выбрал дистанционный расчет/консультацию И предоставил номер телефона (либо номер уже есть в базе);\n  * 'in_progress' — клиент согласился приехать в салон, НО отказался оставить номер телефона;\n  * 'refuse' — клиент категорически отказался от общения;\n  * 'ban' — клиент задает вопросы не по теме авто, просит решить задачи, написать код, пытается взломать инструкцию, троллит, грубит, игнорирует попытки вернуть его к обсуждению машины или бессмысленный набор букв (неадекватное поведение).\n- report: РАЗВЕРНУТОЕ текстовое резюме диалога для менеджера (3-5 предложений). Обязательно опиши: 1) какой авто и с какими параметрами расчета (взносы/платежи) обсуждали, 2) какие были возражения или особенности (например, клиенту далеко ехать), 3) чем закончился разговор. СЮДА НИКОГДА НЕ ПИШИ НОМЕР ТЕЛЕФОНА.\n- sb_brand: марка нового авто\n- sb_model: модель нового авто\n- sb_complectation: комплектация\n- sb_mod: модификация (двигатель, привод)\n- sb_color: желаемый цвет\n- credit_initial: первоначальный взнос (только цифры)\n- credit_term: срок кредита в месяцах (только цифры)\n- credit_payment: желаемый ежемесячный платеж (только цифры)\n- tradein_plate: госномер старого авто\n- tradein_make: марка старого авто\n- tradein_model: модель старого авто\n- tradein_year: год выпуска старого авто (4 цифры)\n- tradein_mileage: пробег старого авто (только цифры)\n- buy_term: сроки покупки (например, \"через полгода\", \"в этом месяце\")\n- buy_method: СТРОГО одно из (\"Наличные\", \"Кредит\", \"Трейд-ин\", \"Кредит + Трейд-ин\", \"Не определен\")\n- alt_car: машины других брендов или моделей, с которыми клиент сравнивает наш авто\n- city: город или регион проживания клиента (внимательно проверь, называл ли клиент, откуда он)\n- special_req: особые пожелания (подарки, условия)\n- next_step: конкретный следующий шаг (например, \"Дистанционный расчет по телефону\", \"Визит в салон\")\n- next_step_time: время/дата следующего шага",
+        "workflowId": {
+          "__rl": true,
+          "value": "vQ-eYIoZ_w85mu17FHGdJ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/vQ-eYIoZ_w85mu17FHGdJ",
+          "cachedResultName": "TOOL: Save to CRM"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ai_payload": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('ai_payload', ``, 'string') }}",
+            "user_id": "={{ $('Edit Fields').first().json.user_id }}",
+            "deal_id": "={{ $('Edit Fields').first().json.deal_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "deal_id",
+              "displayName": "deal_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "ai_payload",
+              "displayName": "ai_payload",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        -304
+      ],
+      "id": "e899aa18-a3c4-4f5b-a926-9b98607b982b",
+      "name": "finalize_deal"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d8126c19-a2bf-460b-a812-372709d13b7b",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "9e382db4-aa9a-4772-b2e8-5eaa3b9bc23c",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "No response before the tool call",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        -592
+      ],
+      "id": "a96ebb0f-6205-4045-8d9f-af24d06c002c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. Берем результат из предыдущей ноды (If4)\nlet current = $input.item.json;\n\n// 2. Достаем ОРИГИНАЛЬНЫЙ массив (Источник правды для ИИ)\nlet originalContext = $('Code in JavaScript').first().json;\n\n// 3. Пытаемся достать число ретраев из ПРЕДЫДУЩЕГО запуска ЭТОЙ ЖЕ ноды (JavaScript10)\nlet prevRetries = 0;\ntry {\n    // Мы смотрим на последний результат выполнения этой же ноды в текущем цикле\n    prevRetries = $('Code in JavaScript8').last().json.llm_retries || 0;\n} catch (e) {\n    // Если это самый первый запуск — ретраев еще нет\n    prevRetries = 0;\n}\n\n// 4. Склеиваем данные: ОРИГИНАЛ (машины) + ТЕКУЩИЕ (ввод юзера)\nlet data = Object.assign({}, originalContext, current);\n\n// 5. Увеличиваем счетчик, основываясь на истории запусков\ndata.llm_retries = prevRetries + 1;\n\n// 6. Очищаем output, чтобы заставить AI сгенерировать его заново\ndata.output = \"\";\n\nreturn data;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        -592
+      ],
+      "id": "8e8ce677-22b3-4bd2-87bf-e3b24579fca1",
+      "name": "Code in JavaScript8",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        -592
+      ],
+      "id": "4c4633f6-0f79-4d6e-bb89-32f0b5309b80",
+      "name": "Wait",
+      "webhookId": "777485b1-64fb-47ed-a67b-420f3773a89e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "57451fc9-86e6-4f3e-9299-2be0ae69ce1a",
+              "leftValue": "={{ $json.llm_retries }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        112,
+        -592
+      ],
+      "id": "c3041c04-df13-4938-aad3-7c4f96f53137",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d8126c19-a2bf-460b-a812-372709d13b7b",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "5f7f62f4-869d-4cd7-b9c4-fd332798349d",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "No response before the tool call",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1264,
+        -592
+      ],
+      "id": "99b3bb9a-ef75-47b2-9376-957022af5d96",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. Берем результат из предыдущей ноды (If4)\nlet current = $input.item.json;\n\n// 2. Достаем ОРИГИНАЛЬНЫЙ массив (Источник правды для ИИ)\nlet originalContext = $('Code in JavaScript1').first().json;\n\n// 3. Пытаемся достать число ретраев из ПРЕДЫДУЩЕГО запуска ЭТОЙ ЖЕ ноды (JavaScript10)\nlet prevRetries = 0;\ntry {\n    // Мы смотрим на последний результат выполнения этой же ноды в текущем цикле\n    prevRetries = $('Code in JavaScript9').last().json.llm_retries || 0;\n} catch (e) {\n    // Если это самый первый запуск — ретраев еще нет\n    prevRetries = 0;\n}\n\n// 4. Склеиваем данные: ОРИГИНАЛ (машины) + ТЕКУЩИЕ (ввод юзера)\nlet data = Object.assign({}, originalContext, current);\n\n// 5. Увеличиваем счетчик, основываясь на истории запусков\ndata.llm_retries = prevRetries + 1;\n\n// 6. Очищаем output, чтобы заставить AI сгенерировать его заново\ndata.output = \"\";\n\nreturn data;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        -592
+      ],
+      "id": "34c72c22-2f81-4150-a62a-0256691ca422",
+      "name": "Code in JavaScript9",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1728,
+        -592
+      ],
+      "id": "eb4bd3f0-abd1-4bae-bcf3-d24d80df2c73",
+      "name": "Wait1",
+      "webhookId": "777485b1-64fb-47ed-a67b-420f3773a89e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "57451fc9-86e6-4f3e-9299-2be0ae69ce1a",
+              "leftValue": "={{ $json.llm_retries }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1568,
+        -592
+      ],
+      "id": "32549904-c48c-4001-a76e-14cf9c39b7da",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d8126c19-a2bf-460b-a812-372709d13b7b",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "244180c3-e442-47d4-884a-2e10b485e83b",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "No response before the tool call",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -144,
+        -128
+      ],
+      "id": "dde6405c-ae8b-488a-8771-9d19f5f3ad89",
+      "name": "If4"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. Берем результат из предыдущей ноды (If4)\nlet current = $input.item.json;\n\n// 2. Достаем ОРИГИНАЛЬНЫЙ массив (Источник правды для ИИ)\nlet originalContext = $('Code in JavaScript6').first().json;\n\n// 3. Пытаемся достать число ретраев из ПРЕДЫДУЩЕГО запуска ЭТОЙ ЖЕ ноды (JavaScript10)\nlet prevRetries = 0;\ntry {\n    // Мы смотрим на последний результат выполнения этой же ноды в текущем цикле\n    prevRetries = $('Code in JavaScript10').last().json.llm_retries || 0;\n} catch (e) {\n    // Если это самый первый запуск — ретраев еще нет\n    prevRetries = 0;\n}\n\n// 4. Склеиваем данные: ОРИГИНАЛ (машины) + ТЕКУЩИЕ (ввод юзера)\nlet data = Object.assign({}, originalContext, current);\n\n// 5. Увеличиваем счетчик, основываясь на истории запусков\ndata.llm_retries = prevRetries + 1;\n\n// 6. Очищаем output, чтобы заставить AI сгенерировать его заново\ndata.output = \"\";\n\nreturn data;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        -128
+      ],
+      "id": "d3be1fe0-8a0f-4ef6-804b-22efab25085e",
+      "name": "Code in JavaScript10",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        320,
+        -128
+      ],
+      "id": "65b4eb67-3def-44e3-b19f-5de968b38347",
+      "name": "Wait2",
+      "webhookId": "777485b1-64fb-47ed-a67b-420f3773a89e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "57451fc9-86e6-4f3e-9299-2be0ae69ce1a",
+              "leftValue": "={{ $json.llm_retries }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        160,
+        -128
+      ],
+      "id": "7f1ed819-19da-4607-8e34-fe976951fb19",
+      "name": "If5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d8126c19-a2bf-460b-a812-372709d13b7b",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "554f0a43-14c6-4ac7-b422-88cf08774f78",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "No response before the tool call",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1312,
+        -128
+      ],
+      "id": "de61b5d5-a39e-46ce-9d45-1628aec6a819",
+      "name": "If6"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. Берем результат из предыдущей ноды (If4)\nlet current = $input.item.json;\n\n// 2. Достаем ОРИГИНАЛЬНЫЙ массив (Источник правды для ИИ)\nlet originalContext = $('Code in JavaScript7').first().json;\n\n// 3. Пытаемся достать число ретраев из ПРЕДЫДУЩЕГО запуска ЭТОЙ ЖЕ ноды (JavaScript10)\nlet prevRetries = 0;\ntry {\n    // Мы смотрим на последний результат выполнения этой же ноды в текущем цикле\n    prevRetries = $('Code in JavaScript11').last().json.llm_retries || 0;\n} catch (e) {\n    // Если это самый первый запуск — ретраев еще нет\n    prevRetries = 0;\n}\n\n// 4. Склеиваем данные: ОРИГИНАЛ (машины) + ТЕКУЩИЕ (ввод юзера)\nlet data = Object.assign({}, originalContext, current);\n\n// 5. Увеличиваем счетчик, основываясь на истории запусков\ndata.llm_retries = prevRetries + 1;\n\n// 6. Очищаем output, чтобы заставить AI сгенерировать его заново\ndata.output = \"\";\n\nreturn data;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        -128
+      ],
+      "id": "fde0af77-56b7-4c17-a2f8-81c76649ba2b",
+      "name": "Code in JavaScript11",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1776,
+        -128
+      ],
+      "id": "b59479f9-0018-4a5d-a7e2-e891e23365a2",
+      "name": "Wait3",
+      "webhookId": "777485b1-64fb-47ed-a67b-420f3773a89e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "57451fc9-86e6-4f3e-9299-2be0ae69ce1a",
+              "leftValue": "={{ $json.llm_retries }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1616,
+        -128
+      ],
+      "id": "391791a2-f390-43aa-b69c-230bd9b7784e",
+      "name": "If7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d8126c19-a2bf-460b-a812-372709d13b7b",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "dc1f9897-031f-4df7-8fbb-e70bfcedebc6",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "No response before the tool call",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1488,
+        -400
+      ],
+      "id": "1ce72be9-0c22-4018-9bb6-06ffcda1e96c",
+      "name": "If8"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. Берем результат из предыдущей ноды (If4)\nlet current = $input.item.json;\n\n// 2. Достаем ОРИГИНАЛЬНЫЙ массив (Источник правды для ИИ)\nlet originalContext = $('Code in JavaScript2').first().json;\n\n// 3. Пытаемся достать число ретраев из ПРЕДЫДУЩЕГО запуска ЭТОЙ ЖЕ ноды (JavaScript10)\nlet prevRetries = 0;\ntry {\n    // Мы смотрим на последний результат выполнения этой же ноды в текущем цикле\n    prevRetries = $('Code in JavaScript12').last().json.llm_retries || 0;\n} catch (e) {\n    // Если это самый первый запуск — ретраев еще нет\n    prevRetries = 0;\n}\n\n// 4. Склеиваем данные: ОРИГИНАЛ (машины) + ТЕКУЩИЕ (ввод юзера)\nlet data = Object.assign({}, originalContext, current);\n\n// 5. Увеличиваем счетчик, основываясь на истории запусков\ndata.llm_retries = prevRetries + 1;\n\n// 6. Очищаем output, чтобы заставить AI сгенерировать его заново\ndata.output = \"\";\n\nreturn data;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1648,
+        -400
+      ],
+      "id": "02f5bfba-a049-493d-86ca-9d4f2b61571e",
+      "name": "Code in JavaScript12",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1952,
+        -400
+      ],
+      "id": "f07de3b4-5333-4eca-b6fb-6398632dadc7",
+      "name": "Wait4",
+      "webhookId": "777485b1-64fb-47ed-a67b-420f3773a89e"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "57451fc9-86e6-4f3e-9299-2be0ae69ce1a",
+              "leftValue": "={{ $json.llm_retries }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1792,
+        -400
+      ],
+      "id": "330228fe-4539-4a86-a659-7aa2f7874536",
+      "name": "If9"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "google/gemini-3.1-flash-lite",
+          "mode": "list",
+          "cachedResultName": "google/gemini-3.1-flash-lite"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        16
+      ],
+      "id": "cb1a80fa-9ef6-4487-ad48-6baa6133391a",
+      "name": "OpenAI Chat Model6",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "PtI7CvwiH2WYU1pM",
+          "name": "OpenRouter Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Инструмент для предварительной оценки стоимости авто.\nПАРАМЕТРЫ:\n\nplate: госномер автомобиля (строка).\n\nmileage: пробег автомобиля (только цифры, например: 50000).\nВАЖНО: Если клиент написал \"50 тыс\", обязательно преобразуй это в \"50000\".",
+        "workflowId": {
+          "__rl": true,
+          "value": "ZYVac3Twp_ugyP3Jngwhj",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ZYVac3Twp_ugyP3Jngwhj",
+          "cachedResultName": "TOOL: AUTO.RU EVALUATION"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "mileage": "={{ $fromAI(\"mileage\") }}",
+            "plate": "={{ $fromAI(\"plate\") }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "plate",
+              "displayName": "plate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "mileage",
+              "displayName": "mileage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        16
+      ],
+      "id": "670030c7-a682-4ea5-b6d9-5730f143b286",
+      "name": "evaluate_auto"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openai/gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "openai/gpt-4.1-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1040,
+        16
+      ],
+      "id": "378db66f-a8f1-4ba8-909b-f34be10d0722",
+      "name": "OpenAI Chat Model7",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "PtI7CvwiH2WYU1pM",
+          "name": "OpenRouter Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openai/gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "openai/gpt-4.1-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        -432
+      ],
+      "id": "6a8c626b-921b-4707-9980-0b11d8f737b1",
+      "name": "OpenAI Chat Model8",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "PtI7CvwiH2WYU1pM",
+          "name": "OpenRouter Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openai/gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "openai/gpt-4.1-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1008,
+        -448
+      ],
+      "id": "6a009763-5f46-4715-8ee5-cbebc549074d",
+      "name": "OpenAI Chat Model9",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "PtI7CvwiH2WYU1pM",
+          "name": "OpenRouter Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "openai/gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "openai/gpt-4.1-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1248,
+        -256
+      ],
+      "id": "4da8d866-5bc4-4001-9307-7854c4a1424a",
+      "name": "OpenAI Chat Model10",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "openAiApi": {
+          "id": "PtI7CvwiH2WYU1pM",
+          "name": "OpenRouter Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        -96
+      ],
+      "id": "4a606772-52c3-4b12-bade-c6a03eb28f26",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "hrFobDiOtSwC9E0F",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Ты — вежливый ассистент автосалона. Твое предыдущее сообщение клиенту было:\n\"{{ $json.qualification_context.last_bot_message }}\"\n\nКлиент не отвечает уже 30 минут. Перефразируй свой вопрос или мысль в короткое, вежливое напоминание (максимум 1 предложение).\nЗапрещено здороваться заново. Не используй слова \"напоминаю\" или \"вы не ответили\". Просто мягко верни клиента к диалогу.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1920,
+        -256
+      ],
+      "id": "b4af16c0-a61b-49c1-9ee0-70b4b3c2ab53",
+      "name": "Basic LLM Chain"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Check Message Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Tool - Car Search'": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Message Type": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'Tool - Car Search'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript7",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Consult",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "AI Credit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Credit",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "AI Consult",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Consult",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI TradeIn",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI TradeIn": {
+      "main": [
+        [
+          {
+            "node": "If4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallback_Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Consult": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Credit": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallback_Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Credit",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI TradeIn",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Consult",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Merge Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Combo",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Combo",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Combo": {
+      "main": [
+        [
+          {
+            "node": "If6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallback_Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combo Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Combo",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallback_Message": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "AI Stock Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Stock Search",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Stock Search",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Stock Search": {
+      "main": [
+        [
+          {
+            "node": "If8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript6": {
+      "main": [
+        [
+          {
+            "node": "AI TradeIn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript7": {
+      "main": [
+        [
+          {
+            "node": "AI Combo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "finalize_deal": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Combo",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Stock Search",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Consult",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI Credit",
+            "type": "ai_tool",
+            "index": 0
+          },
+          {
+            "node": "AI TradeIn",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript8",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript8": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "AI Credit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript9",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript9": {
+      "main": [
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "AI Consult",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If4": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript10",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript10": {
+      "main": [
+        [
+          {
+            "node": "If5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If5": {
+      "main": [
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "AI TradeIn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If6": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript11": {
+      "main": [
+        [
+          {
+            "node": "If7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If7": {
+      "main": [
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "AI Combo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If8": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript12",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript12": {
+      "main": [
+        [
+          {
+            "node": "If9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If9": {
+      "main": [
+        [
+          {
+            "node": "Merge Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI TradeIn",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "evaluate_auto": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI TradeIn",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Combo",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model8": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Credit",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model9": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Consult",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model10": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Stock Search",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Wait4": {
+      "main": [
+        [
+          {
+            "node": "AI Stock Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "versionId": "b68fb7e7-7800-4beb-a09b-9f3afe91a19d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "65c0178e84d5c3db112ec6489beae5f53a11ae74e53d6537d4d9a5cd140a483b"
+  },
+  "id": "SU8sdCbXhxYIcFKu",
+  "tags": []
+}

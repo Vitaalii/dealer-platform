@@ -1,0 +1,629 @@
+<!-- nominify begin -->
+<style>
+/* ================================================================
+   U4 — Оснащение по категориям (поп-ап)
+   Блок не рендерит собственную секцию на странице: единственный
+   его видимый компонент — поп-ап, который на init переносится
+   в <body> и позиционируется position: fixed на весь вьюпорт.
+================================================================ */
+
+/* ---- Пустой якорь блока (его .t-rec скрывается навсегда) ---- */
+#uc-feat-wrap { display: none; }
+
+/* Tilda ставит *,*:before,*:after{box-sizing:content-box} (tilda-grid-3.0.min.css),
+   а значения из макета посчитаны под border-box. Скоупим сброс на корень поп-апа. */
+#uc-feat-popup, #uc-feat-popup *, #uc-feat-popup *::before, #uc-feat-popup *::after {
+    box-sizing: border-box;
+}
+
+/* ================================================================
+   ПОП-АП: оверлей + лист
+================================================================ */
+#uc-feat-popup {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20,20,20,0.45);
+    z-index: 100000;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+}
+#uc-feat-popup.--visible { display: flex; }
+
+#uc-feat-popup .popup-sheet {
+    background: #fff;
+    border-radius: 14px;
+    width: 640px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.28);
+    box-sizing: border-box;
+}
+
+/* Grabber-полоска — только мобайл */
+#uc-feat-popup .popup-grabber { display: none; justify-content: center; padding: 10px 0 4px; }
+#uc-feat-popup .popup-grabber div { width: 36px; height: 4px; border-radius: 2px; background: #e0e0e0; }
+
+#uc-feat-popup .popup-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+}
+#uc-feat-popup .popup-title { font-size: 18px; font-weight: 600; color: #111; }
+#uc-feat-popup .popup-sub   { font-size: 12px; color: #888; margin-top: 4px; }
+#uc-feat-popup .popup-close {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #f5f5f5;
+    color: #888;
+    font-size: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+#uc-feat-popup .popup-body { overflow-y: auto; padding: 4px 24px 20px; }
+
+/* ================================================================
+   КАТЕГОРИИ (аккордеон)
+================================================================ */
+#uc-feat-popup .cat { border-bottom: 0.5px solid #f0f0f0; }
+#uc-feat-popup .cat-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    cursor: pointer;
+    user-select: none;
+}
+#uc-feat-popup .cat-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: #f2f2f2;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+#uc-feat-popup .cat-icon img { width: 22px; height: 22px; object-fit: contain; }
+#uc-feat-popup .cat-name    { font-size: 16px; font-weight: 500; color: #111; flex: 1; }
+#uc-feat-popup .cat-count   { font-size: 12px; color: #888; white-space: nowrap; }
+#uc-feat-popup .cat-chevron { font-size: 16px; color: #888; transition: transform 0.2s ease; flex-shrink: 0; }
+#uc-feat-popup .cat.--open .cat-chevron { transform: rotate(180deg); }
+
+/* R7: мгновенное раскрытие max-height: 0 → none, без transition */
+#uc-feat-popup .cat-body { overflow: hidden; max-height: 0; }
+#uc-feat-popup .cat.--open .cat-body { max-height: none; }
+
+#uc-feat-popup .cat-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 0 14px 50px;
+}
+#uc-feat-popup .item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 7px 8px 7px 0;
+    border-bottom: 0.5px solid #f5f5f5;
+    font-size: 14px;
+}
+#uc-feat-popup .item-row.--has { color: #111; }
+#uc-feat-popup .item-row.--no  { color: #aaa; }
+#uc-feat-popup .item-icon { font-size: 14px; margin-top: 1px; flex-shrink: 0; font-weight: 700; }
+#uc-feat-popup .item-row.--has .item-icon { color: #3B6D11; }
+#uc-feat-popup .item-row.--no  .item-icon { color: #ccc; }
+
+/* ---- Error / empty state ---- */
+#uc-feat-popup .uc-feat-error {
+    font-size: 15px;
+    color: #aaa;
+    padding: 24px 0;
+    text-align: center;
+}
+
+/* ================================================================
+   МОБАЙЛ ≤640px — bottom sheet
+================================================================ */
+@media (max-width: 640px) {
+    #uc-feat-popup { align-items: flex-end; }
+    #uc-feat-popup .popup-sheet {
+        position: absolute;
+        left: 0; right: 0; bottom: 0;
+        width: auto;
+        max-width: none;
+        max-height: 82%;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -12px 40px rgba(0,0,0,0.22);
+    }
+    #uc-feat-popup .popup-grabber { display: flex; }
+    #uc-feat-popup .popup-head    { padding: 8px 18px 14px; border-bottom: none; }
+    #uc-feat-popup .popup-title   { font-size: 16px; }
+    #uc-feat-popup .popup-sub     { font-size: 11px; }
+    #uc-feat-popup .popup-close   { width: 28px; height: 28px; font-size: 15px; }
+    #uc-feat-popup .popup-body    { padding: 4px 18px 24px; }
+
+    #uc-feat-popup .cat-head  { gap: 10px; padding: 12px 0; }
+    #uc-feat-popup .cat-icon  { width: 34px; height: 34px; border-radius: 9px; }
+    #uc-feat-popup .cat-name  { font-size: 14px; }
+    #uc-feat-popup .cat-count { font-size: 11px; }
+    #uc-feat-popup .cat-items { grid-template-columns: 1fr; padding: 0 0 12px 44px; }
+}
+
+/* ================================================================
+   Shimmer-скелетон внутри тела поп-апа
+================================================================ */
+@keyframes uf-shimmer {
+    0%   { transform: translateX(-200%); }
+    100% { transform: translateX(200%); }
+}
+.uf-skel {
+    background: #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+.uf-skel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+    animation: uf-shimmer 1.5s infinite;
+}
+.uf-skel-cat-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 0.5px solid #f0f0f0;
+}
+.uf-skel-icon    { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; }
+.uf-skel-name    { height: 18px; flex: 1; border-radius: 4px; }
+.uf-skel-counter { width: 36px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+.uf-skel-opts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    padding: 8px 0 16px 50px;
+}
+.uf-skel-opt { height: 14px; border-radius: 4px; margin-bottom: 10px; }
+</style>
+
+<!-- Пустой якорь: по нему U4 находит свой .t-rec и скрывает его навсегда -->
+<div id="uc-feat-wrap"></div>
+
+<!-- Поп-ап оснащения. На init переносится в <body>, чтобы position: fixed
+     не зависел от скрытого .t-rec блока U4. -->
+<div id="uc-feat-popup" role="dialog" aria-modal="true" aria-labelledby="uc-popup-title">
+    <div class="popup-sheet" id="uc-popup-sheet">
+        <div class="popup-grabber"><div></div></div>
+        <div class="popup-head">
+            <div>
+                <div class="popup-title" id="uc-popup-title">Доступные опции</div>
+                <div class="popup-sub" id="uc-popup-sub"></div>
+            </div>
+            <button class="popup-close" id="uc-popup-close" type="button" aria-label="Закрыть">×</button>
+        </div>
+        <div class="popup-body" id="uc-popup-body"></div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    /* ================================================================
+       DATA LAYER
+       Таблица TABLE_FEATURES объявлена ТОЛЬКО в U2 и приходит сюда
+       через window._featuresReady. U4 не знает её id и не фетчит сам —
+       иначе на другом проекте (Geely vs Haval) загрузилась бы чужая
+       таблица и все опции упали бы в категорию «Прочее».
+    ================================================================ */
+
+    var _featCache    = null;   // массив записей TABLE_FEATURES; null = не загружено
+    var _fetchPromise = null;   // Promise<void> пока загрузка в полёте
+    var _lastCar      = null;   // последний car, полученный из updateFeatures()
+    var _lastData     = null;   // { categories, progress } для последнего car
+
+    /* Единая точка ожидания кэша. cb(ok) — ok=false если данные не пришли. */
+    function withCache(cb) {
+        if (_featCache !== null) { cb(true); return; }
+
+        if (_fetchPromise !== null) {
+            _fetchPromise.then(function () { cb(_featCache !== null); });
+            return;
+        }
+
+        // $(document).ready ещё не отработал — цепляемся к промису U2 напрямую
+        if (window._featuresReady && typeof window._featuresReady.then === 'function') {
+            _fetchPromise = window._featuresReady.then(function (data) {
+                if (data !== null) _featCache = data;
+            });
+            _fetchPromise.then(function () { cb(_featCache !== null); });
+            return;
+        }
+
+        console.error('⛔ U4: window._featuresReady не определён — U2 не загрузился?');
+        cb(false);
+    }
+
+    // Resolves icon URL from raw attachment field value (object or array).
+    function resolveIcon(attachField) {
+        if (!attachField) return '';
+        var imgData = attachField;
+        if (typeof attachField === 'string' && attachField.indexOf('[') === 0) {
+            try { imgData = JSON.parse(attachField); } catch (e) {}
+        }
+        var imgObj = Array.isArray(imgData) ? imgData[0] : imgData;
+        if (imgObj && typeof imgObj === 'object') {
+            var rawPath = imgObj.url || imgObj.signedPath || imgObj.path;
+            if (rawPath) {
+                return rawPath.indexOf('http') === 0
+                    ? rawPath
+                    : (window.UNIFIEDBOT_URL || '') + '/' + rawPath.replace(/^\//, '');
+            }
+        }
+        return '';
+    }
+
+    function parseFeatures(raw) {
+        if (!raw) return [];
+        if (Array.isArray(raw)) {
+            return raw.map(function (s) { return String(s).trim(); })
+                      .filter(function (s) { return s && s !== 'Топовые опции'; });
+        }
+        var str = String(raw).replace(/<[^>]*>/g, '');
+        if (str.indexOf(':') !== -1) { str = str.split(':').slice(1).join(':'); }
+        return str.split('- ')
+                  .map(function (s) { return s.trim(); })
+                  .filter(function (s) { return s && s !== 'Топовые опции'; });
+    }
+
+    // buildModelData(car, cache) → { categories, progress }
+    function buildModelData(car, cache) {
+        var modelName = car.fields['Model'];
+
+        // Все комплектации модели (все модификации), дедуп по Complectation id.
+        // Дают unionOrder — он же знаменатель Y, поэтому Y одинаков у всех
+        // комплектаций модели. Minus Features сюда не подмешивается: минус
+        // относится только к своей строке (см. ниже).
+        var seenId = {};
+        var modelComplectations = (allComplectations || []).filter(function (c) {
+            if (c.fields['Model'] !== modelName) return false;
+            var id = c.fields['Complectation id'];
+            if (seenId[id]) return false;
+            seenId[id] = true;
+            return true;
+        });
+
+        // R6: объединение уникальных имён опций по модели (знаменатель Y)
+        var unionSet   = {};
+        var unionOrder = [];
+        modelComplectations.forEach(function (c) {
+            parseFeatures(c.fields['Features']).forEach(function (feat) {
+                if (!unionSet[feat]) {
+                    unionSet[feat] = true;
+                    unionOrder.push(feat);
+                }
+            });
+        });
+
+        // R7: сопоставить каждую опцию с категорией + иконкой из TABLE_FEATURES.
+        //     Сырые записи держат поля прямо на объекте (без обёртки .fields)
+        var featMap = {};
+        (cache || []).forEach(function (rec) {
+            var name      = rec['Feature name'];
+            var cat       = rec['Feature category'];
+            var iconField = rec['Category icon'];
+            if (name) {
+                featMap[name] = { category: cat || 'Прочее', iconField: iconField || null };
+            }
+        });
+
+        // R8: пометить ✓/× для выбранной комплектации
+        var selectedSet = {};
+        parseFeatures(car.fields['Features']).forEach(function (s) { selectedSet[s] = true; });
+
+        // MINUS: только собственный список ЭТОЙ строки-комплектации.
+        // Раньше здесь объединялись Minus Features по всем комплектациям
+        // модели, и одной строки хватало, чтобы опция пропала у всех —
+        // включая те, где она реально есть в Features.
+        var minusSet = {};
+        parseFeatures(car.fields['Minus Features']).forEach(function (s) { minusSet[s] = true; });
+
+        // Видимый список: union модели без собственных минусов строки.
+        // Минус-опция заменена более продвинутой версией той же функции,
+        // которой нет в каталоге отдельной строкой, — показывать нечего.
+        var visibleFeatures = unionOrder.filter(function (f) { return !minusSet[f]; });
+
+        // Группировка по категориям
+        var catMap = {};
+        visibleFeatures.forEach(function (feat) {
+            var info    = featMap[feat] || { category: 'Прочее', iconField: null };
+            var catName = info.category || 'Прочее';
+            if (!catMap[catName]) {
+                catMap[catName] = { name: catName, iconField: info.iconField, opts: [] };
+            }
+            catMap[catName].opts.push({ text: feat, has: !!selectedSet[feat] });
+        });
+
+        // R12: отсортированный список категорий
+        var categories = Object.keys(catMap).map(function (name) {
+            var cat      = catMap[name];
+            var hasCount = cat.opts.filter(function (o) { return o.has; }).length;
+            return { name: name, icon: resolveIcon(cat.iconField), opts: cat.opts, hasCount: hasCount };
+        });
+        categories.sort(function (a, b) {
+            if (a.name === 'Прочее') return 1;
+            if (b.name === 'Прочее') return -1;
+            if (b.hasCount !== a.hasCount) return b.hasCount - a.hasCount;
+            return a.name.localeCompare(b.name, 'ru');
+        });
+
+        // R11: Y — полный union модели, одинаковый у всех её комплектаций.
+        // Минус на знаменатель больше не влияет: он управляет только тем,
+        // что видно в списке. Раньше Y считался от отфильтрованного списка,
+        // и агрегированный минус незаметно занижал его для всей модели.
+        var y = unionOrder.length;
+
+        // X — покрытие строки: её собственные Features плюс её собственные
+        // минусы (замена более продвинутой версией тоже считается покрытием).
+        //
+        // Считаем фильтром по unionOrder, а не сложением длин двух списков.
+        // Сумма сломалась бы на двух случаях, оба зависят от ручного
+        // заполнения таблицы: опция, попавшая в обе колонки одной строки,
+        // удвоилась бы; минус-опция, которой нет в union модели, прибавила
+        // бы к X то, чего нет в Y, и дала бы переполненный бар. При обходе
+        // union каждая опция учитывается один раз и только если входит в
+        // знаменатель, поэтому x <= y выполняется по построению.
+        var x = unionOrder.filter(function (f) {
+            return !!selectedSet[f] || !!minusSet[f];
+        }).length;
+
+        return {
+            categories: categories,
+            progress:   { complectation: car.fields['Complectation'] || '', x: x, y: y }
+        };
+    }
+
+    /* ================================================================
+       RENDER
+    ================================================================ */
+
+    function esc(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // R12-R15: категории + сетка опций. Первая категория раскрыта,
+    // остальные свёрнуты; переключаются независимо друг от друга (R14).
+    function renderAccordion(categories) {
+        var container = document.getElementById('uc-popup-body');
+        if (!container) return;
+
+        var html = '';
+        categories.forEach(function (cat, idx) {
+            var openClass = idx === 0 ? ' --open' : '';
+            var iconHtml  = cat.icon
+                ? '<div class="cat-icon"><img src="' + esc(cat.icon) + '" alt="" loading="lazy" width="22" height="22"></div>'
+                : '<div class="cat-icon"></div>';
+
+            // R15: сначала опции с ✓, затем с ×
+            var yesOpts = cat.opts.filter(function (o) { return  o.has; });
+            var noOpts  = cat.opts.filter(function (o) { return !o.has; });
+            var optsHtml = '';
+            yesOpts.concat(noOpts).forEach(function (opt) {
+                var cls  = opt.has ? '--has' : '--no';
+                var icon = opt.has ? '✓' : '×';
+                optsHtml += '<div class="item-row ' + cls + '">'
+                    + '<span class="item-icon">' + icon + '</span>'
+                    + '<span>' + esc(opt.text) + '</span>'
+                    + '</div>';
+            });
+
+            html += '<div class="cat' + openClass + '">'
+                +   '<div class="cat-head">'
+                +     iconHtml
+                +     '<span class="cat-name">' + esc(cat.name) + '</span>'
+                +     '<span class="cat-count">' + cat.hasCount + ' / ' + cat.opts.length + '</span>'
+                +     '<span class="cat-chevron" aria-hidden="true">⌄</span>'
+                +   '</div>'
+                +   '<div class="cat-body">'
+                +     '<div class="cat-items">' + optsHtml + '</div>'
+                +   '</div>'
+                + '</div>';
+        });
+
+        container.innerHTML = html;
+    }
+
+    function renderPopupSkeleton() {
+        var body = document.getElementById('uc-popup-body');
+        if (!body) return;
+        body.innerHTML =
+            '<div class="uf-skel-cat-row">' +
+                '<div class="uf-skel uf-skel-icon"></div>' +
+                '<div class="uf-skel uf-skel-name" style="max-width:70%"></div>' +
+                '<div class="uf-skel uf-skel-counter"></div>' +
+            '</div>' +
+            '<div class="uf-skel-opts">' +
+                '<div class="uf-skel uf-skel-opt" style="width:80%"></div>' +
+                '<div class="uf-skel uf-skel-opt" style="width:65%"></div>' +
+                '<div class="uf-skel uf-skel-opt" style="width:75%"></div>' +
+                '<div class="uf-skel uf-skel-opt" style="width:55%"></div>' +
+            '</div>' +
+            '<div class="uf-skel-cat-row">' +
+                '<div class="uf-skel uf-skel-icon"></div>' +
+                '<div class="uf-skel uf-skel-name" style="max-width:55%"></div>' +
+                '<div class="uf-skel uf-skel-counter"></div>' +
+            '</div>';
+    }
+
+    function renderPopupError() {
+        var body = document.getElementById('uc-popup-body');
+        var sub  = document.getElementById('uc-popup-sub');
+        if (sub)  sub.textContent = '';
+        if (body) body.innerHTML = '<div class="uc-feat-error">Нет данных об оснащении</div>';
+    }
+
+    function renderPopupContent() {
+        var sub  = document.getElementById('uc-popup-sub');
+        if (!_lastData) { renderPopupError(); return; }
+        if (sub) {
+            /* «значимых опций» — та же формулировка, что в плашке прогресса
+               у индикатора опций; в поп-апе слово раньше терялось. */
+            sub.textContent = _lastData.progress.x + ' из ' + _lastData.progress.y + ' значимых опций включено';
+        }
+        renderAccordion(_lastData.categories);
+    }
+
+    /* ================================================================
+       СВЯЗЬ С U3
+       U3 владеет разметкой индикатора и вызывает openFeaturesPopup();
+       U4 владеет данными и вызывает uc_updateOptsIndicator().
+       Оба направления — экспорт функции через window.*
+    ================================================================ */
+
+    function pushIndicator(has, total) {
+        if (typeof window.uc_updateOptsIndicator === 'function') {
+            window.uc_updateOptsIndicator(has, total);
+        }
+    }
+
+    window.updateFeatures = function (car) {
+        if (!car || !car.fields) return;
+        _lastCar  = car;
+        _lastData = null;
+
+        withCache(function (ok) {
+            if (_lastCar !== car) return;   // за время ожидания выбрали другую машину
+            if (!ok) { pushIndicator(0, 0); return; }
+            _lastData = buildModelData(car, _featCache);
+            pushIndicator(_lastData.progress.x, _lastData.progress.y);
+        });
+    };
+
+    /* Поп-ап рендерится в момент открытия и показывает комплектацию,
+       выбранную на этот момент. Пока он открыт, он не обновляется. */
+    window.openFeaturesPopup = function () {
+        var overlay = document.getElementById('uc-feat-popup');
+        if (!overlay || !_lastCar) return;
+
+        overlay.classList.add('--visible');
+        /* Блокировкой скролла распоряжается U1: она пересчитывается от
+           того, открыт ли хоть один наш оверлей. Прямая запись сюда
+           снимала бы блокировку и при ещё открытом соседнем оверлее.
+           Fallback — на случай, если блок U1 не стоит на странице. */
+        if (typeof window.ucSyncScrollLock === 'function') {
+            window.ucSyncScrollLock();
+        } else {
+            document.body.style.overflow = 'hidden';
+        }
+
+        /* Браузерный «назад» закрывает поп-ап вместо ухода со страницы.
+           Помощник живёт в U1 (экранная обвязка) и общий с контактами. */
+        if (window.ucOverlayHistory) window.ucOverlayHistory.arm(closeFeaturesPopup);
+
+        if (_featCache !== null) {
+            _lastData = buildModelData(_lastCar, _featCache);
+            renderPopupContent();
+            return;
+        }
+
+        var carAtOpen = _lastCar;
+        renderPopupSkeleton();
+        withCache(function (ok) {
+            if (!overlay.classList.contains('--visible')) return;  // закрыли, пока ждали
+            if (!ok) { renderPopupError(); return; }
+            _lastData = buildModelData(carAtOpen, _featCache);
+            renderPopupContent();
+        });
+    };
+
+    function closeFeaturesPopup() {
+        var overlay = document.getElementById('uc-feat-popup');
+        if (!overlay || !overlay.classList.contains('--visible')) return;
+        overlay.classList.remove('--visible');
+        /* Блокировкой скролла распоряжается U1: она пересчитывается от
+           того, открыт ли хоть один наш оверлей. Прямая запись сюда
+           снимала бы блокировку и при ещё открытом соседнем оверлее.
+           Fallback — на случай, если блок U1 не стоит на странице. */
+        if (typeof window.ucSyncScrollLock === 'function') {
+            window.ucSyncScrollLock();
+        } else {
+            document.body.style.overflow = '';
+        }
+        if (window.ucOverlayHistory) window.ucOverlayHistory.disarm(closeFeaturesPopup);
+    }
+    window.closeFeaturesPopup = closeFeaturesPopup;
+
+    /* ================================================================
+       ОБРАБОТЧИКИ ПОП-АПА
+    ================================================================ */
+
+    // Аккордеон: каждая категория переключается независимо (R14)
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest) return;
+        var head = e.target.closest('#uc-feat-popup .cat-head');
+        if (!head) return;
+        var cat = head.parentElement;
+        if (cat && cat.classList.contains('cat')) cat.classList.toggle('--open');
+    });
+
+    // Закрытие: кнопка × и клик по фону (клик по листу не всплывает наружу)
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest) return;
+        if (e.target.closest('#uc-popup-close')) { closeFeaturesPopup(); return; }
+        var overlay = document.getElementById('uc-feat-popup');
+        if (overlay && e.target === overlay) closeFeaturesPopup();
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeFeaturesPopup();
+    });
+
+    /* ================================================================
+       КВИЗ: uc:step LISTENER
+       U4 не показывает секцию ни на одном шаге — её .t-rec скрыт
+       навсегда, а поп-ап живёт в <body>. Слушатель нужен только
+       чтобы закрыть поп-ап при уходе с шага 1.
+    ================================================================ */
+    window.addEventListener('uc:step', function (e) {
+        if (e.detail.step !== 1) closeFeaturesPopup();
+    });
+
+    $(document).ready(function () {
+        /* Поп-ап переносим в <body>: position: fixed не работает внутри
+           скрытого (display:none) .t-rec блока U4. */
+        var popup = document.getElementById('uc-feat-popup');
+        if (popup && popup.parentNode !== document.body) {
+            document.body.appendChild(popup);
+        }
+
+        /* Секция U4 на странице не отображается никогда */
+        var $t = $('#uc-feat-wrap').closest('.t-rec');
+        if (!$t.length) $t = $('#uc-feat-wrap').parent();
+        $t.hide();
+
+        /* KTD-5: заранее цепляем _fetchPromise к параллельному префетчу U2,
+           чтобы любой updateFeatures() во время загрузки попал в ожидание
+           того же промиса, а не запускал дублирующий запрос. */
+        if (_fetchPromise === null && window._featuresReady && typeof window._featuresReady.then === 'function') {
+            _fetchPromise = window._featuresReady.then(function (data) {
+                if (data !== null) _featCache = data;
+            });
+        }
+    });
+
+})();
+</script>
+<!-- nominify end -->

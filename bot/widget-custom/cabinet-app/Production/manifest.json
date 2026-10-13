@@ -1,0 +1,30 @@
+{
+  "order": [
+    "calc_engine.browser.js",
+    "calc_model.js",
+    "app.js"
+  ],
+  "files": {
+    "calc_engine.browser.js": {
+      "version": "26b2fb5198",
+      "source_sha256": "b7e4b5a99384dabc4d0685288e6a916c2dc7d4d65bf3b6a8ec77d508ac50b88f",
+      "bytes": 4267,
+      "gzip_bytes": 1743,
+      "br_bytes": 1464
+    },
+    "calc_model.js": {
+      "version": "d7828a95bc",
+      "source_sha256": "1268509f1ffd809d90f946f20a9456a2199985deb2bbd06b85313521ac0bb935",
+      "bytes": 9364,
+      "gzip_bytes": 2587,
+      "br_bytes": 2387
+    },
+    "app.js": {
+      "version": "94c7019522",
+      "source_sha256": "15124636f963dfa681b45ca47fb4f1cdcc7012e2519287a8d201d0909b9bc029",
+      "bytes": 100786,
+      "gzip_bytes": 27042,
+      "br_bytes": 22956
+    }
+  }
+}

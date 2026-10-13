@@ -1,0 +1,21 @@
+{
+  "_comment": "U1 (план 2026-08-06, R1): карта «поле анкеты кабинета → UF-код сделки Bitrix». Ключи — действующий состав FORM_FIELDS (cabinet_service.py), все коды реальные, плейсхолдеров нет. Правило фолбэка сохраняется: null или отсутствующий ключ = поле не сопоставлено — его значение уходит текстом в комментарий таймлайна (отправку не роняет). Ключи, пересекающиеся с BITRIX_SMART_FIELDS_MAP в main.py, обязаны совпадать с ним кодами — на этом стоит правило R34 «кабинет перезаписывает»; коды UF_CRM_1785… — эксклюзив кабинета, чат-путь их не пишет.",
+  "credit_initial": "UF_CRM_1770634607",
+  "credit_term": "UF_CRM_1770634728",
+  "credit_payment": "UF_CRM_1770634992",
+  "marital_status": "UF_CRM_1785857378",
+  "education": "UF_CRM_1785858399",
+  "employment": "UF_CRM_1785858432",
+  "tradein_make": "UF_CRM_1770635063",
+  "tradein_model": "UF_CRM_1770635116",
+  "tradein_year": "UF_CRM_1770635208",
+  "tradein_mileage": "UF_CRM_1770635257",
+  "tradein_condition": "UF_CRM_1785858481",
+  "owners_by_pts": "UF_CRM_1785857412",
+  "pts_type": "UF_CRM_1785857424",
+  "keys_count": "UF_CRM_1785857440",
+  "client_comment": "UF_CRM_1785857476",
+  "tradein_plate": "UF_CRM_1770635310",
+  "combo_extra_down": "UF_CRM_1785857545",
+  "tradein_steering": "UF_CRM_1785857507"
+}

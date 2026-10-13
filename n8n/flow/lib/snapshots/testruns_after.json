@@ -1,0 +1,818 @@
+{
+ "label": "after",
+ "webhook": "__OLD_N8N_WEBHOOK_URL_REMOVED__",
+ "dealer": "99",
+ "started": 1789555104.571538,
+ "results": [
+  {
+   "kind": "full",
+   "scenario": "credit",
+   "idx": 1,
+   "user_id": "test-debrand-credit-01",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 6.1,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship стоит 3 290 000 рублей, а при оформлении в кредит цена составит 3 190 000 рублей. При первоначальном взносе 900 000 рублей ваш ежемесячный платеж составит 30 000 рублей на срок 84 месяца. [SPLIT] Скажите, вам удобнее приехать в наш салон для обсуждения деталей или вы предпочитаете другой формат общения?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "credit",
+   "idx": 2,
+   "user_id": "test-debrand-credit-02",
+   "car": "Belgee X50",
+   "trim": "Comfort",
+   "elapsed_s": 5.1,
+   "error": null,
+   "text": "Belgee X50 в комплектации Comfort стоит 1 990 000 рублей, а при оформлении в кредит цена составит 1 890 000 рублей. [SPLIT] Скажите, вам удобнее обсудить детали при визите в наш салон или лучше созвониться с кредитным специалистом для дистанционного расчета?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "credit",
+   "idx": 3,
+   "user_id": "test-debrand-credit-03",
+   "car": "Haval Jolion",
+   "trim": "Elite",
+   "elapsed_s": 5.6,
+   "error": null,
+   "text": "Haval Jolion в комплектации Elite стоит 2 330 000 руб., а при оформлении кредита цена становится ещё выгоднее — 2 230 000 руб. [SPLIT] Подскажите, вам удобнее обсудить условия при визите в наш салон или будет комфортнее подобрать программу дистанционно?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "credit",
+   "idx": 4,
+   "user_id": "test-debrand-credit-04",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 5.1,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship при покупке в кредит будет стоить 3 190 000 рублей, что на 100 000 рублей выгоднее базовой цены. [SPLIT] Скажите, вам удобнее обсудить детали при визите в наш салон или сейчас удобнее подобрать условия дистанционно?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "credit",
+   "idx": 5,
+   "user_id": "test-debrand-credit-05",
+   "car": "Belgee X50",
+   "trim": "Comfort",
+   "elapsed_s": 6.3,
+   "error": null,
+   "text": "Belgee X50 Comfort в кредит стоит 1 890 000 руб. При этом первоначальный взнос составит 900 000 руб., а ежемесячный платеж — 30 000 руб. [SPLIT] Скажите, вам удобнее приехать в наш салон для осмотра или мы можем обсудить детали по телефону?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "credit",
+   "idx": 6,
+   "user_id": "test-debrand-credit-06",
+   "car": "Haval Jolion",
+   "trim": "Elite",
+   "elapsed_s": 11.5,
+   "error": null,
+   "text": "Haval Jolion в комплектации Elite сейчас стоит 2 330 000 руб., а при покупке в кредит цена будет еще выгоднее — 2 230 000 руб. [SPLIT] Скажите, вам удобнее обсудить детали при визите в салон или сейчас проведем расчеты дистанционно?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "credit",
+   "idx": 7,
+   "user_id": "test-debrand-credit-07",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 6.4,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship при покупке в кредит обойдется в 3 190 000 рублей, при этом базовая цена без учета кредитной выгоды составляет 3 290 000 рублей. [SPLIT] Что вам удобнее — приехать в салон для более детального обсуждения или мы можем продолжить общение здесь?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "credit",
+   "idx": 8,
+   "user_id": "test-debrand-credit-08",
+   "car": "Belgee X50",
+   "trim": "Comfort",
+   "elapsed_s": 4.9,
+   "error": null,
+   "text": "Belgee X50 в комплектации Comfort стоит 1 990 000 рублей, а при покупке в кредит цена будет еще выгоднее — 1 890 000 рублей. [SPLIT] Скажите, вам удобнее обсудить детали в нашем салоне или вы предпочитаете, чтобы я перезвонил и проконсультировал вас по телефону?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "credit",
+   "idx": 9,
+   "user_id": "test-debrand-credit-09",
+   "car": "Haval Jolion",
+   "trim": "Elite",
+   "elapsed_s": 4.4,
+   "error": null,
+   "text": "Haval Jolion в комплектации Elite стоит 2 330 000 руб., а при оформлении в кредит цена составит 2 230 000 руб. [SPLIT] Скажите, вам удобнее обсудить детали при личном визите в наш салон или предпочтете подобрать программу кредитования дистанционно?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "credit",
+   "idx": 10,
+   "user_id": "test-debrand-credit-10",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 4.7,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship при покупке в кредит обойдется в 3 190 000 рублей, что на 100 000 выгоднее стандартной цены. [SPLIT] Вам удобнее приехать в салон для обсуждения деталей или оформим заявку дистанционно по телефону?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "credit",
+   "idx": 11,
+   "user_id": "test-debrand-credit-11",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 8.7,
+   "error": null,
+   "text": "Чтобы я смог сориентировать вас по стоимости и подобрать выгодные условия кредитования, уточните, пожалуйста, какую именно модель вы рассматриваете? [SPLIT] После этого смогу предложить удобный вариант: визит в наш салон для осмотра или подбор программы онлайн.",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "credit",
+   "idx": 12,
+   "user_id": "test-debrand-credit-12",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 4.8,
+   "error": null,
+   "text": "Стоимость зависит от выбранной модели и программы кредитования, в среднем ежемесячный платеж можно подобрать под ваш бюджет в 30 000 рублей. [SPLIT] Чтобы сориентировать вас точнее, подскажите, какая модель или марка интересует?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "credit",
+   "idx": 13,
+   "user_id": "test-debrand-credit-13",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 4.7,
+   "error": null,
+   "text": "Для того чтобы сориентировать вас по точной стоимости в кредит, мне нужно понимать, какую именно модель вы рассматриваете. Подскажите, пожалуйста, какой автомобиль вам приглянулся? [SPLIT] После этого смогу подобрать удобный вариант платежа.",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "credit",
+   "idx": 14,
+   "user_id": "test-debrand-credit-14",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 4.8,
+   "error": null,
+   "text": "Для того чтобы сориентировать вас по точной стоимости в кредит, мне нужно понимать, какую именно модель вы рассматриваете. Подскажите, пожалуйста, какой автомобиль вам приглянулся? [SPLIT] После этого смогу подобрать для вас наиболее выгодный вариант.",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "credit",
+   "idx": 15,
+   "user_id": "test-debrand-credit-15",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 6.0,
+   "error": null,
+   "text": "Для того чтобы сориентировать вас по ценам, подскажите, пожалуйста, какой именно автомобиль и в какой комплектации вы рассматриваете? [SPLIT] И какая примерно сумма первоначального взноса будет для вас комфортной?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "tradein",
+   "idx": 16,
+   "user_id": "test-debrand-tradein-16",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 5.1,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship по прайсу стоит 3 490 000 руб., а с учетом прямой скидки базовая цена составит 3 290 000 руб. При сдаче вашего автомобиля в Trade-in цена станет еще выгоднее — 3 190 000 руб. [SPLIT] Подскажите, пожалуйста, госномер и пробег вашего текущего автомобиля, чтобы мы могли продолжить расчет?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "tradein",
+   "idx": 17,
+   "user_id": "test-debrand-tradein-17",
+   "car": "Belgee X50",
+   "trim": "Comfort",
+   "elapsed_s": 6.5,
+   "error": null,
+   "text": "Belgee X50 в комплектации Comfort по базовой цене стоит 1 990 000 рублей, а при сдаче вашего автомобиля в Trade-in цена составит 1 930 000 рублей. [SPLIT] Подскажите, пожалуйста, госномер и пробег вашего автомобиля для предварительного расчета?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "tradein",
+   "idx": 18,
+   "user_id": "test-debrand-tradein-18",
+   "car": "Haval Jolion",
+   "trim": "Elite",
+   "elapsed_s": 4.6,
+   "error": null,
+   "text": "Haval Jolion в комплектации Elite стоит 2 330 000 руб., а при сдаче текущего автомобиля в Trade-in цена составит 2 270 000 руб. [SPLIT] Подскажите, пожалуйста, госномер и пробег вашего автомобиля для предварительного расчета?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "tradein",
+   "idx": 19,
+   "user_id": "test-debrand-tradein-19",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 4.2,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship стоит 3 290 000 руб., а при сдаче вашего автомобиля в Trade-in цена составит 3 190 000 руб. [SPLIT] Подскажите, пожалуйста, госномер и пробег вашего текущего автомобиля, чтобы мы могли предметно обсудить условия оценки?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "tradein",
+   "idx": 20,
+   "user_id": "test-debrand-tradein-20",
+   "car": "Belgee X50",
+   "trim": "Comfort",
+   "elapsed_s": 6.0,
+   "error": null,
+   "text": "Belgee X50 в комплектации Comfort по базовой цене стоит 1 990 000 рублей, а при сдаче вашего автомобиля в Trade-in цена составит 1 930 000 рублей. [SPLIT] Подскажите, пожалуйста, госномер и пробег вашего автомобиля для предварительной оценки?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "tradein",
+   "idx": 21,
+   "user_id": "test-debrand-tradein-21",
+   "car": "Haval Jolion",
+   "trim": "Elite",
+   "elapsed_s": 5.5,
+   "error": null,
+   "text": "Haval Jolion в комплектации Elite по прайсу стоит 2 450 000 руб., а с учетом скидки по программе Trade-in цена составит 2 270 000 руб. [SPLIT] Чтобы мы могли корректно рассчитать условия, подскажите, пожалуйста, госномер и пробег вашего автомобиля?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "tradein",
+   "idx": 22,
+   "user_id": "test-debrand-tradein-22",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 5.3,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship по программе Trade-in будет стоить 3 190 000 рублей. [SPLIT] Подскажите, пожалуйста, госномер и пробег вашего текущего автомобиля, чтобы я мог детальнее проработать запрос?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "tradein",
+   "idx": 23,
+   "user_id": "test-debrand-tradein-23",
+   "car": "Belgee X50",
+   "trim": "Comfort",
+   "elapsed_s": 5.4,
+   "error": null,
+   "text": "Belgee X50 в комплектации Comfort стоит 1 990 000 руб., а по программе Trade-in цена составит 1 930 000 руб. [SPLIT] Подскажите, пожалуйста, госномер и пробег вашего автомобиля, чтобы мы могли продолжить расчет?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "tradein",
+   "idx": 24,
+   "user_id": "test-debrand-tradein-24",
+   "car": "Haval Jolion",
+   "trim": "Elite",
+   "elapsed_s": 16.7,
+   "error": null,
+   "text": "Haval Jolion в комплектации Elite стоит 2 330 000 рублей, а по программе Trade-in цена будет выгоднее — 2 270 000 рублей. Подскажите, пожалуйста, какой у вашего автомобиля сейчас пробег?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "tradein",
+   "idx": 25,
+   "user_id": "test-debrand-tradein-25",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 6.5,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship стоит 3 290 000 рублей, а при сдаче вашего автомобиля по программе Trade-in цена составит 3 190 000 рублей. [SPLIT] Подскажите, пожалуйста, госномер и пробег вашего текущего автомобиля, чтобы я мог детальнее проработать этот вопрос?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "tradein",
+   "idx": 26,
+   "user_id": "test-debrand-tradein-26",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 15.1,
+   "error": null,
+   "text": "Для точной оценки в Trade-in подскажите, пожалуйста, госномер вашего автомобиля и его пробег?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "",
+    "key_data_extracted": {},
+    "resolver_verdict": "llm_error",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "tradein",
+   "idx": 27,
+   "user_id": "test-debrand-tradein-27",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 5.5,
+   "error": null,
+   "text": "Для того чтобы я смог рассчитать выгоду по Trade-in, уточните, пожалуйста, марку, модель и госномер вашего автомобиля, а также его пробег. [SPLIT] Какой автомобиль сейчас у вас?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "tradein",
+   "idx": 28,
+   "user_id": "test-debrand-tradein-28",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 5.7,
+   "error": null,
+   "text": "Чтобы сориентировать вас по стоимости в рамках Trade-in, уточните, пожалуйста, марку, модель и госномер вашего автомобиля, а также его текущий пробег?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "tradein",
+   "idx": 29,
+   "user_id": "test-debrand-tradein-29",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 6.0,
+   "error": null,
+   "text": "Чтобы рассчитать точную выгоду по Trade-in, мне нужно понимать, какой автомобиль вы планируете сдать. Уточните, пожалуйста, его госномер и пробег?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "tradein",
+   "idx": 30,
+   "user_id": "test-debrand-tradein-30",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 6.3,
+   "error": null,
+   "text": "Чтобы подсказать актуальную стоимость по Trade-in, уточните, пожалуйста, какой у Вас автомобиль (госномер) и какой у него пробег?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "combo",
+   "idx": 31,
+   "user_id": "test-debrand-combo-31",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 6.5,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship обойдется в 3 290 000 руб. При совмещении программ Трейд-ин и кредита цена будет еще выгоднее — 3 190 000 руб. [SPLIT] Чтобы мы могли прикинуть точный расчет, подскажите, пожалуйста, госномер и пробег вашего автомобиля?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "combo",
+   "idx": 32,
+   "user_id": "test-debrand-combo-32",
+   "car": "Belgee X50",
+   "trim": "Comfort",
+   "elapsed_s": 5.0,
+   "error": null,
+   "text": "Belgee X50 в комплектации Comfort стоит 1 990 000 руб., а при совмещении программ Trade-in и кредита итоговая цена будет ещё выгоднее — 1 830 000 руб. [SPLIT] Подскажите, пожалуйста, госномер и текущий пробег Вашего автомобиля для предварительного расчёта?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "combo",
+   "idx": 33,
+   "user_id": "test-debrand-combo-33",
+   "car": "Haval Jolion",
+   "trim": "Elite",
+   "elapsed_s": 6.6,
+   "error": null,
+   "text": "Haval Jolion в комплектации Elite стоит 2 330 000 руб., а при совмещении программ Trade-in и кредита цена будет еще выгоднее — 2 230 000 руб. [SPLIT] Подскажите, пожалуйста, госномер и пробег Вашего автомобиля, чтобы мы смогли точнее рассчитать условия?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "combo",
+   "idx": 34,
+   "user_id": "test-debrand-combo-34",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 5.7,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship обойдется в 3 290 000 руб. При совмещении программ Трейд-ин и кредита цена будет еще выгоднее — 3 190 000 руб. [SPLIT] Чтобы сделать для Вас точный расчет, подскажите, пожалуйста, госномер Вашего текущего автомобиля и его пробег?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "combo",
+   "idx": 35,
+   "user_id": "test-debrand-combo-35",
+   "car": "Belgee X50",
+   "trim": "Comfort",
+   "elapsed_s": 5.1,
+   "error": null,
+   "text": "Belgee X50 в комплектации Comfort стоит 1 990 000 руб., а при совмещении программ трейд-ин и кредита цена будет еще выгоднее — 1 890 000 руб. [SPLIT] Чтобы сделать для вас точный расчет, напишите, пожалуйста, госномер и пробег вашего автомобиля?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "combo",
+   "idx": 36,
+   "user_id": "test-debrand-combo-36",
+   "car": "Haval Jolion",
+   "trim": "Elite",
+   "elapsed_s": 5.7,
+   "error": null,
+   "text": "Haval Jolion в комплектации Elite стоит 2 330 000 руб., а при совмещении программ Трейд-ин и Кредит цена будет еще выгоднее — 2 170 000 руб. [SPLIT] Чтобы мы могли произвести точный расчет, напишите, пожалуйста, госномер и пробег вашего автомобиля?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "combo",
+   "idx": 37,
+   "user_id": "test-debrand-combo-37",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 4.6,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship обойдется в 3 290 000 руб., а при сочетании программ трейд-ин и кредита цена будет еще выгоднее — 3 090 000 руб. [SPLIT] Чтобы сделать для вас точный расчет, напишите, пожалуйста, госномер и текущий пробег вашего автомобиля?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "combo",
+   "idx": 38,
+   "user_id": "test-debrand-combo-38",
+   "car": "Belgee X50",
+   "trim": "Comfort",
+   "elapsed_s": 20.8,
+   "error": null,
+   "text": "Belgee X50 в комплектации Comfort стоит 1 990 000 руб., а при совмещении программ Trade-in и кредита итоговая цена будет 1 890 000 руб. [SPLIT] Чтобы сделать для Вас расчет, уточните, пожалуйста, госномер и пробег Вашего автомобиля?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "combo",
+   "idx": 39,
+   "user_id": "test-debrand-combo-39",
+   "car": "Haval Jolion",
+   "trim": "Elite",
+   "elapsed_s": 7.2,
+   "error": null,
+   "text": "Haval Jolion в комплектации Elite по прайсу стоит 2 450 000 руб., однако с учетом всех бонусов по программам Трейд-ин и Кредит итоговая стоимость составит 2 170 000 руб. [SPLIT] Подскажите, пожалуйста, госномер и пробег вашего текущего автомобиля, чтобы я мог рассчитать предварительную стоимость его выкупа?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "full",
+   "scenario": "combo",
+   "idx": 40,
+   "user_id": "test-debrand-combo-40",
+   "car": "Geely Monjaro",
+   "trim": "Flagship",
+   "elapsed_s": 15.7,
+   "error": null,
+   "text": "Geely Monjaro в комплектации Flagship стоит 3 290 000 руб., а при Trade-in и кредите цена будет выгоднее — 3 190 000 руб. [SPLIT] Чтобы прикинуть точный расчет, подскажите, пожалуйста, госномер автомобиля и его пробег?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "combo",
+   "idx": 41,
+   "user_id": "test-debrand-combo-41",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 4.6,
+   "error": null,
+   "text": "Для точного расчета по программам Trade-in и кредитованию мне нужно знать параметры вашего автомобиля. Подскажите, пожалуйста, его госномер и пробег?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "combo",
+   "idx": 42,
+   "user_id": "test-debrand-combo-42",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 5.1,
+   "error": null,
+   "text": "Для точного расчета подскажите, пожалуйста, госномер вашего текущего автомобиля и его пробег?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "combo",
+   "idx": 43,
+   "user_id": "test-debrand-combo-43",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 5.6,
+   "error": null,
+   "text": "Чтобы сделать расчет, подскажите, пожалуйста, какой у вас автомобиль, его госномер и пробег? [SPLIT] И какая именно модель нашего центра вас заинтересовала?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "combo",
+   "idx": 44,
+   "user_id": "test-debrand-combo-44",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 4.3,
+   "error": null,
+   "text": "Для максимально точного расчета по программам Trade-in и кредитования мне необходимо уточнить параметры вашего текущего автомобиля. Подскажите, пожалуйста, его госномер и пробег?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  },
+  {
+   "kind": "empty",
+   "scenario": "combo",
+   "idx": 45,
+   "user_id": "test-debrand-combo-45",
+   "car": null,
+   "trim": null,
+   "elapsed_s": 5.6,
+   "error": null,
+   "text": "Для того чтобы сделать точный расчет по программам трейд-ин и кредита, мне нужно понимать, какой автомобиль вы планируете сдать. [SPLIT] Подскажите, пожалуйста, госномер и текущий пробег вашего авто?",
+   "session_context_update": {
+    "stage": "data_collect",
+    "dialog_intent": "price_hierarchy_question",
+    "key_data_extracted": {},
+    "resolver_verdict": "ok",
+    "guard_action": "ok"
+   }
+  }
+ ]
+}

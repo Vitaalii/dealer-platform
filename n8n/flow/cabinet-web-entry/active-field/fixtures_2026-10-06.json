@@ -1,0 +1,120 @@
+{
+ "19": [
+  {
+   "Id": 33,
+   "slug": "ex5-pro-bev-60-kwh-2wd-218-l-s-262633-33985",
+   "Model": "EX5",
+   "Complectation": "Про",
+   "Model id": "19",
+   "Complectation id": "11",
+   "Price new": 3769990,
+   "Price old": 4169990,
+   "Active": true,
+   "Active_1": false,
+   "Trade-in bonus": 200000,
+   "Credit bonus": 150000,
+   "Cash in hook": 50000,
+   "Model_short": "EX5"
+  },
+  {
+   "Id": 34,
+   "slug": "ex5-max-bev-60-kwh-2wd-218-l-s-262633-33985",
+   "Model": "EX5",
+   "Complectation": "Макс",
+   "Model id": "19",
+   "Complectation id": "12",
+   "Price new": 4079990,
+   "Price old": 4479990,
+   "Active": true,
+   "Active_1": null,
+   "Trade-in bonus": 200000,
+   "Credit bonus": 150000,
+   "Cash in hook": 50000,
+   "Model_short": "EX5"
+  }
+ ],
+ "51": [
+  {
+   "Id": 39,
+   "slug": null,
+   "Model": "NORDCROSS 001",
+   "Complectation": "Ультра",
+   "Model id": "51",
+   "Complectation id": "11",
+   "Price new": 6480000,
+   "Price old": 7130000,
+   "Active": true,
+   "Active_1": false,
+   "Trade-in bonus": null,
+   "Credit bonus": null,
+   "Cash in hook": 650000,
+   "Model_short": "001"
+  }
+ ],
+ "18": [
+  {
+   "Id": 2,
+   "slug": "exclusive-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Complectation": "Эксклюзив",
+   "Model id": "18",
+   "Complectation id": "13",
+   "Price new": 4502190,
+   "Price old": 5052190,
+   "Active": false,
+   "Active_1": false,
+   "Trade-in bonus": 250000,
+   "Credit bonus": null,
+   "Cash in hook": 40000,
+   "Model_short": "MONJARO"
+  },
+  {
+   "Id": 16,
+   "slug": "luxury-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Complectation": "Люкс",
+   "Model id": "18",
+   "Complectation id": "11",
+   "Price new": 4409990,
+   "Price old": 4599990,
+   "Active": true,
+   "Active_1": true,
+   "Trade-in bonus": 190000,
+   "Credit bonus": null,
+   "Cash in hook": null,
+   "Model_short": "MONJARO"
+  },
+  {
+   "Id": 17,
+   "slug": "flagship-se-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Complectation": "Флагман",
+   "Model id": "18",
+   "Complectation id": "12",
+   "Price new": 4809990,
+   "Price old": 4954990,
+   "Active": true,
+   "Active_1": true,
+   "Trade-in bonus": 145000,
+   "Credit bonus": null,
+   "Cash in hook": 40000,
+   "Model_short": "MONJARO"
+  },
+  {
+   "Id": 20,
+   "slug": null,
+   "Model": "MONJARO",
+   "Complectation": "Флагман СЕ",
+   "Model id": "18",
+   "Complectation id": "13",
+   "Price new": 4502190,
+   "Price old": 5052190,
+   "Active": false,
+   "Active_1": false,
+   "Trade-in bonus": 250000,
+   "Credit bonus": 200000,
+   "Cash in hook": 100000,
+   "Model_short": "MONJARO"
+  }
+ ]
+}

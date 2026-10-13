@@ -1,0 +1,31 @@
+# Secrets — never commit
+.env
+credentials.json
+google_key_dev.json
+
+# Разовые утилиты с захардкоженными ключами доступа (webhook Bitrix, токен бота).
+# Лежат на диске, но в репозиторий не попадают — удалить секрет из истории потом сложно.
+activate_webhook.py
+check_bitrix_full.py
+check_stages.py
+
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Runtime data & backups
+data/
+back_up/
+
+# OS / tooling
+.DS_Store
+.claude/settings.local.json
+.claude/worktrees/
+
+# Node (сборка кабинета: npm run build:cabinet)
+node_modules/
+
+# Логи боя от владельца — в них телефоны клиентов (план 2026-10-12-001, Д4)
+docs/logs/

@@ -1,0 +1,373 @@
+{
+ "geely_catalog": [
+  {
+   "Id": 2,
+   "slug": "exclusive-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Complectation": "Эксклюзив",
+   "Model id": "18",
+   "Complectation id": "13",
+   "Price old": 5052190,
+   "Active": false,
+   "Trade-in bonus": 250000,
+   "Credit bonus": null,
+   "Cash in hook": 40000,
+   "Model_short": "MONJARO"
+  },
+  {
+   "Id": 16,
+   "slug": "luxury-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Complectation": "Люкс",
+   "Model id": "18",
+   "Complectation id": "11",
+   "Price old": 4599990,
+   "Active": true,
+   "Trade-in bonus": 190000,
+   "Credit bonus": null,
+   "Cash in hook": null,
+   "Model_short": "MONJARO"
+  },
+  {
+   "Id": 17,
+   "slug": "flagship-se-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Complectation": "Флагман",
+   "Model id": "18",
+   "Complectation id": "12",
+   "Price old": 4954990,
+   "Active": true,
+   "Trade-in bonus": 145000,
+   "Credit bonus": null,
+   "Cash in hook": 40000,
+   "Model_short": "MONJARO"
+  },
+  {
+   "Id": 20,
+   "slug": null,
+   "Model": "MONJARO",
+   "Complectation": "Флагман СЕ",
+   "Model id": "18",
+   "Complectation id": "13",
+   "Price old": 5052190,
+   "Active": false,
+   "Trade-in bonus": 250000,
+   "Credit bonus": 200000,
+   "Cash in hook": 100000,
+   "Model_short": "MONJARO"
+  }
+ ],
+ "geely_stock": [
+  {
+   "id": 1506,
+   "slug": "flagship-se-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Color_ext": "Белый металлик",
+   "Dealer_id": "radar",
+   "Status": "В наличии"
+  },
+  {
+   "id": 4805,
+   "slug": "flagship-se-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Color_ext": "Черный металлик",
+   "Dealer_id": "radar",
+   "Status": "В наличии"
+  },
+  {
+   "id": 4932,
+   "slug": "flagship-se-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Color_ext": "Белый металлик",
+   "Dealer_id": "radar",
+   "Status": "В наличии"
+  },
+  {
+   "id": 5630,
+   "slug": "flagship-se-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Color_ext": "Серый металлик",
+   "Dealer_id": "radar",
+   "Status": "В наличии"
+  },
+  {
+   "id": 5656,
+   "slug": "flagship-se-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Color_ext": "Черный металлик",
+   "Dealer_id": "radar",
+   "Status": "В наличии"
+  },
+  {
+   "id": 8139,
+   "slug": "flagship-se-2-0t-4wd-8at-238-l-s",
+   "Model": "MONJARO",
+   "Color_ext": "Зеленый металлик",
+   "Dealer_id": "radar",
+   "Status": "В наличии"
+  }
+ ],
+ "haval_catalog": [
+  {
+   "Id": 1,
+   "slug": "comfort-1-5-mt-2wd-143-l-s-27396_255869",
+   "Model": "HAVAL JOLION",
+   "Complectation": "Comfort",
+   "Model id": "14",
+   "Complectation id": "11",
+   "Price old": 2149000,
+   "Active": true,
+   "Trade-in bonus": null,
+   "Cash in hook": 100000,
+   "Credit bonus": null,
+   "Model_short": "JOLION"
+  },
+  {
+   "Id": 2,
+   "slug": "tech-plus-1-5-dct-4wd-150-l-s-27399_255871",
+   "Model": "HAVAL JOLION",
+   "Complectation": "Tech+",
+   "Model id": "14",
+   "Complectation id": "16",
+   "Price old": 2949000,
+   "Active": true,
+   "Trade-in bonus": null,
+   "Cash in hook": 200000,
+   "Credit bonus": null,
+   "Model_short": "JOLION"
+  },
+  {
+   "Id": 4,
+   "slug": "elite-1-5-dct-2wd-143-l-s-27397_255870",
+   "Model": "HAVAL JOLION",
+   "Complectation": "Elite",
+   "Model id": "14",
+   "Complectation id": "12",
+   "Price old": 2449000,
+   "Active": true,
+   "Trade-in bonus": null,
+   "Cash in hook": 100000,
+   "Credit bonus": null,
+   "Model_short": "JOLION"
+  },
+  {
+   "Id": 7,
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "HAVAL JOLION",
+   "Complectation": "Premium",
+   "Model id": "14",
+   "Complectation id": "13",
+   "Price old": 2649000,
+   "Active": true,
+   "Trade-in bonus": null,
+   "Cash in hook": 100000,
+   "Credit bonus": null,
+   "Model_short": "JOLION"
+  },
+  {
+   "Id": 15,
+   "slug": "elite-1-5-dct-4wd-150-l-s-27397_255871",
+   "Model": "HAVAL JOLION",
+   "Complectation": "Elite",
+   "Model id": "14",
+   "Complectation id": "14",
+   "Price old": 2599000,
+   "Active": true,
+   "Trade-in bonus": null,
+   "Cash in hook": 200000,
+   "Credit bonus": null,
+   "Model_short": "JOLION"
+  },
+  {
+   "Id": 26,
+   "slug": "premium-1-5-dct-4wd-150-l-s-27398_255871",
+   "Model": "HAVAL JOLION",
+   "Complectation": "Premium",
+   "Model id": "14",
+   "Complectation id": "15",
+   "Price old": 2799000,
+   "Active": true,
+   "Trade-in bonus": null,
+   "Cash in hook": 200000,
+   "Credit bonus": null,
+   "Model_short": "JOLION"
+  }
+ ],
+ "haval_stock": [
+  {
+   "slug": "tech-plus-1-5-dct-4wd-150-l-s-27399_255871",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "tech-plus-1-5-dct-4wd-150-l-s-27399_255871",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "tech-plus-1-5-dct-4wd-150-l-s-27399_255871",
+   "Model": "JOLION",
+   "Color_ext": "Галактический черный",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "tech-plus-1-5-dct-4wd-150-l-s-27399_255871",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "tech-plus-1-5-dct-4wd-150-l-s-27399_255871",
+   "Model": "JOLION",
+   "Color_ext": "Галактический черный",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "tech-plus-1-5-dct-4wd-150-l-s-27399_255871",
+   "Model": "JOLION",
+   "Color_ext": "Галактический черный",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "tech-plus-1-5-dct-4wd-150-l-s-27399_255871",
+   "Model": "JOLION",
+   "Color_ext": "Галактический черный",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "optimum-1-5-dct-4wd-150-l-s-27397_255871",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "optimum-1-5-dct-4wd-150-l-s-27397_255871",
+   "Model": "JOLION",
+   "Color_ext": "Дымчатый жемчуг",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "optimum-1-5-dct-4wd-150-l-s-27397_255871",
+   "Model": "JOLION",
+   "Color_ext": "Дымчатый жемчуг",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Галактический черный",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "tech-plus-1-5-dct-4wd-150-l-s-27399_255871",
+   "Model": "JOLION",
+   "Color_ext": "Галактический черный",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Галактический черный",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Галактический черный",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  },
+  {
+   "slug": "premium-1-5-dct-2wd-143-l-s-27398_255870",
+   "Model": "JOLION",
+   "Color_ext": "Благородный агат",
+   "Dealer_id": "askar",
+   "Status": "У дилера"
+  }
+ ]
+}

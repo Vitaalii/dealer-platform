@@ -1,0 +1,81 @@
+{
+  "name": "TOOL: Save to CRM_test",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sporophoric-devorah-remonstrative.ngrok-free.dev/n8n_callback",
+        "sendBody": true,
+        "specifyBody": "=keypair",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.user_id }}"
+            },
+            {
+              "name": "deal_id",
+              "value": "={{ $json.deal_id }}"
+            },
+            {
+              "name": "ai_payload",
+              "value": "={{ $json.ai_payload }}"
+            }
+          ]
+        },
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "efb0f812-253c-4a62-9276-4e66dd1ddf3f",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Xesa45sdzRipKset",
+          "name": "Bot Callback Secret [TEST]"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"user_id\": \"12345\",\n  \"deal_id\": \"45678\",\n  \"ai_payload\": \"{...}\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "599f8c02-698b-4064-8d6e-5e993535ae06",
+      "name": "Execute Workflow Trigger"
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}

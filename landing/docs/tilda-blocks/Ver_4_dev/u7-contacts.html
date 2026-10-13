@@ -1,0 +1,724 @@
+<!-- nominify begin -->
+<style>
+/* ================================================================
+   U7 — Контакты (поп-ап с картой дилеров)
+
+   Блок не рендерит собственную секцию на странице: единственный его
+   видимый компонент — оверлей, который на init переносится в <body>
+   и позиционируется position: fixed на весь вьюпорт. Устройство
+   повторяет U4 (поп-ап оснащения).
+
+   Карта строится своя, а не переиспользуется нативный Tilda-блок
+   T554: Tilda создаёт ymaps.Map локальной переменной и наружу её не
+   отдаёт, поэтому пересчитать размеры внутри поп-апа нечем.
+================================================================ */
+
+/* ---- Пустой якорь блока (его .t-rec скрывается навсегда) ---- */
+#uc-contacts-wrap { display: none; }
+
+/* Tilda ставит *,*:before,*:after{box-sizing:content-box} (tilda-grid-3.0.min.css),
+   а вёрстка ниже посчитана под border-box. Скоупим сброс на корень оверлея. */
+#uc-contacts-popup, #uc-contacts-popup *, #uc-contacts-popup *::before, #uc-contacts-popup *::after {
+    box-sizing: border-box;
+}
+
+/* ================================================================
+   ОВЕРЛЕЙ
+
+   z-index: 100000 — как у поп-апа оснащения: на реальной странице
+   Tilda оверлей должен перекрывать липкие шапки и меню.
+================================================================ */
+#uc-contacts-popup {
+    /* Палитра макета (docs/designs/dealer-popup.html). Там токены висят
+       на :root — так переносить нельзя: Tilda склеивает CSS всех блоков
+       в один документ, и --ink / --line / --accent стали бы страничными.
+       Любой блок, объявивший своё --accent, молча перекрасил бы контакты,
+       и наоборот. Объявляем на корне оверлея — тем же приёмом, каким
+       ниже скоуплен сброс box-sizing.
+
+       Гарнитура намеренно не макетная: в макете
+       -apple-system / Helvetica Neue, а во всех блоках проекта Arial.
+       Перенос сделал бы U7 единственным исключением, заметным в пределах
+       одной страницы. */
+    --ink:       #111214;
+    --ink-muted: #7a7b7d;
+    --ink-label: #9b9c9e;
+    --line:      #ececec;
+    --accent:    #d5121a;
+
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(17, 18, 20, 0.55);
+    font-family: Arial, sans-serif;
+    padding: 24px;
+}
+#uc-contacts-popup.--visible { display: flex; }
+
+.uc-contacts-sheet {
+    position: relative;
+    width: min(1100px, 100%);
+    height: min(680px, 100%);
+    background: #ffffff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---- Шапка поп-апа ----
+   Метрики по макету. Границу оставляем под шапкой: в макете ту же линию
+   рисует border-top у карты — визуально это одно и то же, переносить
+   структуру ради неё незачем. */
+.uc-contacts-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 28px;
+    border-bottom: 1px solid var(--line);
+    flex: none;
+}
+/* letter-spacing снят: в макете разрядки нет. */
+.uc-contacts-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+}
+.uc-contacts-close {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #8a8a8a;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+.uc-contacts-close:hover { background: #f4f2ef; color: var(--ink); }
+
+/* ---- Тело: карта на всю площадь, карточка поверх слева ---- */
+.uc-contacts-body {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+.uc-contacts-map {
+    position: absolute;
+    inset: 0;
+    background: #f2f2f2;
+}
+/* Серая палитра — тем же приёмом, что нативный T554 применяет к
+   подложке карты, только декларативно. */
+.uc-contacts-map ymaps[class$="ground-pane"] { filter: grayscale(1); }
+
+/* ---- Карточка дилера ----
+   Справа по макету. Побочный эффект в плюс: слева Яндекс рисует кнопки
+   зума, и прежнее left: 28px их перекрывало. */
+.uc-contacts-card {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    width: 344px;
+    max-width: calc(100% - 48px);
+    max-height: calc(100% - 48px);
+    overflow-y: auto;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 12px 32px rgba(17, 18, 20, 0.22);
+    z-index: 2;
+}
+.uc-contacts-card-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+}
+
+/* Статус подчинён названию: мелкий и приглушённый. Раньше он был того же
+   кегля, что название, — то решение отменено макетом, где статус читается
+   как подзаголовок, а не как вторая строка заголовка.
+   Перенос по словам — на случай статуса длиннее названия: на мобайле
+   карточка тянется во всю ширину, и рвать её нечем. */
+.uc-contacts-card-status {
+    margin-top: 6px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--ink-muted);
+    overflow-wrap: break-word;
+}
+
+/* Разделитель принадлежит СТЫКУ секций, а не секции. Поэтому у него нет
+   ни :first-child, ни :last-child исключений: renderCard вставляет его
+   только между двумя непустыми соседями. Если бы он висел на секции,
+   дилер без адреса и часов дал бы две линии подряд. */
+.uc-contacts-card-divider {
+    height: 1px;
+    margin: 18px 0;
+    background: var(--line);
+    border: 0;
+}
+
+/* Список пар «лейбл + значение» */
+.uc-contacts-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.uc-contacts-card-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.uc-contacts-card-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-label);
+}
+.uc-contacts-card-value {
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--ink);
+}
+/* Телефон — акцент карточки по макету, самый крупный элемент после
+   названия. Прежде он был намеренно уравнен с адресом и часами; макет
+   это отменил, выделив его в отдельную секцию.
+   Подчёркивание на ховере оставлено: это единственный признак того, что
+   строка кликабельна, — цветом телефон от названия не отличается. */
+.uc-contacts-card-phone {
+    display: inline-block;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--ink);
+    text-decoration: none;
+}
+.uc-contacts-card-phone:hover { color: var(--accent); }
+
+/* ---- Состояние «нет данных» ---- */
+.uc-contacts-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #6a6a6a;
+    background: #fafafa;
+    z-index: 3;
+}
+
+/* ================================================================
+   МОБАЙЛ: карточка уезжает под карту, оверлей на весь экран
+================================================================ */
+@media (max-width: 640px) {
+    #uc-contacts-popup { padding: 0; }
+    .uc-contacts-sheet {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+    .uc-contacts-head { padding: 16px 18px; }
+    .uc-contacts-title { font-size: 18px; }
+    .uc-contacts-body {
+        display: flex;
+        flex-direction: column;
+    }
+    .uc-contacts-map {
+        position: relative;
+        inset: auto;
+        flex: 1;
+        min-height: 240px;
+    }
+    /* Карточка остаётся в потоке под картой. Плавающий шит из макета
+       сознательно не переносится: он закрыл бы нижнюю часть карты, а
+       карта центрируется по дилеру — пин рисковал бы оказаться прямо под
+       карточкой. Вместе с шитом не переносятся его bottom, «ручка»
+       перетаскивания и превращение телефона в кнопку-CTA.
+
+       right: auto обязателен. Десктопное правило ставит right: 24px, и
+       при position: relative он не был бы проигнорирован, а сдвинул бы
+       карточку на 24px влево. Раньше здесь хватало left: auto, потому
+       что карточка стояла слева. */
+    .uc-contacts-card {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        width: 100%;
+        max-width: none;
+        max-height: none;
+        flex: none;
+        border-radius: 0;
+        box-shadow: none;
+        border-top: 0.5px solid var(--line);
+        padding: 18px;
+    }
+    /* Внутренние метрики карточки — из мобильного блока макета. */
+    .uc-contacts-card-name { font-size: 19px; }
+    .uc-contacts-card-divider { margin: 14px 0; }
+    .uc-contacts-card-list { gap: 12px; }
+}
+</style>
+
+<!-- Пустой якорь: по нему блок находит свой .t-rec и скрывает его навсегда -->
+<div id="uc-contacts-wrap"></div>
+
+<!-- Оверлей контактов. На init переносится в <body>, чтобы position: fixed
+     не зависел от скрытого .t-rec блока U7. -->
+<div id="uc-contacts-popup" role="dialog" aria-modal="true" aria-labelledby="uc-contacts-title">
+    <div class="uc-contacts-sheet">
+        <div class="uc-contacts-head">
+            <div class="uc-contacts-title" id="uc-contacts-title">Контакты</div>
+            <button class="uc-contacts-close" id="uc-contacts-close" type="button" aria-label="Закрыть">×</button>
+        </div>
+        <div class="uc-contacts-body">
+            <div class="uc-contacts-map" id="uc-contacts-map"></div>
+            <div class="uc-contacts-card" id="uc-contacts-card"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    /* ================================================================
+       КОНСТАНТЫ
+    ================================================================ */
+    var YMAPS_KEY = '0bcd7d1c-f5dd-4bb4-8e59-7a92a8560652';
+    var PIN_URL   = 'https://static.tildacdn.com/tild3461-6435-4537-b039-363532626435/pin_h2.png';
+    var PIN_SIZE  = [48, 48];
+    var PIN_OFF   = [-24, -48];
+
+    var _dealer    = null;   // единственный дилер этого сайта; null = не разобран
+    var _resolved  = false;  // промис уже отработал (в том числе с пустым результатом)
+    var _map       = null;   // экземпляр ymaps.Map; строится при первом открытии
+    var _built     = false;  // карта уже построена
+    var _building  = false;  // сборка в процессе
+
+    /* ================================================================
+       ДАННЫЕ
+
+       Запись приходит из window._dealerReady плоским объектом.
+       Имена колонок в NocoDB непоследовательны (Dealer_name против
+       Dealer_workinghours), поэтому читаем регистронезависимо и без
+       учёта разделителей — тем же приёмом, что U2.
+    ================================================================ */
+    function field(row, name) {
+        if (!row) return undefined;
+        if (Object.prototype.hasOwnProperty.call(row, name)) return row[name];
+        var target = name.toLowerCase().replace(/[\s_]/g, '');
+        for (var key in row) {
+            if (key.toLowerCase().replace(/[\s_]/g, '') === target) return row[key];
+        }
+        return undefined;
+    }
+
+    /* Dealer_location — одна текстовая строка «lat, lng».
+       Разбор терпимее подтверждённого формата: пробелы произвольные. */
+    function parseLocation(raw) {
+        if (typeof raw !== 'string') return null;
+        var parts = raw.split(',');
+        if (parts.length !== 2) return null;
+        var lat = Number(parts[0].trim());
+        var lng = Number(parts[1].trim());
+        if (!isFinite(lat) || !isFinite(lng)) return null;
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+        return [lat, lng];
+    }
+
+    /* Формат моносайта: одна страница = один дилер. Строку выбирает U2
+       по явному Dealer_Code и отдаёт сюда уже готовой — блок ничего не
+       ищет и не угадывает. Здесь остаётся только разбор полей.
+       Возвращает null, если координаты не заполнены или не разбираются. */
+    function normalize(row) {
+        if (!row) return null;
+        var coords = parseLocation(field(row, 'Dealer_location'));
+        if (!coords) return null;
+        return {
+            coords: coords,
+            name:   field(row, 'Dealer_name')         || '',
+            status: field(row, 'Dealer_status')       || '',
+            addr:   field(row, 'Dealer_address')      || '',
+            hours:  field(row, 'Dealer_workinghours') || '',
+            phone:  field(row, 'Dealer_phone')        || ''
+        };
+    }
+
+    /* ================================================================
+       ЗАПАСНОЙ ИСТОЧНИК ДИЛЕРА
+
+       Штатно строку дилера отдаёт U2 через window._dealerReady. На
+       странице Кабинета U2 нет — там отдельное приложение, и каталог
+       машин с оснащением ему чужеродны. Тогда блок добывает строку сам.
+
+       Режим именно запасной, а не основной: если промис уже есть, мы
+       им пользуемся и своего запроса не делаем. Иначе на странице квиза
+       таблица дилеров запрашивалась бы дважды.
+    ================================================================ */
+
+    /* Код дилера объявлен в разметке страницы — в скрытом поле формы
+       Tilda, рядом с brand, dealer и website. Поле называется
+       dealer_id, но несёт именно Dealer_Code, и это намеренно.
+
+       Не перепутать с колонкой Dealer_id в NocoDB: там это слаг
+       (avtomir-samara, radar), он повторяется между строками и пуст
+       в большинстве из них — выбирать по нему строку нельзя. Выбор
+       всегда по Dealer_Code, он уникален и заполнен везде.
+
+       Скоуп на .uc-tildaform обязателен: на странице квиза есть и
+       другие формы Tilda. Тот же приём использует U3 при сборке skuId. */
+    function readDealerCode() {
+        var el = document.querySelector('.uc-tildaform input[name="dealer_id"]');
+        var code = el ? String(el.value || '').trim() : '';
+        return code || null;
+    }
+
+    /* Резолвится строкой дилера либо null — тот же контракт, что у U2.
+       На null поп-ап показывает текст, а не пустую карту. Запасной код
+       не подставляется ни при каких условиях: это увело бы карту на
+       чужой адрес молча, а именно от этого защищает выбор по коду.
+
+       Источник — тот же, что у U2: настройки дилера с бота,
+       GET /cabinet/api/dealer/{код}, поле dealer (7 публичных полей
+       карточки с прежними именами). Адрес бота — window.UNIFIEDBOT_URL:
+       на странице квиза его задаёт блок «ТЕСТ / БОЙ» U2, на странице
+       Кабинета — блок #cabinet-root. Своей константы адреса или таблицы
+       у U7 нет. */
+    function fetchDealerRow() {
+        var code = readDealerCode();
+        if (!code) {
+            console.warn('⚠️ U7: не найден код дилера — нет поля ' +
+                         'input[name="dealer_id"] в .uc-tildaform на этой странице');
+            return Promise.resolve(null);
+        }
+        var botUrl = window.UNIFIEDBOT_URL || '';
+        if (!botUrl) {
+            console.warn('⚠️ U7: window.UNIFIEDBOT_URL не задан на этой странице');
+            return Promise.resolve(null);
+        }
+
+        /* Дев-бот за ngrok без этого заголовка отдаёт HTML-заглушку */
+        var host = (botUrl.match(/^https?:\/\/([^\/:]+)/i) || [])[1] || '';
+        var headers = /\.ngrok(-free)?\.(app|dev|io)$/i.test(host)
+            ? { 'ngrok-skip-browser-warning': '1' } : {};
+
+        return fetch(botUrl + '/cabinet/api/dealer/' + encodeURIComponent(code), { headers: headers })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(function (raw) {
+                var row = raw && raw.dealer;
+                if (!row || typeof row !== 'object') {
+                    console.warn('⚠️ U7: в настройках дилера ' + code + ' нет карточки');
+                    return null;
+                }
+                return row;
+            })
+            .catch(function (err) {
+                console.warn('⚠️ U7: не удалось загрузить настройки дилера ' + code + ':', err);
+                return null;
+            });
+    }
+
+    /* Промис кладётся в window._dealerReady, а не в локальную
+       переменную: повторные открытия и любые будущие потребители
+       переиспользуют один запрос вместо того, чтобы плодить свои. */
+    function ensureDealerReady() {
+        if (window._dealerReady && typeof window._dealerReady.then === 'function') return;
+        window._dealerReady = fetchDealerRow();
+    }
+
+    /* ================================================================
+       КАРТОЧКА ДИЛЕРА
+    ================================================================ */
+    function esc(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderCard(dealer) {
+        var card = document.getElementById('uc-contacts-card');
+        if (!card) return;
+        if (!dealer) { card.innerHTML = ''; card.style.display = 'none'; return; }
+        card.style.display = '';
+
+        /* Карточка собирается секциями: (имя + статус) / (адрес + часы) /
+           (телефон). Пустые секции выбрасываются целиком, и только потом
+           между уцелевшими соседями вставляются разделители.
+
+           Порядок именно такой. Если бы разделитель принадлежал секции и
+           дописывался вместе с ней, дилер без адреса и часов дал бы две
+           линии подряд, а дилер с одним лишь именем — висячую линию в
+           конце. Разделитель существует только как «между», поэтому
+           вырожденные случаи обслуживаются тем же кодом. */
+        var sections = [];
+
+        if (dealer.name || dealer.status) {
+            var head = '';
+            if (dealer.name) {
+                head += '<div class="uc-contacts-card-name">' + esc(dealer.name) + '</div>';
+            }
+            if (dealer.status) {
+                head += '<div class="uc-contacts-card-status">' + esc(dealer.status) + '</div>';
+            }
+            sections.push(head);
+        }
+
+        /* Пара «лейбл + значение». Лейблы статические, из данных не
+           приходят, поэтому экранирования не требуют — в отличие от
+           значений. */
+        function item(label, valueHtml) {
+            return '<div class="uc-contacts-card-item">' +
+                   '<div class="uc-contacts-card-label">' + label + '</div>' +
+                   '<div class="uc-contacts-card-value">' + valueHtml + '</div>' +
+                   '</div>';
+        }
+
+        var items = '';
+        if (dealer.addr) items += item('Адрес', esc(dealer.addr));
+
+        /* Часы работы — построчно: в NocoDB это может быть несколько
+           строк в одной ячейке. */
+        if (dealer.hours) {
+            var lines = String(dealer.hours).split(/\r?\n/).filter(function (l) { return l.trim(); });
+            items += item('Часы работы',
+                          lines.map(function (l) { return esc(l.trim()); }).join('<br>'));
+        }
+        if (items) {
+            sections.push('<div class="uc-contacts-card-list">' + items + '</div>');
+        }
+
+        if (dealer.phone) {
+            var tel = String(dealer.phone).replace(/[^\d+]/g, '');
+            sections.push('<a class="uc-contacts-card-phone" href="tel:' + esc(tel) + '">' +
+                          esc(dealer.phone) + '</a>');
+        }
+
+        card.innerHTML = sections.join('<hr class="uc-contacts-card-divider">');
+    }
+
+    function showEmpty(message) {
+        var body = document.querySelector('#uc-contacts-popup .uc-contacts-body');
+        if (!body || body.querySelector('.uc-contacts-empty')) return;
+        var box = document.createElement('div');
+        box.className = 'uc-contacts-empty';
+        box.textContent = message;
+        body.appendChild(box);
+        renderCard(null);
+    }
+
+    function clearEmpty() {
+        var box = document.querySelector('#uc-contacts-popup .uc-contacts-empty');
+        if (box) box.remove();
+    }
+
+    /* ================================================================
+       КАРТА
+
+       API Яндекса грузится по требованию, при первом открытии, и ключ
+       блок несёт сам: полагаться на разметку нативного T554 нельзя —
+       его могут удалить со страницы вместе с ключом.
+    ================================================================ */
+    function loadYmaps() {
+        if (window.ymaps && typeof window.ymaps.ready === 'function') {
+            return Promise.resolve();
+        }
+        if (window.__ucYmapsLoading) return window.__ucYmapsLoading;
+
+        window.__ucYmapsLoading = new Promise(function (resolve, reject) {
+            var s = document.createElement('script');
+            s.src = 'https://api-maps.yandex.ru/2.1/?lang=ru_RU&coordorder=latlong&apikey=' + YMAPS_KEY;
+            s.onload  = function () { resolve(); };
+            s.onerror = function () { reject(new Error('ymaps script failed')); };
+            document.body.appendChild(s);
+        });
+        return window.__ucYmapsLoading;
+    }
+
+    /* Карта строится ОДИН раз и только когда контейнер уже вставлен и
+       виден: ymaps меряет контейнер в момент создания, а в скрытом
+       поддереве получил бы нулевые размеры. */
+    function buildMap() {
+        if (_built || _building) return;
+        _building = true;
+
+        loadYmaps().then(function () {
+            return new Promise(function (resolve) { ymaps.ready(resolve); });
+        }).then(function () {
+            var el = document.getElementById('uc-contacts-map');
+            if (!el || !_dealer) { _building = false; return; }
+
+            /* Одна точка — центрируемся на ней с крупным зумом: setBounds
+               по единственной метке дал бы бессмысленный масштаб. */
+            _map = new ymaps.Map(el, {
+                center: _dealer.coords,
+                zoom: 15,
+                controls: ['zoomControl']
+            });
+            _map.behaviors.disable('scrollZoom');
+
+            _map.geoObjects.add(new ymaps.Placemark(_dealer.coords, { hintContent: _dealer.name }, {
+                iconLayout: 'default#imageWithContent',
+                iconImageHref: PIN_URL,
+                iconImageSize: PIN_SIZE,
+                iconImageOffset: PIN_OFF
+            }));
+
+            /* Вызов на уже видимом контейнере. Именно этого нельзя сделать
+               с нативным T554: его инстанс наружу не отдаётся. */
+            _map.container.fitToViewport();
+
+            _built = true;
+            _building = false;
+        }).catch(function (err) {
+            console.error('⛔ U7: не удалось построить карту:', err);
+            _building = false;
+            showEmpty('Карта временно недоступна');
+        });
+    }
+
+    /* ================================================================
+       ОТКРЫТИЕ И ЗАКРЫТИЕ
+
+       ucQuiz.step не меняется: оверлей ортогонален экранам.
+    ================================================================ */
+    window.openContactsPopup = function () {
+        var overlay = document.getElementById('uc-contacts-popup');
+        if (!overlay || overlay.classList.contains('--visible')) return;
+
+        overlay.classList.add('--visible');
+        /* Блокировкой скролла распоряжается U1: она пересчитывается от
+           того, открыт ли хоть один наш оверлей. Прямая запись сюда
+           снимала бы блокировку и при ещё открытом соседнем оверлее.
+           Fallback — на случай, если блок U1 не стоит на странице. */
+        if (typeof window.ucSyncScrollLock === 'function') {
+            window.ucSyncScrollLock();
+        } else {
+            document.body.style.overflow = 'hidden';
+        }
+
+        if (window.ucOverlayHistory) window.ucOverlayHistory.arm(closeContactsPopup);
+
+        if (_resolved) {
+            if (_dealer) buildMap();
+            return;
+        }
+
+        /* Страховка: на ready промис уже должен быть создан, но если
+           блок инициализировался позже — добираем здесь. Ветка «промиса
+           нет вовсе» после этого недостижима, и её больше нет. */
+        ensureDealerReady();
+
+        window._dealerReady.then(function (row) {
+            _resolved = true;
+            if (!overlay.classList.contains('--visible')) return;  // закрыли, пока ждали
+            if (row === null) {
+                showEmpty('Не удалось загрузить контакты дилера');
+                return;
+            }
+            _dealer = normalize(row);
+            if (!_dealer) {
+                console.warn('⚠️ U7: у дилера не заполнено поле Dealer_location');
+                showEmpty('Контакты дилера пока не заполнены');
+                return;
+            }
+            clearEmpty();
+            renderCard(_dealer);
+            buildMap();
+        });
+    };
+
+    function closeContactsPopup() {
+        var overlay = document.getElementById('uc-contacts-popup');
+        if (!overlay || !overlay.classList.contains('--visible')) return;
+        overlay.classList.remove('--visible');
+        /* Блокировкой скролла распоряжается U1: она пересчитывается от
+           того, открыт ли хоть один наш оверлей. Прямая запись сюда
+           снимала бы блокировку и при ещё открытом соседнем оверлее.
+           Fallback — на случай, если блок U1 не стоит на странице. */
+        if (typeof window.ucSyncScrollLock === 'function') {
+            window.ucSyncScrollLock();
+        } else {
+            document.body.style.overflow = '';
+        }
+        if (window.ucOverlayHistory) window.ucOverlayHistory.disarm(closeContactsPopup);
+    }
+    window.closeContactsPopup = closeContactsPopup;
+
+    /* ================================================================
+       ОБРАБОТЧИКИ
+    ================================================================ */
+    document.addEventListener('click', function (e) {
+        if (!e.target || !e.target.closest) return;
+        if (e.target.closest('#uc-contacts-close')) { closeContactsPopup(); return; }
+        if (e.target.id === 'uc-contacts-popup') { closeContactsPopup(); }
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeContactsPopup();
+    });
+
+    /* Смена экрана закрывает оверлей: он ортогонален шагам, но висеть
+       поверх нового экрана не должен. Только СМЕНА: тот же шаг приходит
+       повторно на uc:ready (U2 подтверждает экран) — контакты, открытые
+       до готовности страницы, при этом остаются открытыми. Стартовый
+       экран — Hero, шаг 0. План 2026-10-08-004. */
+    var _lastStep = 0;
+    window.addEventListener('uc:step', function (e) {
+        var step = e.detail && e.detail.step;
+        if (step === _lastStep) return;
+        _lastStep = step;
+        closeContactsPopup();
+    });
+
+    $(document).ready(function () {
+        /* Оверлей переносим в <body>: position: fixed не работает внутри
+           скрытого (display:none) .t-rec блока U7. Порядок важен —
+           перенос строго ДО скрытия своей секции. */
+        var overlay = document.getElementById('uc-contacts-popup');
+        if (overlay && overlay.parentNode !== document.body) {
+            document.body.appendChild(overlay);
+        }
+
+        /* Секция U7 на странице не отображается никогда */
+        var $t = $('#uc-contacts-wrap').closest('.t-rec');
+        if (!$t.length) $t = $('#uc-contacts-wrap').parent();
+        $t.hide();
+
+        /* Данные тянем сразу, не дожидаясь клика: состояния загрузки у
+           поп-апа нет, и при ленивом запросе первое открытие показывало
+           бы пустую карточку на время сети.
+
+           setTimeout, а не прямой вызов — из-за порядка обработчиков.
+           jQuery выполняет ready-обработчики в порядке регистрации, то
+           есть в порядке блоков на странице, а на странице квиза U7
+           стоит ВЫШЕ U2. Прямой вызов отработал бы раньше, чем U2
+           выставит свой промис, и квиз получил бы два запроса к таблице
+           дилеров вместо одного. Нулевой таймаут кладёт нас в макро-
+           задачу — после того, как вся очередь ready опустеет и U2
+           успеет присвоить window._dealerReady (он делает это
+           синхронно, до первого await в своём init). */
+        setTimeout(ensureDealerReady, 0);
+    });
+
+})();
+</script>
+<!-- nominify end -->

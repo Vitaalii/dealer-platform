@@ -1,0 +1,14 @@
+{
+  "name": "unifiedbot-cabinet-build",
+  "private": true,
+  "description": "Сборка кабинета: widget-custom/cabinet-app/*.js → widget-custom/cabinet-app/Production/ (без комментариев, минификация, .gz/.br, manifest.json)",
+  "scripts": {
+    "build:cabinet": "node tools/build-cabinet.mjs",
+    "check:cabinet": "node tools/build-cabinet.mjs --check",
+    "vendor:fetch": "node tools/vendor-assets.mjs --fetch",
+    "vendor:check": "node tools/vendor-assets.mjs --check"
+  },
+  "devDependencies": {
+    "terser": "5.51.2"
+  }
+}

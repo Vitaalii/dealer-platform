@@ -1,0 +1,38 @@
+# --- Секреты: НИКОГДА не в историю ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+credentials*.json
+secrets*.json
+*token*.txt
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# --- Node ---
+node_modules/
+
+# --- macOS / Yandex.Disk ---
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+*.Conflict*
+*(конфликт*
+.yandex*
+
+# --- Локальные настройки инструментов ---
+.claude/settings.local.json
+.idea/
+.vscode/
+
+# --- Выгрузки таблиц NocoDB: снимки, источник правды — живая база ---
+docs/promts/*.csv

@@ -1,0 +1,188 @@
+{
+  "name": "[TEST] Get Session Logs (API)",
+  "nodes": [
+    {
+      "id": "d80da975-053e-5b5a-8826-c54b71901493",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "54c680c5-b2a4-5ae6-a12c-d7b2d4cd1c78",
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "get-session-logs-test",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8WHmaHbGppnSXL9F",
+          "name": "N8N Inbound Secret [TEST]"
+        }
+      }
+    },
+    {
+      "id": "271b9a95-014f-5e1a-9ad6-220c83f08fb4",
+      "name": "Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Формат session_id: бот шлёт его без префикса sess_ (main.py,\n// fetch_n8n_logs_for_archive): «<user_id>_<start_code>». Кавычки, %, пробелы\n// и прочее запрещены — значение дальше идёт параметром $1 и ищется как\n// точная строка \"sess_<id>\" в данных исполнения (кавычки добавляет SQL).\nconst raw = String(($input.first().json.query || {}).session_id || \"\").trim();\nconst sid = raw.startsWith(\"sess_\") ? raw.slice(5) : raw;\nconst ok = /^[A-Za-z0-9_.:@-]{1,128}$/.test(sid);\nreturn [{ json: { ok, needle: ok ? `sess_${sid}` : \"\" } }];\n"
+      }
+    },
+    {
+      "id": "c943acf8-6efd-528a-8e66-92608a4991ea",
+      "name": "OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "446f6548-69b4-5021-a6b4-82459b058c19",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a89be382-9310-5fa0-9427-f7d02b1d0edc",
+      "name": "Postgres (n8n DB)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        -80
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT json_agg(row_to_json(t)) AS logs\nFROM (\n    SELECT e.id, e.\"workflowId\", e.\"startedAt\", e.\"stoppedAt\", d.data\n    FROM execution_entity e\n    JOIN execution_data d ON e.id = d.\"executionId\"\n    WHERE e.\"workflowId\" = 'pkA3mmrvv9XqmZRE'\n      AND strpos(d.data::text, '\"' || $1::text || '\"') > 0\n    ORDER BY e.\"startedAt\" DESC\n    LIMIT 3\n) t;",
+        "options": {
+          "queryReplacement": "={{ $json.needle }}"
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "3ZfZUULMAZLBq8iw",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "id": "4974eb20-4be6-59df-a63b-b4fa0dea7e26",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        880,
+        -80
+      ],
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    },
+    {
+      "id": "41597fa4-c6d9-54a2-ad76-b8afd9c1595e",
+      "name": "Bad Request",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        660,
+        100
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"error\": \"bad session_id\"}",
+        "options": {
+          "responseCode": 400
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate": {
+      "main": [
+        [
+          {
+            "node": "OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OK?": {
+      "main": [
+        [
+          {
+            "node": "Postgres (n8n DB)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bad Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres (n8n DB)": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  }
+}

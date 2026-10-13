@@ -1,0 +1,932 @@
+<!-- nominify begin -->
+<style>
+/* Цвет кнопки «ДАЛЕЕ →» — в U1, строкой в начале блока (своя для каждого
+   сайта, меняется при вставке). U2 его не задаёт. */
+@keyframes uc-step-in {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.uc-step-enter { animation: uc-step-in 0.28s ease both; }
+</style>
+<!--КОД ЗАПОЛНЕНИЯ ДАННЫХ ИЗ NOCODB + MULTY BOT-->
+<noscript><link rel="stylesheet" href="https://obut-5oaj-5i2u.gw-1a.dockhost.net/widget-custom/vendor/swiper/11.2.10/swiper-bundle.min.css" integrity="sha384-gAPqlBuTCdtVcYt9ocMOYWrnBZ4XSL6q+4eXqwNycOr4iFczhNKtnYhF3NEXJM51" crossorigin="anonymous"></noscript>
+<link id="uc-tabler-css" rel="preload" href="https://obut-5oaj-5i2u.gw-1a.dockhost.net/widget-custom/vendor/tabler-icons-webfont/3.44.0/tabler-icons.min.css" as="style" integrity="sha384-ccZHbezhtZWmNy0cg8odL0D/jFU5k5HIls9y78Qd6lWor7rpvFIZtK0fTFG4z456" crossorigin="anonymous" onload="this.onload=null;this.setAttribute('data-ok','1');this.rel='stylesheet'" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css'">
+<noscript><link rel="stylesheet" href="https://obut-5oaj-5i2u.gw-1a.dockhost.net/widget-custom/vendor/tabler-icons-webfont/3.44.0/tabler-icons.min.css" integrity="sha384-ccZHbezhtZWmNy0cg8odL0D/jFU5k5HIls9y78Qd6lWor7rpvFIZtK0fTFG4z456" crossorigin="anonymous"></noscript>
+<script>
+/* ================================================================
+   SWIPER: ЗАГРУЗКА С ЗАПАСНЫМИ АДРЕСАМИ (план 2026-10-08-002)
+
+   Раньше библиотека подключалась тегом <script async> с одного CDN, а
+   init() звал initGallery/initCards, как только приходил каталог.
+   Если Swiper опаздывал, new Swiper в U3/U6 бросал исключение раньше,
+   чем U3 прятал скелет, — страница навсегда оставалась на сером
+   скелете без Hero (диагностика 2026-10-07).
+
+   Теперь тег создаётся отсюда, чтобы поймать load/error и поставить
+   таймер. Адреса пробуются по порядку SWIPER_SOURCES: через
+   SWIPER_SOURCE_MS стартует следующий, но прежний не бросается —
+   принимается файл, пришедший первым (план 2026-10-08-005: на Slow 4G
+   основной адрес отдаёт файл за ~3,0–3,1 с, и прежний загрузчик
+   бросал его за мгновения до конца и качал заново с запасного,
+   +1,4 с). Ошибка загрузки (в том числе несовпадение integrity —
+   подменённый ответ) сразу переводит к следующему. На всё —
+   SWIPER_TOTAL_MS. CSS берётся с того же адреса, что и скрипт: при
+   каждой попытке добавляется его <link>, файлы у всех адресов
+   побайтно одинаковы.
+
+   Файл, пришедший после решения, тоже выполняется и перезаписывает
+   window.Swiper. Загрузчик возвращает ему выбранный конструктор — в
+   том числе статичный: иначе U6 при смене комплектации создал бы
+   настоящий Swiper поверх статичной разметки.
+
+   Если не пришло ни с одного — window.Swiper становится статичным
+   слайдером (ниже) с тем же API, что используют U3 и U6: стрелки,
+   миниатюры и переключение моделей работают, нет свайпа и анимации.
+
+   Итог — промис window._swiperReady: адрес-хост, с которого пришёл
+   Swiper, или 'static'. buildPage() ждёт его вместе с каталогом.
+
+   Первый адрес — боевой бот (3.4.2, план 2026-10-12-001): российский
+   хостинг, к нему страница и так ходит за настройками и каталогом, а
+   HEAD сайтов держит preconnect с crossorigin. Адрес — константа
+   боевого бота и в тестовой сборке: файлы /widget-custom/vendor/
+   неизменяемы (новая версия — новый адрес) и заявок не касаются, а
+   дев-бот за ngrok отдал бы тегу <script> страницу-предупреждение.
+   Сборка пропускает в Production-test только этот путь боевого бота.
+   jsDelivr (cdn, затем fastly) — запасные. Бот откатят на 3.4.1 —
+   адрес даст 404, и загрузчик сразу перейдёт к cdn.
+   ================================================================ */
+(function () {
+    var SWIPER_SOURCES = [
+        { js:  'https://obut-5oaj-5i2u.gw-1a.dockhost.net/widget-custom/vendor/swiper/11.2.10/swiper-bundle.min.js',
+          css: 'https://obut-5oaj-5i2u.gw-1a.dockhost.net/widget-custom/vendor/swiper/11.2.10/swiper-bundle.min.css' },
+        { js:  'https://cdn.jsdelivr.net/npm/swiper@11.2.10/swiper-bundle.min.js',
+          css: 'https://cdn.jsdelivr.net/npm/swiper@11.2.10/swiper-bundle.min.css' },
+        { js:  'https://fastly.jsdelivr.net/npm/swiper@11.2.10/swiper-bundle.min.js',
+          css: 'https://fastly.jsdelivr.net/npm/swiper@11.2.10/swiper-bundle.min.css' }
+    ];
+    /* SHA-384 файлов swiper@11.2.10 — одинаковы у всех адресов */
+    var SWIPER_SRI_JS  = 'sha384-2UI1PfnXFjVMQ7/ZDEF70CR943oH3v6uZrFQGGqJYlvhh4g6z6uVktxYbOlAczav';
+    var SWIPER_SRI_CSS = 'sha384-gAPqlBuTCdtVcYt9ocMOYWrnBZ4XSL6q+4eXqwNycOr4iFczhNKtnYhF3NEXJM51';
+    var SWIPER_SOURCE_MS = 3000;
+    var SWIPER_TOTAL_MS  = 6000;
+
+    /* Иконки Tabler (на странице это стрелки слайдеров U3 и U6) — та же
+       схема: бот первым, jsDelivr запасной. Ошибку (404, сеть, чужой
+       хеш) ловит слушатель error на ссылке #uc-tabler-css: он один раз
+       переводит href на jsDelivr. Именно слушатель, а не onerror:
+       tilda-fallback-1.0.min.js при своей загрузке и на DOMContentLoaded
+       перезаписывает onerror у всех <link> и <script> страницы своей
+       функцией, которая для чужих адресов ничего не делает (2026-10-12).
+       Атрибут onerror в разметке оставлен на случай ошибки раньше, чем
+       выполнится этот скрипт. Если за TABLER_WAIT_MS бот не ответил
+       ничем, сразу за ссылкой встаёт stylesheet с jsDelivr. Файлы
+       побайтно одинаковы, двойное подключение безвредно; запасной стоит
+       ниже по документу, поэтому его @font-face побеждает и шрифт не
+       переключается, когда CSS бота всё-таки придёт. */
+    var TABLER_WAIT_MS = 3000;
+    var TABLER_JSD = 'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css';
+    var tablerLink = document.getElementById('uc-tabler-css');
+    if (tablerLink) tablerLink.addEventListener('error', function () {
+        if (tablerLink.href.indexOf('jsdelivr') === -1) tablerLink.href = TABLER_JSD;
+    });
+    setTimeout(function () {
+        var l = tablerLink;
+        if (!l || l.getAttribute('data-ok') || l.href.indexOf('jsdelivr') !== -1) return;
+        var f = document.createElement('link');
+        f.rel = 'stylesheet';
+        f.href = TABLER_JSD;
+        f.integrity = l.integrity; f.crossOrigin = 'anonymous';
+        l.parentNode.insertBefore(f, l.nextSibling);
+    }, TABLER_WAIT_MS);
+
+    var done = false, chosen = null, resolveReady, deadline;
+    var nextSource = 0, loading = 0;
+    window._swiperReady = new Promise(function (r) { resolveReady = r; });
+
+    function finish(how) {
+        if (done) return;
+        done = true;
+        clearTimeout(deadline);
+        if (how === 'static') {
+            installStaticSwiper();
+            console.warn('⚠️ U2: Swiper не загрузился ни с одного адреса — слайдеры статичные');
+        }
+        chosen = window.Swiper;
+        window.UC_SWIPER_SOURCE = how;
+        resolveReady(how);
+    }
+
+    function addCss(href) {
+        var l = document.createElement('link');
+        l.rel = 'stylesheet'; l.href = href;
+        l.integrity = SWIPER_SRI_CSS; l.crossOrigin = 'anonymous';
+        document.head.appendChild(l);
+    }
+
+    /* Следующий адрес. Адресов больше нет — статичный режим, но только
+       когда ни одна начатая загрузка уже не идёт: иначе решает первая
+       пришедшая или общий предел. */
+    function attempt() {
+        if (done) return;
+        if (nextSource >= SWIPER_SOURCES.length) { if (!loading) finish('static'); return; }
+        var src = SWIPER_SOURCES[nextSource++], movedOn = false, ended = false;
+        loading++;
+        function moveOn() {
+            if (movedOn) return;
+            movedOn = true; clearTimeout(timer);
+            attempt();
+        }
+        function failed() {
+            if (!ended) { ended = true; loading--; }
+            if (!movedOn) moveOn();
+            else if (!done && !loading && nextSource >= SWIPER_SOURCES.length) finish('static');
+        }
+        var timer = setTimeout(moveOn, SWIPER_SOURCE_MS);
+        addCss(src.css);
+        var s = document.createElement('script');
+        s.src = src.js; s.async = true;
+        s.integrity = SWIPER_SRI_JS; s.crossOrigin = 'anonymous';
+        /* Слушатели, а не onload/onerror: Tilda (tilda-fallback) может
+           перезаписать onerror тега раньше, чем придёт ошибка, — тогда
+           переход к следующему адресу ждал бы таймера 3 с. */
+        s.addEventListener('load', function () {
+            if (done) { window.Swiper = chosen; return; }
+            if (typeof window.Swiper !== 'function') { failed(); return; }
+            ended = true; loading--; clearTimeout(timer);
+            finish(new URL(src.js).hostname);
+        });
+        s.addEventListener('error', function () { if (!done) failed(); });
+        document.head.appendChild(s);
+    }
+
+    /* Статичный слайдер: один слайд на экране, сдвиг .swiper-wrapper без
+       анимации, события — сразу. Только методы, которые зовут U3/U6. */
+    function installStaticSwiper() {
+        var css = document.createElement('style');
+        css.textContent =
+            '.uc-swiper-static{overflow:hidden}' +
+            '.uc-swiper-static>.swiper-wrapper{display:flex;height:100%;transition:none}' +
+            '.uc-swiper-static>.swiper-wrapper>.swiper-slide{flex:0 0 100%;width:100%;min-width:0}';
+        document.head.appendChild(css);
+
+        function StaticSwiper(sel, params) {
+            var el = typeof sel === 'string' ? document.querySelector(sel) : sel;
+            this.el = el;
+            this.wrapperEl = el ? el.querySelector('.swiper-wrapper') : null;
+            this.params = { loop: !!(params && params.loop) };
+            this.activeIndex = 0; this.realIndex = 0; this._on = {};
+            if (el) el.classList.add('swiper-initialized', 'uc-swiper-static');
+            this._apply();
+        }
+        var P = StaticSwiper.prototype;
+        P._count = function () { return this.wrapperEl ? this.wrapperEl.querySelectorAll('.swiper-slide').length : 0; };
+        P._apply = function () {
+            if (this.wrapperEl) this.wrapperEl.style.transform = 'translateX(' + (-100 * this.activeIndex) + '%)';
+        };
+        P._emit = function (ev) {
+            var self = this;
+            (this._on[ev] || []).slice().forEach(function (fn) { fn.call(self, self); });
+        };
+        P.on = function (ev, fn) { (this._on[ev] = this._on[ev] || []).push(fn); return this; };
+        P.slideTo = function (i) {
+            var n = this._count();
+            if (!n) return;
+            i = Math.max(0, Math.min(n - 1, i | 0));
+            if (i === this.activeIndex) return;
+            this.activeIndex = this.realIndex = i;
+            this._apply();
+            this._emit('slideChange');
+            this._emit('slideChangeTransitionEnd');
+        };
+        P.slideToLoop = P.slideTo;
+        P.slideNext = function () {
+            var n = this._count(), i = this.activeIndex + 1;
+            if (i >= n) { if (!this.params.loop) return; i = 0; }
+            this.slideTo(i);
+        };
+        P.slidePrev = function () {
+            var n = this._count(), i = this.activeIndex - 1;
+            if (i < 0) { if (!this.params.loop) return; i = n - 1; }
+            this.slideTo(i);
+        };
+        P.update = function () {
+            var n = this._count();
+            if (this.activeIndex >= n) this.activeIndex = this.realIndex = Math.max(0, n - 1);
+            this._apply();
+        };
+        P.removeAllSlides = function () {
+            if (this.wrapperEl) this.wrapperEl.innerHTML = '';
+            this.activeIndex = this.realIndex = 0;
+            this._apply();
+        };
+        P.destroy = function () {
+            if (this.el) this.el.classList.remove('swiper-initialized', 'uc-swiper-static');
+            if (this.wrapperEl) this.wrapperEl.style.transform = '';
+            this._on = {};
+        };
+        window.Swiper = StaticSwiper;
+    }
+
+    deadline = setTimeout(function () { finish('static'); }, SWIPER_TOTAL_MS);
+    attempt();
+})();
+</script>
+<script>
+/* ================================================================
+   ТЕСТ / БОЙ — режим задаёт СБОРКА, руками не менять
+
+   Всё, что различается между тестовой и боевой страницей, — в двух
+   наборах ниже: адрес бота и путь кабинета. Боты Telegram/MAX берутся
+   с бота по марке дилера (GET /bot-links), цвет кнопки — в U1. Режим выбирает сборщик (tools/build-production.mjs): он
+   подставляет UC_BUILD_MODE, и terser выбрасывает набор другого режима.
+     Production/      — бой: в коде только боевые значения;
+     Production-test/ — тестовая страница: только тестовые.
+   Этот исходник без сборки ведёт себя как тест; в Tilda он не идёт.
+
+   Защита: режим 'test' работает только на тестовых хостах. Тестовая
+   сборка на боевом домене не ходит к боту вовсе — страница ведёт себя
+   как при недоступном каталоге, в консоли ошибка конфигурации.
+
+   Адрес бота объявлен только здесь: все блоки читают его из
+   window.UNIFIEDBOT_URL, widget.js грузится с него же.
+================================================================ */
+/* global UC_BUILD_MODE — константа сборки, в исходнике не объявлена */
+var UC_MODE = (typeof UC_BUILD_MODE !== 'undefined') ? UC_BUILD_MODE : 'test';
+
+var UC_SITES = {};
+if (typeof UC_BUILD_MODE === 'undefined' || UC_BUILD_MODE === 'test') {
+    UC_SITES.test = {
+        botUrl:      'https://sporophoric-devorah-remonstrative.ngrok-free.dev',
+        cabinetPath: '/cabinet_dev'
+    };
+}
+if (typeof UC_BUILD_MODE !== 'undefined' && UC_BUILD_MODE === 'prod') {
+    UC_SITES.prod = {
+        botUrl:      'https://obut-5oaj-5i2u.gw-1a.dockhost.net',
+        cabinetPath: '/cabinet'
+    };
+}
+
+/* Хосты, на которых допустим MODE 'test'. */
+var UC_TEST_HOSTS = ['demo.autodc.org'];
+
+window.UC_SITE = (function () {
+    var src = UC_SITES[UC_MODE] || {};
+    var site = { mode: UC_MODE };
+    for (var k in src) site[k] = src[k];
+    return site;
+})();
+
+(function () {
+    var site = window.UC_SITE;
+
+    /* Дев-бот за ngrok требует заголовок ngrok-skip-browser-warning,
+       иначе отдаёт HTML-страницу предупреждения. Боевому боту заголовок
+       не шлём: CORS /cabinet/api/* может его не разрешать. */
+    site.isNgrok = /\.ngrok(-free)?\.(app|dev|io)$/i.test(
+        (String(site.botUrl || '').match(/^https?:\/\/([^\/:]+)/i) || [])[1] || '');
+
+    /* Защита от забытого MODE 'test' на боевом домене (и от опечатки в
+       MODE): тестовый бот за ngrok увёл бы данные клиентов на временный
+       туннель, а заявки — тестовым ботам. Тогда запросов к боту нет
+       совсем — страница ведёт себя как при недоступном каталоге
+       (U2 проверяет site.blocked). */
+    var onTestHost = UC_TEST_HOSTS.indexOf(window.location.hostname) !== -1;
+    site.blocked = !UC_SITES[UC_MODE] || (UC_MODE === 'test' && !onTestHost);
+    if (site.blocked) {
+        console.error('⛔ Ошибка конфигурации U2: сборка «' + UC_MODE + '» на хосте ' +
+            window.location.hostname + '. На боевую страницу вставляется U2 из Production/, а не из Production-test/.');
+    }
+
+    window.UNIFIEDBOT_URL = site.blocked ? '' : (site.botUrl || '');
+
+    /* widget.js. Тег <script src> не может послать заголовок ngrok,
+       поэтому для дев-бота скрипт берём через fetch и вставляем текстом
+       (так же widget.js грузит свой аватар). Боевой — обычный src.
+       Порядок не важен: виджет сам ждёт DOMContentLoaded, а U6 ждёт
+       window.openTDWidget циклом. */
+    if (site.blocked) return;
+    var widgetUrl = site.botUrl + '/widget-custom/widget.js';
+    if (site.isNgrok) {
+        fetch(widgetUrl, { headers: { 'ngrok-skip-browser-warning': '1' } })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.text();
+            })
+            .then(function (code) {
+                var s = document.createElement('script');
+                s.textContent = code;
+                document.head.appendChild(s);
+            })
+            .catch(function (e) { console.error('⛔ widget.js не загрузился:', e); });
+    } else {
+        var s = document.createElement('script');
+        s.src = widgetUrl;
+        document.head.appendChild(s);
+    }
+})();
+</script>
+<script>
+
+/* ============================================================
+   ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ (вне IIFE — доступны всем блокам)
+   ============================================================ */
+var skuId = '';
+var globalModelUtm = '';
+var globalModeX = '';
+var globalFullCompl = '';
+var allComplectations = [];
+var waSend = false;
+var waMessenger = '';
+/* Отправка из вкладки «В личном кабинете» (U6). После успеха формы
+   Tilda страница не перезагружается и мессенджеры не открываются:
+   U6 сам вызывает «открыть сессию» у бота и уходит в кабинет.
+   U6 выставляет флаг на КАЖДОМ клике «Далее» — true в ветке ЛК,
+   false в остальных, — иначе он залип бы, как isMaxOverlayActive. */
+var ucLkSending = false;
+/* Открывать ли MAX через max.ru (приложение) — для адреса MAX
+   (ucMaxUrl). Выставляет U6 на КАЖДОМ клике «Далее» вне ветки ЛК (ей MAX
+   не нужен): на компьютере (ширина окна > CALC_DESKTOP, 480 px, — то же
+   условие, что показывает карточку «На сайте») — false, web.max.ru; на
+   телефоне — по выбору посетителя в блоке «Где открыть MAX»
+   («Приложение» — true, «WEB-версия» — false; план 2026-10-08-003).
+   Имя осталось от прежнего смысла «телефон», чтобы не менять сборку.
+   Переменная, а не поле формы, — по той же причине, что waMessenger:
+   Tilda чистит поля до колбэка. */
+var ucMsgMobile = false;
+
+/* Адрес перехода в бота MAX: mobile = true — max.ru (страница сама
+   откроет приложение), false — веб-клиент web.max.ru. Путь и
+   start-параметр одинаковые. Его же получает запасная кнопка
+   «Открыть в MAX» (showMaxOverlay). */
+function ucMaxUrl(bot, payload, mobile) {
+    return 'https://' + (mobile ? 'max.ru' : 'web.max.ru') + '/' + bot +
+           '?start=' + encodeURIComponent(payload);
+}
+
+window.ucQuiz = {
+    step: 0,
+    matchingCars: [],
+    selectedCar: null,
+    userNavigated: false,
+    /* Шаг 0 = Hero (нативный Zero Block, им управляет U1 — экранная обвязка);
+       шаг 1 = U3 (конфигуратор) + U4 (поп-ап оснащения); шаг 2 = U6 (галерея + форма).
+       Границу и все сравнения `e.detail.step === N` в слушателях менять только вместе. */
+    goTo: function(n) {
+        if (n < 0 || n > 2) return;
+        window.ucQuiz.step = n;
+        window.dispatchEvent(new CustomEvent('uc:step', { detail: { step: n, scroll: window.ucQuiz.userNavigated } }));
+    },
+    next: function() { window.ucQuiz.userNavigated = true; window.ucQuiz.goTo(window.ucQuiz.step + 1); },
+    back: function() { window.ucQuiz.userNavigated = true; window.ucQuiz.goTo(window.ucQuiz.step - 1); }
+};
+
+/* ============================================================
+   ОСНОВНОЙ СКРИПТ
+   ============================================================ */
+(function () {
+
+    /* Настройки сайта (решение владельца 2026-09-30, бриф бота L8).
+
+       Единственный источник настроек дилера — таблица Dealers в NocoDB.
+       На сайте задаётся только код дилера: скрытое поле dealer_id формы
+       Tilda (сейчас 99). Всё остальное — id таблиц каталога, оснащения
+       и ставок, карточка дилера, значения скрытых полей формы — лендинг
+       один раз запрашивает у бота: GET /cabinet/api/dealer/{код}.
+
+       Поле называется dealer_id, но несёт Dealer_Code — уникальный и
+       заполненный во всех строках. Не путать с колонкой Dealer_id в
+       NocoDB (слаг, повторяется и пуст в большинстве строк).
+
+       Адрес бота и путь кабинета — в блоке «ТЕСТ / БОЙ» в начале файла,
+       боты Telegram/MAX — с бота по марке (GET /bot-links), цвет кнопки
+       — в U1. */
+
+    const CONFIG = {
+        botUrl: window.UNIFIEDBOT_URL || ''
+    };
+
+    /* R2: expose _mainReady promise — resolves when allComplectations is set */
+    var _mainReadyResolve;
+    window._mainReady = new Promise(function (resolve) { _mainReadyResolve = resolve; });
+
+    /* --- Безопасное получение поля (регистронезависимо) --- */
+    function safelyGetField(item, fieldName) {
+        if (!item || !item.fields) return undefined;
+        if (Object.prototype.hasOwnProperty.call(item.fields, fieldName)) {
+            return item.fields[fieldName];
+        }
+        const targetClean = fieldName.toLowerCase().replace(/[\s_]/g, '');
+        for (let key of Object.keys(item.fields)) {
+            if (key.toLowerCase().replace(/[\s_]/g, '') === targetClean) {
+                return item.fields[key];
+            }
+        }
+        return undefined;
+    }
+
+    /* --- GET к боту ---
+       Адрес бота заблокирован защитой блока «ТЕСТ / БОЙ» (ngrok на
+       боевом хосте) — запрос не уходит вовсе: все потребители уже
+       умеют падать в «данных нет».
+       Без своих заголовков: такой GET браузер шлёт сразу, без
+       предварительного OPTIONS (~0,32 с на каждый запрос, замер
+       2026-10-08). Content-Type у GET без тела ничего не значил.
+       Заголовок ngrok — только для дев-бота (см. блок «ТЕСТ / БОЙ»),
+       там OPTIONS остаются. */
+    async function apiFetch(url) {
+        if (window.UC_SITE.blocked) throw new Error('адрес бота заблокирован (ТЕСТ / БОЙ)');
+        const resp = await fetch(url, window.UC_SITE.isNgrok
+            ? { headers: { 'ngrok-skip-browser-warning': '1' } }
+            : undefined);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status + ' for ' + url);
+        return resp.json();
+    }
+
+    /* --- Загрузить строки таблицы через /catalog бота --- */
+    async function loadTable(tableId) {
+        const raw = await apiFetch(CONFIG.botUrl + '/catalog/' + tableId);
+        return raw.list || raw;
+    }
+
+    /* --- Загрузить и отфильтровать данные авто --- */
+    /* Колонка активности — своя у дилера (разным дилерам нужен разный
+       набор моделей одного каталога): tables.catalog.active_field
+       настроек, по умолчанию «Active». */
+    async function loadCarData(tableMain, activeField) {
+        const dataList = await loadTable(tableMain);
+        const mapped = dataList.map(function (item) {
+            return { id: item.id || item.Id, fields: item };
+        });
+        return mapped.filter(function (item) {
+            const val = safelyGetField(item, activeField);
+            return val === true || val === 1 || val === 'true';
+        });
+    }
+
+    /* ── Настройки дилера ─────────────────────────────────────────── */
+
+    /* Скоуп на .uc-tildaform обязателен: на странице есть и другие
+       формы Tilda. Тот же приём — у U3 (skuId) и U7. */
+    function readDealerCode() {
+        const el = document.querySelector('.uc-tildaform input[name="dealer_id"]');
+        return el ? String(el.value || '').trim() : '';
+    }
+
+    /* Публичная карточка дилера: те же 7 полей и имена, что отдавал
+       /catalog для таблицы Dealers, — их и ждёт U7. */
+    const DEALER_FIELDS = ['Dealer_Code', 'Dealer_name', 'Dealer_address', 'Dealer_location',
+                           'Dealer_workinghours', 'Dealer_phone', 'Dealer_status'];
+    /* Скрытые поля формы, которые бот заполняет из Dealers. */
+    const FORM_VALUE_FIELDS = ['brand', 'dealer', 'website', 'letter_title', 'form_type'];
+    /* id таблицы NocoDB: строчные латиница и цифры. Всё прочее в путь
+       /catalog/{id} не подставляем. */
+    const TABLE_ID_RE = /^[a-z0-9]{10,20}$/;
+
+    /* Ответ бота → { tables, dealer, formValues } или null.
+       Единственное место, которое знает формат ответа: при смене
+       контракта правится только эта функция. Принимаются только
+       известные ключи и только строки; каталог обязателен — без него
+       страница не работает. */
+    function isRootPath(p) { return typeof p === 'string' && /^\/[^/]/.test(p); }
+
+    /* Адрес страницы кабинета: путь от корня или https на хосте этой
+       страницы (бот отдаёт полный адрес). Чужой хост — отбрасывается. */
+    function isOwnPageUrl(u) {
+        if (isRootPath(u)) return true;
+        if (typeof u !== 'string' || !/^https:\/\//i.test(u)) return false;
+        try { return new URL(u).hostname === window.location.hostname; } catch (e) { return false; }
+    }
+
+    /* Имя колонки NocoDB: буквы, цифры, «_», пробел; иначе — «Active» */
+    const ACTIVE_FIELD_DEFAULT = 'Active';
+    function activeFieldName(v) {
+        return (typeof v === 'string' && /^[A-Za-z0-9_ ]{1,64}$/.test(v.trim())) ? v.trim() : ACTIVE_FIELD_DEFAULT;
+    }
+
+    function parseDealerConfig(raw) {
+        if (!raw || typeof raw !== 'object') return null;
+        const t = raw.tables || {};
+        function tableId(key) {
+            const id = t[key] && t[key].table_id;
+            return (typeof id === 'string' && TABLE_ID_RE.test(id)) ? id : null;
+        }
+        const tables = { catalog: tableId('catalog'), features: tableId('features'), rates: tableId('rates') };
+        if (!tables.catalog) return null;
+
+        function pick(src, keys) {
+            const out = {};
+            let any = false;
+            keys.forEach(function (k) {
+                if (src && typeof src[k] === 'string' && src[k] !== '') { out[k] = src[k]; any = true; }
+            });
+            return any ? out : null;
+        }
+        return {
+            tables:     tables,
+            dealer:     pick(raw.dealer, DEALER_FIELDS),
+            formValues: pick(raw.form_values, FORM_VALUE_FIELDS) || {},
+            /* Для прогрева кабинета в U6 (L9): пути скриптов кабинета на
+               боте, с ?v=, и точный адрес страницы кабинета (путь + '?src=web',
+               как начало cabinet_url). Только пути от корня; нет ключа —
+               пустой список / null. */
+            cabinetAssets: Array.isArray(raw.cabinet_assets)
+                ? raw.cabinet_assets.filter(isRootPath)
+                : [],
+            cabinetPageUrl: isOwnPageUrl(raw.cabinet_page_url) ? raw.cabinet_page_url : null,
+            activeField:    activeFieldName(t.catalog && t.catalog.active_field)
+        };
+    }
+
+    /* Резолвится настройками или null — при любой ошибке: нет кода,
+       код не из двух цифр, 404 unknown_dealer, 503, сеть, чужой ответ. */
+    function fetchDealerConfig() {
+        const code = readDealerCode();
+        if (!/^\d{2}$/.test(code)) {
+            console.warn('⚠️ Код дилера не найден или неверен: поле dealer_id формы .uc-tildaform = «' + code + '»');
+            return Promise.resolve(null);
+        }
+        return apiFetch(CONFIG.botUrl + '/cabinet/api/dealer/' + code)
+            .then(function (raw) {
+                const cfg = parseDealerConfig(raw);
+                if (!cfg) console.warn('⚠️ Настройки дилера ' + code + ' без каталога или в неизвестном формате', raw);
+                return cfg;
+            })
+            .catch(function (e) {
+                console.error('⛔ Настройки дилера ' + code + ' не загрузились:', e);
+                return null;
+            });
+    }
+
+    /* Значения из Dealers — в одноимённые скрытые поля формы вместо
+       значений из редактора Tilda. form_type — значение по умолчанию:
+       вкладка «В личном кабинете» при отправке ставит своё. Пишется до
+       initGallery/initCards: U3 и U6 читают форму из DOM. */
+    function applyFormValues(values) {
+        const $f = $('.uc-tildaform');
+        Object.keys(values).forEach(function (name) {
+            $f.find('input[name="' + name + '"]').val(values[name]);
+        });
+    }
+
+    /* Каталога нет — uc:ready возвращает на Hero и того, кто успел
+       нажать кнопку Hero (см. обработчик uc:ready в buildPage) */
+    let _catalogFailed = false;
+
+    /* Одна ветка на все «данных нет»: настройки, каталог или пустой
+       каталог. Как и раньше при сбое каталога: скелетон убран, uc:ready
+       отправлен, _mainReady разрешён. */
+    function catalogUnavailable() {
+        _catalogFailed = true;
+        $('#uc-skeleton').hide();
+        $('.uc-cards-block').show();
+        window.dispatchEvent(new CustomEvent('uc:ready'));
+        _mainReadyResolve();
+    }
+
+    /* ── Боты Telegram / MAX по марке ─────────────────────────────── */
+
+    /* GET /bot-links → { bots: [{ channel, brands, link }] } или null */
+    function fetchBotLinks() {
+        return apiFetch(CONFIG.botUrl + '/bot-links')
+            .then(function (raw) { return (raw && Array.isArray(raw.bots)) ? raw.bots : null; })
+            .catch(function (e) { console.error('⛔ /bot-links не ответил:', e); return null; });
+    }
+
+    /* Имя бота из ссылки: https://t.me/<имя>, https://max.ru/<id> */
+    const BOT_LINK_RE = {
+        telegram: /^https:\/\/t\.me\/([A-Za-z0-9_]+)\/?$/,
+        max:      /^https:\/\/max\.ru\/([A-Za-z0-9_]+)\/?$/
+    };
+
+    /* Марка — form_values.brand в нижнем регистре. Запись с этой маркой
+       в brands важнее записи с «*» (любая марка). Telegram и MAX нужны
+       всем маркам: нет ответа или записи — ошибка в консоль, имя — null. */
+    function pickBots(cfg, list) {
+        const brand = String((cfg && cfg.formValues && cfg.formValues.brand) || '').trim().toLowerCase();
+        const out = { telegram: null, max: null };
+        Object.keys(out).forEach(function (channel) {
+            if (!list) return;
+            const ofChannel = list.filter(function (b) {
+                return b && b.channel === channel && Array.isArray(b.brands);
+            });
+            const exact = ofChannel.filter(function (b) {
+                return brand && b.brands.some(function (x) { return String(x).toLowerCase() === brand; });
+            });
+            if (exact.length > 1) console.warn('⚠️ /bot-links: несколько ботов ' + channel + ' для марки «' + brand + '», берётся первый');
+            const entry = exact[0] || ofChannel.filter(function (b) { return b.brands.indexOf('*') !== -1; })[0];
+            const m = entry && BOT_LINK_RE[channel].exec(String(entry.link || ''));
+            if (m) out[channel] = m[1];
+            else console.error('⛔ Нет бота ' + channel + ' для марки «' + brand + '» в /bot-links' + (entry ? ' (ссылка не распознана: ' + entry.link + ')' : ''));
+        });
+        if (!list) console.error('⛔ Боты Telegram и MAX не определены: /bot-links недоступен');
+        return out;
+    }
+
+    /* --- Точка входа ---
+       Две части (план 2026-10-08-005). Сетевая — startRequests():
+       настройки, /bot-links и таблицы уходят, как только известен код
+       дилера. Форма с ним на всех страницах стоит в HTML раньше U2,
+       поэтому запросы стартуют при выполнении блока, а не после
+       DOMContentLoaded (выигрыш 0,2–0,5 с). Работа с DOM — buildPage()
+       — по-прежнему на $(document).ready. Поля dealer_id при выполнении
+       U2 нет (форма ниже блока) — обе части на ready, как раньше. */
+    let _requests = null;
+    function startRequests() {
+        if (_requests) return _requests;
+        /* Все промисы выставляются синхронно: U4 и U7 подписываются на
+           них, не дожидаясь каталога. Каталог, оснащение, ставки и
+           карточка дилера идут параллельно, следом за настройками;
+           оснащение, ставки и карточка резолвятся в null при любой
+           ошибке. */
+        const configReady = fetchDealerConfig();
+        window._dealerConfigReady = configReady;
+
+        function tableReady(key) {
+            return configReady
+                .then(function (cfg) { return (cfg && cfg.tables[key]) ? loadTable(cfg.tables[key]) : null; })
+                .catch(function () { return null; });
+        }
+        window._featuresReady = tableReady('features');
+        /* Ставки — для шкалы платежа вкладки «В личном кабинете» (U6) */
+        window._ratesReady    = tableReady('rates');
+        /* Наружу уходит ОДНА строка дилера, выбранная ботом по коду. */
+        window._dealerReady   = configReady.then(function (cfg) { return cfg ? cfg.dealer : null; });
+        /* Боты Telegram/MAX — по марке дилера; /bot-links идёт параллельно
+           настройкам. Результат — и в window.UC_BOTS: его синхронно читает
+           mySuccessFunction. */
+        window._botLinksReady = Promise.all([configReady, fetchBotLinks()])
+            .then(function (r) { return pickBots(r[0], r[1]); })
+            .then(function (bots) { window.UC_BOTS = bots; return bots; });
+
+        /* Каталог: без настроек — null; ошибка — отказ, его разбирает
+           buildPage. Пустой обработчик — чтобы отказ до ready не попал
+           в консоль как необработанный. */
+        const carDataReady = configReady.then(function (cfg) {
+            return cfg ? loadCarData(cfg.tables.catalog, cfg.activeField) : null;
+        });
+        carDataReady.catch(function () {});
+
+        _requests = { configReady: configReady, carDataReady: carDataReady };
+        return _requests;
+    }
+
+    async function buildPage(req) {
+        // Must be registered before initCards to avoid race condition:
+        // uc:ready fires synchronously inside selectComplectation call chain.
+        // Стартовый экран — шаг 0 (Hero). В квиз посетитель попадает кликом
+        // по кнопке Hero, которую перехватывает U1 (экранная обвязка).
+        // Кнопка нажимается и до uc:ready (окно 2,5–5,4 с, замер
+        // 2026-10-08): тогда посетитель уже на шаге 1 со скелетом, и
+        // готовность не возвращает его на Hero, а повторяет шаг без
+        // прокрутки — карточки достраиваются на месте. Каталога нет — Hero,
+        // как прежде. План 2026-10-08-004.
+        window.addEventListener('uc:ready', function () {
+            const q = window.ucQuiz;
+            if (_catalogFailed || q.step === 0) { q.goTo(0); return; }
+            window.dispatchEvent(new CustomEvent('uc:step', { detail: { step: q.step, scroll: false } }));
+        }, { once: true });
+
+        const cfg = await req.configReady;
+        if (!cfg) { catalogUnavailable(); return; }
+        applyFormValues(cfg.formValues);
+
+        let airData = [];
+        try {
+            airData = await req.carDataReady;
+        } catch (e) {
+            console.error('⛔ Ошибка загрузки данных авто:', e);
+            catalogUnavailable();
+            return;
+        }
+        if (!airData.length) {
+            console.warn('⚠️ Нет активных авто. Проверьте колонку «' + cfg.activeField + '» в таблице', cfg.tables.catalog);
+            catalogUnavailable();
+            return;
+        }
+
+        allComplectations = airData;
+        _mainReadyResolve(); /* R2: signal that allComplectations is populated */
+
+        /* U3 и U6 зовут new Swiper без проверки — ждём библиотеку (или
+           статичный слайдер, см. загрузчик в начале блока). Грузилась она
+           параллельно данным: в обычном случае ожидания нет. */
+        await window._swiperReady;
+
+        /* Любое исключение при построении карточек и галереи — не вечный
+           скелет, а «каталог недоступен»: скелет скрыт, uc:ready, Hero. */
+        try {
+            if (typeof window.initGallery === 'function') {
+                window.initGallery(airData);
+            }
+            if (typeof window.initCards === 'function') {
+                window.initCards(airData);
+            }
+        } catch (e) {
+            console.error('⛔ Ошибка построения карточек или галереи:', e);
+            catalogUnavailable();
+        }
+    }
+
+    if (document.querySelector('.uc-tildaform input[name="dealer_id"]')) startRequests();
+
+    $(document).ready(function () {
+        buildPage(startRequests());
+    });
+
+})();
+
+/* ============================================================
+   CALLBACK TILDA: вызывается после успешной отправки формы
+   ============================================================ */
+function mySuccessFunction(form) {
+    /* Ветка ЛК: дальше ведёт U6 (см. ucLkSending выше) */
+    if (window.ucLkSending) return;
+
+    const $form = $(form);
+    const messenger = waMessenger || '';
+
+    if (waSend) {
+        const payload = skuId + '_' + globalModelUtm;
+
+        const bots = window.UC_BOTS || {};
+        if ((messenger === 'Telegram' && !bots.telegram) || (messenger === 'MAX' && !bots.max)) {
+            /* Ссылки нет (/bot-links не ответил или нет записи для марки):
+               заявка ушла, перехода нет — страница перезагрузится ниже */
+            console.error('⛔ Нет ссылки на бота ' + messenger + ' — переход не выполнен');
+        } else if (messenger === 'Telegram') {
+            /* Мобайл — Telegram */
+            /* Имя бота — из /bot-links по марке дилера */
+            const tgBot      = bots.telegram;
+            const tgUrl      = 'https://t.me/' + tgBot + '?start=' + payload;
+            const tgDeepLink = 'tg://resolve?domain=' + tgBot + '&start=' + payload;
+            window.location.href = tgDeepLink;
+            setTimeout(function () {
+                if (document.visibilityState === 'visible') {
+                    window.location.href = tgUrl;
+                }
+            }, 1500);
+
+        } else if (messenger === 'MAX') {
+            /* MAX: max.ru или web.max.ru по ucMsgMobile (ucMaxUrl).
+               Имя бота — из /bot-links по марке дилера */
+            const maxUrl = ucMaxUrl(bots.max, payload, ucMsgMobile);
+            window.isMaxOverlayActive = true;
+
+            const cover = document.createElement('div');
+            cover.id = 'max-transition-cover';
+            cover.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
+                'background:#ffffff;z-index:2147483647;display:flex;align-items:center;' +
+                'justify-content:center;flex-direction:column;color:#000;font-family:sans-serif;';
+            cover.innerHTML = '<div style="font-size:16px;opacity:0.6;">Переходим в MAX...</div>';
+            document.body.appendChild(cover);
+
+            let appOpened = false;
+            document.addEventListener('visibilitychange', function () {
+                if (document.visibilityState === 'hidden') appOpened = true;
+            });
+
+            window.location.href = maxUrl;
+
+            setTimeout(function () {
+                const c = document.getElementById('max-transition-cover');
+                if (c) c.remove();
+                if (!appOpened && document.visibilityState === 'visible') {
+                    showMaxOverlay(maxUrl);
+                }
+            }, 1500);
+
+        }
+        /* messenger === 'web' (десктоп + В чате):
+           TD-виджет уже открыт из U5 до submit,
+           isMaxOverlayActive уже выставлен там же — ничего не делаем */
+    }
+
+    /* Перезагрузка для «По телефону» или если виджет/мессенджер не был открыт */
+    if (!window.isMaxOverlayActive) {
+        setTimeout(function () { location.reload(); }, 1000);
+    }
+}
+
+/* ============================================================
+   OVERLAY MAX (bottom sheet с кнопкой «Открыть в MAX»)
+   ============================================================ */
+/* Закрыть всё, что Tilda могла открыть поверх страницы, перед нашим
+   оверлеем MAX и при возврате во вкладку.
+
+   Нативные поп-апы Tilda (.t-popup — «Политика», «Согласие» и др.)
+   НЕ удаляются, а закрываются: их ищет по своему блоку T390, и без
+   узла следующий клик по ссылке #popup:… падает в tilda-popup на
+   focus() у null, успев заблокировать прокрутку классом на <body>.
+   Так было до 2026-10-08: обработчик возврата удалял .t-popup, и после
+   любого переключения вкладки юридические ссылки переставали
+   открываться до перезагрузки. Окна успеха формы и корзину удаляем,
+   как раньше, — их Tilda создаёт заново. */
+function ucCloseTildaOverlays() {
+    document.querySelectorAll('.t-popup.t-popup_show').forEach(function (el) {
+        el.classList.remove('t-popup_show');
+        el.style.display = 'none';
+    });
+    document.querySelectorAll(
+        '.t-form-success-popup, .t-form__successbox, .t706__cartwin'
+    ).forEach(function (el) { el.remove(); });
+    document.body.classList.remove('t-body_popupshowed', 't390__body_popupshowed');
+}
+
+function showMaxOverlay(url) {
+    /* Веб-клиент (компьютер и «WEB-версия» на телефоне) — свои надписи:
+       приложения там нет. Адрес кнопки — тот же, что у перехода. */
+    const web = /^https:\/\/web\.max\.ru\//.test(url);
+    setTimeout(ucCloseTildaOverlays, 50);
+
+    document.body.style.overflow = 'hidden';
+
+    const backdrop = document.createElement('div');
+    backdrop.id = 'max-overlay-backdrop';
+    backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;' +
+        'background:rgba(0,0,0,0.3);z-index:2147483646;';
+    document.body.appendChild(backdrop);
+
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;background:#fff;' +
+        'z-index:2147483647;display:flex;align-items:center;justify-content:center;' +
+        'flex-direction:column;color:#000;font-family:sans-serif;' +
+        'padding:28px 20px 34px;box-shadow:0 -6px 24px rgba(0,0,0,0.18);' +
+        'border-radius:16px 16px 0 0;box-sizing:border-box;';
+    overlay.innerHTML =
+        '<a id="max-open-btn" href="' + url + '" ' +
+        'style="background:#000;color:#fff;padding:16px 40px;border-radius:10px;' +
+        'text-decoration:none;font-size:18px;font-weight:bold;text-align:center;' +
+        'display:block;width:100%;max-width:300px;box-sizing:border-box;">' +
+        (web ? '🌐 Открыть MAX в браузере' : '📱 Открыть в MAX') + '</a>' +
+        '<p style="margin-top:16px;font-size:14px;opacity:0.6;text-align:center;' +
+        'padding:0 10px;line-height:1.4;">' +
+        (web ? 'Для перехода в MAX нажмите на кнопку'
+             : 'Для перехода в приложение MAX нажмите на кнопку') + '</p>';
+    document.body.appendChild(overlay);
+
+    document.getElementById('max-open-btn').addEventListener('click', function () {
+        setTimeout(function () { location.reload(); }, 2000);
+    });
+}
+
+/* ============================================================
+   ПОДПИСКА НА TILDA SUCCESS EVENT
+   Событие tildaform:aftersuccess срабатывает на самом <form>
+   (e.target = "t-form js-form-proccess ..."), не на обёртке
+   .uc-tildaform — поэтому используем .closest() вместо прямой
+   проверки класса e.target.
+   Параллельно регистрируем window[cbName] из data-success-callback
+   формы на случай, если Tilda вызывает колбэк по имени напрямую.
+   ============================================================ */
+document.addEventListener('tildaform:aftersuccess', function (e) {
+    if ($(e.target).closest('.uc-tildaform').length > 0) {
+        mySuccessFunction(e.target);
+    }
+});
+
+$(document).ready(function () {
+    var $form = $('.uc-tildaform .js-form-proccess');
+    if ($form.length) {
+        var cbName = $form.attr('data-success-callback');
+        if (cbName && typeof window[cbName] === 'undefined') {
+            window[cbName] = function (form) { mySuccessFunction(form); };
+        }
+    }
+});
+
+/* ============================================================
+   ВОЗВРАТ В БРАУЗЕР из приложения MAX / Telegram:
+   снимаем все оверлеи и восстанавливаем scroll
+   ============================================================ */
+document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') {
+        document.body.style.overflow = '';
+        /* Снимаем Tilda scroll-lock */
+        document.body.classList.remove('t-body_scroll-locked', 't-body_success-popup-showed');
+        /* Поп-апы Tilda — закрыть (не удалять), окна успеха — удалить */
+        ucCloseTildaOverlays();
+        var cover = document.getElementById('max-transition-cover');
+        if (cover) cover.remove();
+        var backdrop = document.getElementById('max-overlay-backdrop');
+        if (backdrop) backdrop.remove();
+        var popup = document.getElementById('messengerPopup');
+        if (popup) {
+            popup.classList.remove('messenger-popup--visible');
+            popup.style.display = 'none';
+            popup.style.pointerEvents = 'none';
+        }
+    }
+});
+
+</script>
+
+<style>
+.t-form-success-popup__wrapper {
+    display: none !important;
+}
+#tildaformsuccesspopup-new {
+    display: none !important;
+}
+</style>

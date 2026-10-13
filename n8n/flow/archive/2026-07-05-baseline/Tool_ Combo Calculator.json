@@ -1,0 +1,422 @@
+{
+  "name": "Tool: Combo Calculator",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "// ==========================================\n// ⚙️ НАСТРОЙКИ (Ваш реальный домен NocoDB)\n// ==========================================\nconst MY_NOCO_DOMAIN = 'https://v9dt-o63u-4adx.gw-1a.dockhost.net'; \n// ==========================================\n\n// 1. ИНИЦИАЛИЗАЦИЯ И ЗАЩИТА ОТ ПУСТЫХ ДАННЫХ\nfunction getSafeAll(nodeName, checkField) {\n    try { \n        const items = $(nodeName).all().map(i => i.json);\n        if (items.length === 1 && !items[0][checkField]) return [];\n        return items;\n    } catch (e) { return []; }\n}\n\nfunction getSafeFirst(nodeName, checkField) {\n    try { \n        const item = $(nodeName).first().json;\n        if (!item[checkField]) return null;\n        return item;\n    } catch (e) { return null; }\n}\n\n// [НОВОЕ] 2. ПЕРЕХВАТ ДАННЫХ ИЗ САБФЛОУ (ВМЕСТО HTTP REQUEST)\n// ⚠️ Замените 'Execute Workflow', если ваша нода сабфлоу называется иначе!\nlet autoEvalData = {};\ntry {\n    autoEvalData = $('Execute Workflow').first().json;\n} catch(e) {}\n\n// 🚨 БЛОКИРОВКА №1: ЕСЛИ ОЦЕНКА ВЕРНУЛА ОШИБКУ ИЛИ IN_PROGRESS - СРАЗУ ОТДАЕМ ЕЕ БОТУ\nif (autoEvalData && autoEvalData.status && autoEvalData.status !== \"SUCCESS\") {\n    return {\n        json: {\n            combo_calculation: {\n                status: autoEvalData.status, // \"IN_PROGRESS\" или \"NOT_FOUND\"\n                message: autoEvalData.message || \"Отчет формируется. Уточните марку и год.\"\n            }\n        }\n    };\n}\n\n// Если оценка SUCCESS, достаем из нее готовые цены и детали\nlet tradeinValue = autoEvalData.tradein_price_to || 0;\nlet tradeinStatus = \"SUCCESS\";\nlet autoRuCarDetails = {\n    tradein_make: autoEvalData.tradein_make || \"\",\n    tradein_model: autoEvalData.tradein_model || \"\",\n    tradein_year: autoEvalData.tradein_year || 0,\n    tradein_horse_power: autoEvalData.tradein_horse_power || 0,\n    tradein_transmission: autoEvalData.tradein_transmission || \"\",\n    tradein_steering_wheel: autoEvalData.tradein_steering_wheel || \"\"\n};\n\n// 3. СБОР ДАННЫХ ИЗ БАЗЫ (Выполняется только если оценка SUCCESS)\nconst triggerNode = $('Execute Workflow Trigger').first();\nconst triggerData = triggerNode ? triggerNode.json : {};\n\nlet context = {};\ntry {\n    context = typeof triggerData.qualification_context === 'string' \n        ? JSON.parse(triggerData.qualification_context) \n        : (triggerData.qualification_context || {});\n} catch(e) {}\n\nconst query = context.model || triggerData.query || \"Авто\";\nconst dealerId = context.dealer_id || (triggerData.dealer_id || \"unknown\");\nconst rawPayment = context.payment || context.credit_payment || triggerData.payment || \"0\";\nconst userPayment = Number(String(rawPayment).replace(/\\D/g, '')) || 0;\nconst requestType = context.request_type || \"combo\";\nlet targetComplectationId = (context.selected_complectation_id || context.complectation_id || \"00\").toString();\nconst requestTypeName = \"Расчет комбо (Трейд-ин + Кредит)\";\nlet targetComplectationName = (targetComplectationId === \"00\") ? \"Любая\" : \"Не найдена\";\n\nconst catalogItems = getSafeAll('Get Catalog', 'Model');\nconst stockItems = getSafeAll('Get Stock', 'Model'); \nconst ratesList = getSafeAll('Get Rates', 'Rate');   \nconst program = getSafeFirst('Get Program', 'Program_Name'); \n\nif (!catalogItems.length) {\n    return { \n        json: {\n            combo_calculation: {\n                status: \"error\",\n                message: `По запросу \"${query}\" модели не найдены в каталоге.`\n            }\n        } \n    };\n}\n\n// ---------------------------------------------------------\n// 4. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ОКРУГЛЕНИЯ\n// ---------------------------------------------------------\nfunction round10k(val) { return Math.round(val / 10000) * 10000; }\nfunction round1k(val) { return Math.round(val / 1000) * 1000; }\n\nfunction extractUrl(fileObj) {\n    if (!fileObj) return null;\n    if (typeof fileObj === 'string') return fileObj;\n    return fileObj.signedUrl || fileObj.url || fileObj.path || null;\n}\n\nfunction calculatePMT(loan, rateYear, months) {\n    let rateMonth = rateYear / 12;\n    if (rateMonth <= 0.00001) return loan / months;\n    return (loan * rateMonth) / (1 - Math.pow(1 + rateMonth, -months));\n}\n\nfunction getSmartRate(term, downPct) {\n    if (!ratesList || ratesList.length === 0) return { val: 0.16, text: \"16% (Default)\" };\n    const match = ratesList.find(r => {\n        const tFrom = Number(r.Term_From);\n        const tTo   = Number(r.Term_To);\n        const dFrom = Number(r.Downpayment_From);\n        const dTo   = (r.Downpayment_To !== undefined && r.Downpayment_To !== null && r.Downpayment_To !== \"\") ? Number(r.Downpayment_To) : 100;\n        return term >= tFrom && term <= tTo && downPct >= dFrom && downPct <= dTo;\n    });\n    if (match) return { val: Number(match.Rate) / 100, text: `${match.Rate}%` };\n    \n    const termCandidates = ratesList.filter(r => term >= Number(r.Term_From) && term <= Number(r.Term_To));\n    if (termCandidates.length > 0) {\n        termCandidates.sort((a, b) => Number(a.Downpayment_From) - Number(b.Downpayment_From));\n        const best = termCandidates[0];\n        return { val: Number(best.Rate) / 100, text: `~${best.Rate}%` };\n    }\n    return { val: 0.16, text: \"~16% (Fallback)\" };\n}\n\nfunction calculateComboScenarios(price, targetPayment, tradeinValue, tradeinStatus) {\n    if (tradeinStatus !== \"SUCCESS\") {\n        return { status: \"error\", message: \"Не удалось автоматически оценить старый автомобиль.\" };\n    }\n    if (tradeinValue >= price) {\n        return { status: \"full_coverage\", message: \"Стоимость старого авто полностью покрывает покупку нового!\" };\n    }\n\n    const loan = price - tradeinValue;\n    const downPct = (tradeinValue / price) * 100;\n    const maxTerm = program ? (Number(program.Max_Term_Months) || 84) : 84;\n    const terms = [12, 24, 36, 48, 60, 72, 84].filter(t => t <= maxTerm);\n\n    let bestScenario = null;\n    for (let term of terms) {\n        let r = getSmartRate(term, downPct);\n        let pmt = calculatePMT(loan, r.val, term);\n        if (targetPayment > 0 && pmt <= targetPayment) {\n            bestScenario = {\n                status: \"success\",\n                term: term,\n                monthly_payment: round1k(pmt),\n                down_payment: tradeinValue,\n                rate_text: r.text\n            };\n            break; \n        }\n    }\n\n    if (!bestScenario) {\n        let r = getSmartRate(maxTerm, downPct);\n        let minPmt = calculatePMT(loan, r.val, maxTerm);\n        bestScenario = {\n            status: \"impossible\",\n            term: maxTerm,\n            monthly_payment: round1k(minPmt),\n            down_payment: tradeinValue,\n            rate_text: r.text,\n            warning: \"Желаемый платеж слишком мал. Расчет произведен на максимальный срок.\"\n        };\n    }\n    return bestScenario;\n}\n\n// ---------------------------------------------------------\n// 5. АГРЕГАЦИЯ ДАННЫХ И КОМБО РАСЧЕТ\n// ---------------------------------------------------------\nconst grouped = {};\nlet rootComboCalculation = null; // Выносим расчет в корень для нейросети\n\nfor (const trim of catalogItems) {\n    const trimName = trim.Complectation;\n    const trimId = (trim['Complectation id'] || trim['Complectation_id'] || trim.Id || \"\").toString();\n\n    if (trimId === targetComplectationId) targetComplectationName = trimName;\n\n    if (!grouped[trimId]) {\n        const basePrice = round10k(Number(trim['Price new']));\n        const creditBonus = round10k(Number(trim['Credit bonus']) || 0);\n        const tradeinBonus = round10k(Number(trim['Trade-in bonus']) || 0);\n        \n        const finalComboPrice = basePrice - creditBonus - tradeinBonus;\n\n        const rawPics = trim['Pics'] || [];\n        let picsArray = Array.isArray(rawPics) ? rawPics : [];\n        const sortedImages = {};\n        for (const pic of picsArray) {\n            const fName = (pic.title || pic.path || \"\").toLowerCase();\n            let url = extractUrl(pic);\n            if (url && !url.startsWith('http')) {\n                const cleanPath = url.startsWith('/') ? url.substring(1) : url;\n                url = `${MY_NOCO_DOMAIN}/${cleanPath}`;\n            }\n            if (url) {\n                if (fName.includes('ext1')) sortedImages.exterior_front = url;\n                else if (fName.includes('ext2')) sortedImages.exterior_rear = url;\n                else if (fName.includes('int1')) sortedImages.interior_dashboard = url;\n            }\n        }\n\n        const comboInfo = calculateComboScenarios(finalComboPrice, userPayment, tradeinValue, tradeinStatus);\n        \n        // Запоминаем расчет для нужной (или первой) комплектации, чтобы отдать его в корень\n        if (!rootComboCalculation || trimId === targetComplectationId) {\n            rootComboCalculation = comboInfo;\n        }\n        \n        let featuresList = trim.Features ? trim.Features.split('\\n').map(s => s.trim()) : [];\n        const minusRaw = trim['Minus Features'] || \"\"; \n        const minusList = minusRaw.split('\\n').map(s => s.trim().toLowerCase()).filter(s => s !== '');\n        const finalFeatures = featuresList.filter(f => {\n            if (f === '') return false;\n            if (f.toLowerCase().includes('топовые опции')) return false;\n            return !minusList.some(minus => f.toLowerCase().includes(minus));\n        });\n\n        grouped[trimId] = {\n            id: trimId, \n            name: trimName,\n            full_name: trim['Model title'] || trimName,\n            price: {\n                MSRP: basePrice,\n                credit_bonus: creditBonus,\n                tradein_bonus: tradeinBonus,\n                combo_price: finalComboPrice\n            },\n            features: finalFeatures,\n            images: sortedImages,\n            combo_calculation: comboInfo \n        };\n    }\n}\n\n// ---------------------------------------------------------\n// 6. ФОРМИРОВАНИЕ ФИНАЛЬНОГО ОТВЕТА\n// ---------------------------------------------------------\nreturn {\n    json: { \n        model: catalogItems[0].Model,\n        dealer_id_used: dealerId,\n        user_request: {\n            payment: userPayment, \n            query: query,\n            type: requestType,\n            type_name: requestTypeName,\n            selected_complectation_id: targetComplectationId,\n            selected_complectation_name: targetComplectationName,\n            plate: context.plate || triggerData.plate || \"\" \n        },\n        tradein_evaluation: {\n            status: tradeinStatus,\n            estimated_value: tradeinValue,\n            ...autoRuCarDetails\n        },\n        combo_calculation: rootComboCalculation, // 💥 Теперь этот блок в корне, бот его легко найдет!\n        complectations: Object.values(grouped).sort((a,b) => a.price.MSRP - b.price.MSRP),\n        summary: {\n            total_stock: stockItems.length,\n            model_name: catalogItems[0].Model\n        }\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        64
+      ],
+      "id": "ed4ecf71-4482-48c2-af64-a7271de18d55",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.catalog_table_id }}",
+        "returnAll": true,
+        "options": {
+          "where": "={{\n  $('Parse Input').first().json.qualification_context?.model_id\n  ? `(Model id,eq,${$('Parse Input').first().json.qualification_context.model_id})`\n  : `(Model,eq,${$('Parse Input').first().json.query})`\n}}"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        -64,
+        64
+      ],
+      "id": "fa635277-4aac-45c2-9d2b-29288bda5f39",
+      "name": "Get Catalog",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "plate"
+            },
+            {
+              "name": "mileage"
+            },
+            {
+              "name": "payment"
+            },
+            {
+              "name": "query"
+            },
+            {
+              "name": "qualification_context"
+            },
+            {
+              "name": "data_routing"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -768,
+        64
+      ],
+      "id": "f46e3fc3-8151-4f02-a042-94c74726592c",
+      "name": "Execute Workflow Trigger"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.program_table_id }}",
+        "options": {
+          "where": "=(Model_Pattern,like,%{{ $('Get Catalog').first().json.Id }}%)"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        288,
+        64
+      ],
+      "id": "6e15d10b-99ab-4c19-8af7-6a10380902b6",
+      "name": "Get Program",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.catalog_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.credit_table_id }}",
+        "options": {
+          "where": "="
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        464,
+        64
+      ],
+      "id": "81e36bd5-560d-41fc-ae3f-4f3cca6e36ed",
+      "name": "Get Rates",
+      "executeOnce": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Делаем копию данных\nlet item = JSON.parse(JSON.stringify($input.first().json));\nitem.debug_logs = {};\n\nfunction forceParse(value, fieldName) {\n    if (typeof value !== 'string') return value;\n\n    // 💥 СРЕЗАЕМ ЗНАК '=' В НАЧАЛЕ СТРОКИ (Если n8n его туда приклеил)\n    let cleanValue = value.trim();\n    if (cleanValue.startsWith('=')) {\n        cleanValue = cleanValue.substring(1);\n    }\n\n    try {\n        // Попытка 1: Стандартный парсинг очищенной строки\n        let parsed = JSON.parse(cleanValue);\n        if (typeof parsed === 'string') {\n            parsed = JSON.parse(parsed);\n        }\n        item.debug_logs[fieldName + '_status'] = \"Успешно (JSON.parse)\";\n        return parsed;\n    } catch (e1) {\n        item.debug_logs[fieldName + '_error_1'] = e1.message;\n        try {\n            // Попытка 2: Бульдозер\n            let bulldozerParsed = Function('\"use strict\";return (' + cleanValue + ')')();\n            item.debug_logs[fieldName + '_status'] = \"Успешно (Бульдозер)\";\n            return bulldozerParsed;\n        } catch (e2) {\n            item.debug_logs[fieldName + '_error_2'] = e2.message;\n            return cleanValue; \n        }\n    }\n}\n\n// 3. Пропускаем переменные через парсер\nitem.qualification_context = forceParse(item.qualification_context, 'context');\nitem.data_routing = forceParse(item.data_routing, 'routing');\n\nif (item.query) {\n    item.query = forceParse(item.query, 'query');\n}\n\nreturn { json: item };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        64
+      ],
+      "id": "c2730b8e-7590-46fe-a6e2-8c6ab0ac39e2",
+      "name": "Parse Input"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "projectId": "={{ $('Parse Input').first().json.data_routing.stock_base_id }}",
+        "table": "={{ $('Parse Input').first().json.data_routing.stock_table_id }}",
+        "returnAll": true,
+        "options": {
+          "where": "=(Dealer_id,eq,{{ $('Parse Input').first().json.qualification_context.dealer_id }})~and(Model,eq,{{ $('Get Catalog').first().json.Model_short }})"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        112,
+        64
+      ],
+      "id": "356c8518-e03f-4c9a-b20e-4a5ef1be8838",
+      "name": "Get Stock",
+      "alwaysOutputData": true,
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "ijM4z0UsgIXr8sqx",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://apiauto.ru/1.0/stats/partner/predict_by_vin_or_lp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-authorization",
+              "value": "__SET_IN_N8N_CREDENTIALS__"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{\n  {\n    \"vin_or_lp\": String($json.plate).replace('=', '').trim(),\n    \"mileage\": Number(String($json.mileage).replace(/\\D/g, '')),\n    \"geo_id\": 213,\n    \"seller_type\": \"PRIVATE\"\n  }\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -320,
+        256
+      ],
+      "id": "f4b85d1b-35f2-4116-86c6-0a1fbb8de3ad",
+      "name": "HTTP Request",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ZYVac3Twp_ugyP3Jngwhj",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ZYVac3Twp_ugyP3Jngwhj",
+          "cachedResultName": "TOOL: AUTO.RU EVALUATION"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "plate": "={{ $('Execute Workflow Trigger').item.json.plate }}",
+            "mileage": "={{ $('Execute Workflow Trigger').item.json.mileage }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "plate",
+              "displayName": "plate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "mileage",
+              "displayName": "mileage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -416,
+        64
+      ],
+      "id": "db06addb-3027-44f8-b3a0-5c0ecaed0581",
+      "name": "Execute Workflow"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a66bc2eb-b1a6-403a-9609-1f48c482f0f6",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "SUCCESS",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -256,
+        64
+      ],
+      "id": "ae57bd47-2fab-41bb-b446-2b843c78097b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ==========================================\n// ⚙️ НАСТРОЙКИ (Ваш реальный домен NocoDB)\n// ==========================================\nconst MY_NOCO_DOMAIN = 'https://v9dt-o63u-4adx.gw-1a.dockhost.net'; \n// ==========================================\n\n// 1. ИНИЦИАЛИЗАЦИЯ И ЗАЩИТА ОТ ПУСТЫХ ДАННЫХ\nfunction getSafeAll(nodeName, checkField) {\n    try { \n        const items = $(nodeName).all().map(i => i.json);\n        if (items.length === 1 && !items[0][checkField]) return [];\n        return items;\n    } catch (e) { return []; }\n}\n\nfunction getSafeFirst(nodeName, checkField) {\n    try { \n        const item = $(nodeName).first().json;\n        if (!item[checkField]) return null;\n        return item;\n    } catch (e) { return null; }\n}\n\nconst triggerNode = $('Execute Workflow Trigger').first();\nconst triggerData = triggerNode ? triggerNode.json : {};\n\nlet context = {};\ntry {\n    context = typeof triggerData.qualification_context === 'string' \n        ? JSON.parse(triggerData.qualification_context) \n        : (triggerData.qualification_context || {});\n} catch(e) {}\nconst query = context.model || triggerData.query || \"Авто\";\nconst dealerId = context.dealer_id || (triggerData.dealer_id || \"unknown\");\nconst rawPayment = context.payment || context.credit_payment || triggerData.payment || \"0\";\nconst userPayment = Number(String(rawPayment).replace(/\\D/g, '')) || 0;\nconst requestType = context.request_type || \"combo\";\n// Добавили поиск по правильному ключу selected_complectation_id\nlet targetComplectationId = (context.selected_complectation_id || context.complectation_id || \"00\").toString();\nconst requestTypeName = \"Расчет комбо (Трейд-ин + Кредит)\";\nlet targetComplectationName = (targetComplectationId === \"00\") ? \"Любая\" : \"Не найдена\";\n\nconst catalogItems = getSafeAll('Get Catalog', 'Model');\nconst stockItems = getSafeAll('Get Stock', 'Model'); \nconst ratesList = getSafeAll('Get Rates', 'Rate');   \nconst program = getSafeFirst('Get Program', 'Program_Name'); \n\n// [НОВОЕ] ПЕРЕХВАТЫВАЕМ ОЦЕНКУ И ХАРАКТЕРИСТИКИ ИЗ УЗЛА HTTP REQUEST (Auto.ru)\nlet autoRuRaw = {};\nlet autoRuCarDetails = {}; // Создаем объект для хранения марки и модели\ntry {\n    autoRuRaw = $('HTTP Request').first().json;\n    if (autoRuRaw && autoRuRaw.found_info) {\n        // Сразу называем ключи так, как их ждет схема в Битриксе\n        autoRuCarDetails = {\n            tradein_make: autoRuRaw.found_info.mark || \"\",\n            tradein_model: autoRuRaw.found_info.model || \"\",\n            tradein_year: autoRuRaw.found_info.year || 0,\n            tradein_horse_power: autoRuRaw.found_info.horse_power || 0,\n            tradein_transmission: autoRuRaw.found_info.transmission || \"\",\n            tradein_steering_wheel: autoRuRaw.found_info.steering_wheel || \"\"\n        };\n    }\n} catch(e) { /* Игнорируем, если узла нет или он упал */ }\n\nif (!catalogItems.length) {\n    return { \n        json: {\n            result_text: `По запросу \"${query}\" модели не найдены в каталоге.`,\n            stock_count: 0,\n            complectations: []\n        } \n    };\n}\n\n// ---------------------------------------------------------\n// 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И ОКРУГЛЕНИЯ\n// ---------------------------------------------------------\nfunction round10k(val) { return Math.round(val / 10000) * 10000; }\nfunction round1k(val) { return Math.round(val / 1000) * 1000; }\n\nfunction extractUrl(fileObj) {\n    if (!fileObj) return null;\n    if (typeof fileObj === 'string') return fileObj;\n    return fileObj.signedUrl || fileObj.url || fileObj.path || null;\n}\n\nfunction calculatePMT(loan, rateYear, months) {\n    let rateMonth = rateYear / 12;\n    if (rateMonth <= 0.00001) return loan / months;\n    return (loan * rateMonth) / (1 - Math.pow(1 + rateMonth, -months));\n}\n\nfunction getSmartRate(term, downPct) {\n    if (!ratesList || ratesList.length === 0) return { val: 0.16, text: \"16% (Default)\" };\n    const match = ratesList.find(r => {\n        const tFrom = Number(r.Term_From);\n        const tTo   = Number(r.Term_To);\n        const dFrom = Number(r.Downpayment_From);\n        const dTo   = (r.Downpayment_To !== undefined && r.Downpayment_To !== null && r.Downpayment_To !== \"\") ? Number(r.Downpayment_To) : 100;\n        return term >= tFrom && term <= tTo && downPct >= dFrom && downPct <= dTo;\n    });\n    if (match) return { val: Number(match.Rate) / 100, text: `${match.Rate}%` };\n    \n    const termCandidates = ratesList.filter(r => term >= Number(r.Term_From) && term <= Number(r.Term_To));\n    if (termCandidates.length > 0) {\n        termCandidates.sort((a, b) => Number(a.Downpayment_From) - Number(b.Downpayment_From));\n        const best = termCandidates[0];\n        return { val: Number(best.Rate) / 100, text: `~${best.Rate}%` };\n    }\n    return { val: 0.16, text: \"~16% (Fallback)\" };\n}\n\n// [НОВОЕ] ОБРАБОТКА ОЦЕНКИ СТАРОГО АВТО\nlet tradeinValue = 0;\nlet tradeinStatus = \"SUCCESS\";\n\nif (autoRuRaw.prices && autoRuRaw.prices.tradein) {\n    tradeinValue = autoRuRaw.prices.tradein.from;\n} else if (autoRuRaw.price_range && autoRuRaw.price_range.from > 0) {\n    tradeinValue = autoRuRaw.price_range.from;\n} else if (autoRuRaw.error === \"IN_PROGRESS\") {\n    tradeinStatus = \"IN_PROGRESS\";\n} else {\n    tradeinStatus = \"NOT_FOUND\";\n}\ntradeinValue = round10k(tradeinValue);\n\n// [НОВОЕ] ФУНКЦИЯ КОМБО-РАСЧЕТА (Ищет срок под платеж, используя оценку как взнос)\nfunction calculateComboScenarios(price, targetPayment, tradeinValue, tradeinStatus) {\n    if (tradeinStatus !== \"SUCCESS\") {\n        return { status: \"error\", message: \"Не удалось автоматически оценить старый автомобиль.\" };\n    }\n    if (tradeinValue >= price) {\n        return { status: \"full_coverage\", message: \"Стоимость старого авто полностью покрывает покупку нового!\" };\n    }\n\n    const loan = price - tradeinValue;\n    const downPct = (tradeinValue / price) * 100;\n    const maxTerm = program ? (Number(program.Max_Term_Months) || 84) : 84;\n    const terms = [12, 24, 36, 48, 60, 72, 84].filter(t => t <= maxTerm);\n\n    let bestScenario = null;\n    for (let term of terms) {\n        let r = getSmartRate(term, downPct);\n        let pmt = calculatePMT(loan, r.val, term);\n        // Ищем минимальный срок, где платеж укладывается в желаемый\n        if (targetPayment > 0 && pmt <= targetPayment) {\n            bestScenario = {\n                status: \"success\",\n                term: term,\n                monthly_payment: round1k(pmt),\n                down_payment: tradeinValue,\n                rate_text: r.text\n            };\n            break; \n        }\n    }\n\n    // Если даже на максимальный срок платеж больше желаемого\n    if (!bestScenario) {\n        let r = getSmartRate(maxTerm, downPct);\n        let minPmt = calculatePMT(loan, r.val, maxTerm);\n        bestScenario = {\n            status: \"impossible\",\n            term: maxTerm,\n            monthly_payment: round1k(minPmt),\n            down_payment: tradeinValue,\n            rate_text: r.text,\n            warning: \"Желаемый платеж слишком мал. Расчет произведен на максимальный срок.\"\n        };\n    }\n    return bestScenario;\n}\n\n// ---------------------------------------------------------\n// 3. АГРЕГАЦИЯ ДАННЫХ\n// ---------------------------------------------------------\nconst grouped = {};\n\nfor (const trim of catalogItems) {\n    const trimName = trim.Complectation;\n    const trimId = (trim['Complectation id'] || trim['Complectation_id'] || trim.Id || \"\").toString();\n\n    if (trimId === targetComplectationId) targetComplectationName = trimName;\n\n    if (!grouped[trimId]) {\n        const basePrice = round10k(Number(trim['Price new']));\n        const creditBonus = round10k(Number(trim['Credit bonus']) || 0);\n        const tradeinBonus = round10k(Number(trim['Trade-in bonus']) || 0);\n        \n        // [НОВОЕ] Для КОМБО суммируем обе скидки\n        const finalComboPrice = basePrice - creditBonus - tradeinBonus;\n\n        const rawPics = trim['Pics'] || [];\n        let picsArray = Array.isArray(rawPics) ? rawPics : [];\n        const sortedImages = {};\n        for (const pic of picsArray) {\n            const fName = (pic.title || pic.path || \"\").toLowerCase();\n            let url = extractUrl(pic);\n            if (url && !url.startsWith('http')) {\n                const cleanPath = url.startsWith('/') ? url.substring(1) : url;\n                url = `${MY_NOCO_DOMAIN}/${cleanPath}`;\n            }\n            if (url) {\n                if (fName.includes('ext1')) sortedImages.exterior_front = url;\n                else if (fName.includes('ext2')) sortedImages.exterior_rear = url;\n                else if (fName.includes('int1')) sortedImages.interior_dashboard = url;\n                else if (fName.includes('int2')) sortedImages.interior_driver = url;\n                else if (fName.includes('int3')) sortedImages.interior_door = url;\n                else if (fName.includes('int4')) sortedImages.interior_gear = url;\n            }\n        }\n\n        // Вызываем новый комбо-расчет вместо стандартного кредитного\n        const comboInfo = calculateComboScenarios(finalComboPrice, userPayment, tradeinValue, tradeinStatus);\n        \n        let featuresList = trim.Features ? trim.Features.split('\\n').map(s => s.trim()) : [];\n        const minusRaw = trim['Minus Features'] || \"\"; \n        const minusList = minusRaw.split('\\n').map(s => s.trim().toLowerCase()).filter(s => s !== '');\n        const finalFeatures = featuresList.filter(f => {\n            if (f === '') return false;\n            if (f.toLowerCase().includes('топовые опции')) return false;\n            return !minusList.some(minus => f.toLowerCase().includes(minus));\n        });\n\n        grouped[trimId] = {\n            id: trimId, \n            name: trimName,\n            full_name: trim['Model title'] || trimName,\n            specs: {\n                engine: trim.Engine,\n                transmission: trim.Transmission_ru || trim.Transmission,\n                drive: trim.Drivetrain_ru || trim.Drivetrain,\n                acceleration: trim.Acceleration,\n                consumption: trim['Сonsumption']\n            },\n            price: {\n                MSRP: basePrice,\n                credit_bonus: creditBonus,\n                tradein_bonus: tradeinBonus,\n                combo_price: finalComboPrice // Цена со всеми скидками\n            },\n            features: finalFeatures,\n            images: sortedImages,\n            stock_count: 0, \n            stock_details: { in_stock: 0, in_transit: 0, other: 0 },\n            stock_colors: [], \n            combo_calculation: comboInfo // Сюда ложится расчет сроков\n        };\n    }\n}\n\n// ---------------------------------------------------------\n// 4. ПОДСЧЕТ СКЛАДА\n// ---------------------------------------------------------\nif (stockItems.length > 0) {\n    for (const car of stockItems) {\n        const carSlug = (car.slug || \"\").toLowerCase(); \n        if (!carSlug) continue;\n\n        const matchedTrimKey = Object.keys(grouped).find(key => {\n            const trimData = grouped[key]; \n            let searchKey = trimData.name.toLowerCase(); \n            searchKey = searchKey.replace('+', '-plus').replace(' ', '-'); \n            return carSlug.includes(searchKey);\n        });\n\n        if (matchedTrimKey) {\n            const trimData = grouped[matchedTrimKey];\n            trimData.stock_count++;\n            const status = (car.Status || \"\").toLowerCase();\n            let statusKey = \"other\";\n            if (status.includes(\"дилер\") || status.includes(\"dealer\") || status.includes(\"stock\")) statusKey = \"in_stock\";\n            else if (status.includes(\"пути\") || status.includes(\"transit\") || status.includes(\"way\")) statusKey = \"in_transit\";\n\n            trimData.stock_details[statusKey]++;\n\n            const colorName = car.Color_ext || \"Не указан\";\n            let colorEntry = trimData.stock_colors.find(c => c.name === colorName);\n            if (!colorEntry) {\n                colorEntry = { name: colorName, total: 0, in_stock: 0, in_transit: 0 };\n                trimData.stock_colors.push(colorEntry);\n            }\n            colorEntry.total++;\n            if (statusKey === 'in_stock') colorEntry.in_stock++;\n            if (statusKey === 'in_transit') colorEntry.in_transit++;\n        }\n    }\n}\n\n// ---------------------------------------------------------\n// 5. ФОРМИРОВАНИЕ ОТВЕТА\n// ---------------------------------------------------------\nreturn {\n    json: { \n        model: catalogItems[0].Model,\n        dealer_id_used: dealerId,\n        user_request: {\n            payment: userPayment, \n            query: query,\n            type: requestType,\n            type_name: requestTypeName,\n            selected_complectation_id: targetComplectationId,\n            selected_complectation_name: targetComplectationName,\n            plate: context.plate || triggerData.plate || \"\" \n        },\n        tradein_evaluation: {\n            status: tradeinStatus,\n            estimated_value: tradeinValue,\n            ...autoRuCarDetails // 💥 Распаковываем сюда все собранные данные (марку, год и т.д.)\n        },\n        complectations: Object.values(grouped).sort((a,b) => a.price.MSRP - b.price.MSRP),\n        summary: {\n            total_stock: stockItems.length,\n            model_name: catalogItems[0].Model\n        }\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        272
+      ],
+      "id": "56da3c97-314f-4f20-8102-80f3f2b0465a",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Catalog": {
+      "main": [
+        [
+          {
+            "node": "Get Stock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Program": {
+      "main": [
+        [
+          {
+            "node": "Get Rates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Rates": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Input": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Stock": {
+      "main": [
+        [
+          {
+            "node": "Get Program",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Execute Workflow": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get Catalog",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "95040746-816e-4068-b0d0-fe556238e5e1",
+  "meta": {
+    "instanceId": "65c0178e84d5c3db112ec6489beae5f53a11ae74e53d6537d4d9a5cd140a483b"
+  },
+  "id": "y4ee1N5dlH1tZyq4",
+  "tags": []
+}

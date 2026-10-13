@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Шаг 2 · вкладка «В личном кабинете» — состояния</title>
+<style>
+/* ============================================================
+   Макет блока «Расчет цены, кредита и trade-in»
+   Вкладки: В личном кабинете / В чате / По телефону
+   Чистый HTML + CSS. Переключение вкладок и способа покупки —
+   на скрытых radio + :checked, без JS.
+============================================================ */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #f2f2f0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #1a1a1a;
+}
+a { color: #8a8a8a; text-decoration: underline; text-underline-offset: 2px; }
+a:hover { color: #1a1a1a; }
+
+.stage { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 48px; padding: 48px 40px 80px; }
+.stage__cap { font-size: 11px; letter-spacing: 0.14em; color: #9a9a96; text-transform: uppercase; }
+.stage__col { display: flex; flex-direction: column; gap: 14px; }
+
+.sheet { background: #fff; border-radius: 4px; }
+.sheet--d { width: 1000px; padding: 28px 32px 40px; }
+.sheet--m { width: 390px; padding: 20px 12px 32px; }
+
+/* заголовок-мостик */
+.bridge { display: flex; align-items: center; gap: 10px; padding: 12px 0; margin-bottom: 10px; }
+.bridge__bar { width: 3px; height: 18px; background: #1a1a1a; border-radius: 2px; flex-shrink: 0; }
+.bridge__text { font-size: 18px; color: #aaa; text-transform: uppercase; letter-spacing: 0.06em; }
+.sheet--m .bridge { padding: 10px 0; margin-bottom: 16px; }
+.sheet--m .bridge__bar { height: 16px; }
+.sheet--m .bridge__text { font-size: 16px; }
+
+/* каркас вкладок */
+.tabs { border: 0.5px solid #e0e0e0; border-radius: 12px; background: #fff; overflow: hidden; margin-bottom: 32px; }
+.sheet--m .tabs { margin-bottom: 24px; }
+.tabbar { display: flex; background: #fafafa; border-bottom: 0.5px solid #e0e0e0; }
+.sheet--m .tabbar { overflow-x: auto; scrollbar-width: none; }
+.sheet--m .tabbar::-webkit-scrollbar { display: none; }
+.tabbar__filler { flex: 1; min-width: 0; }
+
+.tab {
+  display: flex; align-items: center; gap: 12px;
+  min-width: 250px; padding: 16px 22px;
+  background: #fafafa; border: none; border-right: 0.5px solid #e0e0e0;
+  margin-bottom: -0.5px; cursor: pointer; text-align: left;
+}
+.tab--narrow { min-width: 230px; }
+.tab:hover { background: #f1f1f1; }
+.tab__emoji { font-size: 24px; line-height: 1; flex-shrink: 0; }
+.tab__name { display: block; font-size: 15px; font-weight: 600; color: #7a7a7a; }
+.tab__desc { display: block; font-size: 12px; color: #8a8a8a; line-height: 1.45; }
+.sheet--m .tab { flex: 0 0 auto; gap: 8px; min-width: 0; padding: 13px 14px; min-height: 58px; }
+.sheet--m .tab:last-of-type { border-right: none; }
+.sheet--m .tab__emoji { font-size: 22px; }
+.sheet--m .tab__name { font-size: 14px; white-space: nowrap; }
+.sheet--m .tab__desc { font-size: 11px; white-space: nowrap; }
+
+/* radio-механика */
+.state { position: absolute; opacity: 0; pointer-events: none; }
+.panel { display: none; padding: 26px 24px 28px; background: #fff; }
+.sheet--m .panel { padding: 16px 12px 20px; }
+
+#t-d-lk:checked    ~ .tabs .tabbar label[for="t-d-lk"],
+#t-d-chat:checked  ~ .tabs .tabbar label[for="t-d-chat"],
+#t-d-phone:checked ~ .tabs .tabbar label[for="t-d-phone"],
+#t-m-lk:checked    ~ .tabs .tabbar label[for="t-m-lk"],
+#t-m-chat:checked  ~ .tabs .tabbar label[for="t-m-chat"],
+#t-m-phone:checked ~ .tabs .tabbar label[for="t-m-phone"] {
+  background: #fff; box-shadow: inset 0 3px 0 #1a1a1a;
+}
+#t-d-lk:checked    ~ .tabs .tabbar label[for="t-d-lk"] .tab__name,
+#t-d-chat:checked  ~ .tabs .tabbar label[for="t-d-chat"] .tab__name,
+#t-d-phone:checked ~ .tabs .tabbar label[for="t-d-phone"] .tab__name,
+#t-m-lk:checked    ~ .tabs .tabbar label[for="t-m-lk"] .tab__name,
+#t-m-chat:checked  ~ .tabs .tabbar label[for="t-m-chat"] .tab__name,
+#t-m-phone:checked ~ .tabs .tabbar label[for="t-m-phone"] .tab__name { color: #1a1a1a; }
+
+#t-d-lk:checked    ~ .tabs .panel--lk,
+#t-d-chat:checked  ~ .tabs .panel--chat,
+#t-d-phone:checked ~ .tabs .panel--phone,
+#t-m-lk:checked    ~ .tabs .panel--lk,
+#t-m-chat:checked  ~ .tabs .panel--chat,
+#t-m-phone:checked ~ .tabs .panel--phone { display: block; }
+
+/* подсказка панели */
+.hint { font-size: 14px; color: #8a8a8a; margin: 0 0 18px; line-height: 1.5; }
+.sheet--m .hint { font-size: 13px; margin-bottom: 12px; }
+
+/* селекторы способа покупки */
+.buys { display: flex; gap: 16px; margin-bottom: 28px; }
+.buy {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 22px 20px; border-radius: 12px; border: 0.5px solid #e0e0e0;
+  background: #fff; cursor: pointer; width: 220px;
+}
+.buy--wide { width: 260px; }
+.buy__icon {
+  width: 56px; height: 56px; border-radius: 14px; background: #f2f3f4;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+  font-size: 28px; line-height: 1; box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+.buy__icon--duo { font-size: 19px; }
+.buy__name { font-size: 15px; font-weight: 600; letter-spacing: 0.04em; color: #7a7a7a; }
+.buy__desc { font-size: 12px; color: #8a8a8a; text-align: center; line-height: 1.45; }
+
+.sheet--m .buys { flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.sheet--m .buy { flex-direction: row; align-items: center; gap: 12px; width: auto; padding: 12px 14px; border-radius: 10px; }
+.sheet--m .buy__icon { width: 38px; height: 38px; border-radius: 10px; font-size: 19px; box-shadow: none; flex-shrink: 0; }
+.sheet--m .buy__icon--duo { font-size: 13px; gap: 2px; }
+.sheet--m .buy__name { flex: 1; min-width: 0; font-size: 14px; }
+.sheet--m .buy__desc { display: none; }
+
+#b-d-credit:checked ~ .buys label[for="b-d-credit"],
+#b-d-trade:checked  ~ .buys label[for="b-d-trade"],
+#b-d-both:checked   ~ .buys label[for="b-d-both"],
+#b-m-credit:checked ~ .buys label[for="b-m-credit"],
+#b-m-trade:checked  ~ .buys label[for="b-m-trade"],
+#b-m-both:checked   ~ .buys label[for="b-m-both"] {
+  border-color: #111; box-shadow: inset 0 0 0 1.5px #111;
+}
+#b-d-credit:checked ~ .buys label[for="b-d-credit"] .buy__name,
+#b-d-trade:checked  ~ .buys label[for="b-d-trade"] .buy__name,
+#b-d-both:checked   ~ .buys label[for="b-d-both"] .buy__name,
+#b-m-credit:checked ~ .buys label[for="b-m-credit"] .buy__name,
+#b-m-trade:checked  ~ .buys label[for="b-m-trade"] .buy__name,
+#b-m-both:checked   ~ .buys label[for="b-m-both"] .buy__name { color: #1a1a1a; }
+
+/* второй уровень */
+.lvl2 { border-top: 0.5px solid #efefef; padding-top: 24px; }
+.sheet--m .lvl2 { padding-top: 18px; }
+.lvl2__block { display: none; }
+.lvl2__title { font-size: 14px; color: #8a8a8a; margin: 0 0 14px; line-height: 1.5; }
+.sheet--m .lvl2__title { font-size: 13px; margin-bottom: 10px; }
+
+#b-d-credit:checked ~ .lvl2 .lvl2__block--credit,
+#b-d-both:checked   ~ .lvl2 .lvl2__block--credit,
+#b-d-trade:checked  ~ .lvl2 .lvl2__block--plate,
+#b-d-both:checked   ~ .lvl2 .lvl2__block--plate,
+#b-m-credit:checked ~ .lvl2 .lvl2__block--credit,
+#b-m-both:checked   ~ .lvl2 .lvl2__block--credit,
+#b-m-trade:checked  ~ .lvl2 .lvl2__block--plate,
+#b-m-both:checked   ~ .lvl2 .lvl2__block--plate { display: block; }
+
+/* в режиме «кредит + трейд-ин» второй заголовок отбивается от плашки платежа */
+#b-d-both:checked ~ .lvl2 .lvl2__block--plate .lvl2__title,
+#b-m-both:checked ~ .lvl2 .lvl2__block--plate .lvl2__title { margin-top: 16px; }
+
+/* плашка второго уровня */
+.pane { background: #fafafa; border: 0.5px solid #f0f0f0; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+.sheet--m .pane { padding: 16px 14px; gap: 16px; }
+.row { display: flex; align-items: center; gap: 14px; }
+.sheet--m .row { display: block; }
+.row__label { width: 250px; flex-shrink: 0; font-size: 14px; font-weight: 600; color: #1a1a1a; }
+.sheet--m .row__label { width: auto; margin-bottom: 8px; font-size: 13px; }
+.hr { height: 0.5px; background: #ececec; }
+
+.note { display: flex; align-items: flex-start; gap: 8px; border-top: 0.5px solid #ececec; padding-top: 14px; }
+.sheet--m .note { padding-top: 12px; }
+.note__i {
+  flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%;
+  background: #e4e8ea; color: #5c6b74; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; margin-top: 1px;
+}
+.note__text { font-size: 13px; color: #6a6a6a; line-height: 1.5; }
+.note__text--accent { font-weight: 600; }
+.sheet--m .note__text { font-size: 12px; }
+
+/* ползунок */
+.slider { flex: 1; min-width: 0; }
+.range { -webkit-appearance: none; appearance: none; width: 100%; height: 24px; background: transparent; cursor: pointer; display: block; margin: 0; }
+.range::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, #1a1a1a 0%, #1a1a1a 40%, #ececec 40%, #ececec 100%); }
+.range::-moz-range-track { height: 4px; border-radius: 2px; background: #ececec; }
+.range::-moz-range-progress { height: 4px; border-radius: 2px; background: #1a1a1a; }
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 22px; height: 22px; margin-top: -9px; border-radius: 50%;
+  background: #fff; border: 2px solid #1a1a1a; box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+}
+.range::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%; border: 2px solid #1a1a1a;
+  background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+}
+.sheet--m .range { height: 28px; }
+.sheet--m .range::-webkit-slider-thumb { width: 26px; height: 26px; margin-top: -11px; }
+.sheet--m .range::-moz-range-thumb { width: 26px; height: 26px; }
+.range__ends { display: flex; justify-content: space-between; font-size: 12px; color: #999; margin-top: 2px; }
+.sheet--m .range__ends { font-size: 11px; }
+
+/* поле с суффиксом */
+.field { position: relative; width: 218px; }
+.sheet--m .field { width: auto; }
+.field__input {
+  width: 100%; padding: 13px 52px 13px 14px; border: 1px solid #e6e6e6; border-radius: 8px;
+  font-family: inherit; font-size: 18px; font-weight: 600; color: #1a1a1a; background: #fff; outline: none;
+}
+.field__input:focus { border-color: #1a1a1a; }
+.field__input::placeholder { color: #c0c0c0; font-weight: 600; }
+.field__suffix { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 600; color: #a0a0a0; }
+.sheet--m .field__input { padding: 12px 48px 12px 12px; font-size: 17px; }
+.sheet--m .field__suffix { right: 12px; font-size: 12px; }
+
+/* гос. номер */
+.plate { display: inline-flex; align-items: stretch; border: 2px solid #111; border-radius: 8px; background: #fff; overflow: hidden; }
+.plate__main {
+  width: 144px; border: none; outline: none; padding: 8px 10px; background: transparent;
+  font-family: inherit; font-size: 24px; font-weight: 700; color: #111;
+}
+.plate__main::placeholder { color: #c8c8c8; }
+.plate__sep { width: 2px; background: #111; }
+.plate__region { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 7px; gap: 1px; }
+.plate__regnum {
+  width: 40px; border: none; outline: none; padding: 0; background: transparent; text-align: center;
+  font-family: inherit; font-size: 18px; font-weight: 700; color: #111;
+}
+.plate__regnum::placeholder { color: #c8c8c8; }
+.plate__rus { display: flex; align-items: center; gap: 3px; }
+.plate__rus span { font-size: 8px; font-weight: 700; letter-spacing: 0.08em; color: #111; }
+.flag { display: flex; flex-direction: column; width: 10px; height: 6px; border: 0.5px solid #bbb; }
+.flag i { flex: 1; }
+.flag i:nth-child(1) { background: #fff; }
+.flag i:nth-child(2) { background: #1e50a2; }
+.flag i:nth-child(3) { background: #c8202f; }
+.sheet--m .plate__main { width: 128px; padding: 8px 9px; font-size: 22px; }
+.sheet--m .plate__regnum { width: 38px; font-size: 16px; }
+.sheet--m .plate__region { padding: 4px 6px; }
+
+/* панель «В чате» */
+.msgs { display: flex; gap: 16px; }
+.msg { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 22px 20px; border-radius: 12px; border: 0.5px solid #e0e0e0; width: 200px; }
+.msg--active { border-color: #111; box-shadow: inset 0 0 0 1.5px #111; }
+.msg__icon { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; display: block; }
+.msg__icon--site { background: #1a1a1a; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
+.msg__icon--max { box-shadow: 0 4px 14px rgba(91,56,255,.22); }
+.msg__icon--tg { border-radius: 50%; box-shadow: 0 4px 14px rgba(41,162,220,.18); }
+.msg__name { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+.msg__desc { font-size: 12px; color: #8a8a8a; text-align: center; line-height: 1.45; }
+.sheet--m .msgs { gap: 10px; }
+.sheet--m .msg { flex: 1; width: auto; padding: 16px 10px; gap: 10px; }
+.sheet--m .msg__icon { width: 48px; height: 48px; }
+.sheet--m .msg__name { font-size: 16px; }
+.sheet--m .msg__desc { font-size: 11px; }
+
+/* панель «По телефону» */
+.phonerow { display: flex; gap: 16px; }
+.phonerow > div { flex: 1; }
+.sheet--m .phonerow { flex-direction: column; gap: 10px; }
+.label { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
+.sheet--m .label { font-size: 11px; }
+.input {
+  width: 100%; padding: 13px 14px; border: 1px solid #e6e6e6; border-radius: 8px;
+  font-family: inherit; font-size: 15px; color: #1a1a1a; background: #fff; outline: none;
+}
+.input:focus { border-color: #1a1a1a; }
+.sheet--m .input { padding: 12px; font-size: 16px; }
+
+/* согласие и навигация */
+.agr { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: #6a6a6a; line-height: 1.55; }
+.agr__box { flex-shrink: 0; width: 20px; height: 20px; border: 1.5px solid #1a1a1a; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.agr__tick { width: 11px; height: 6px; border-left: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a; transform: rotate(-45deg) translateY(-2px); }
+.sheet--m .agr { font-size: 12px; margin-bottom: 24px; }
+.sheet--m .agr__box { width: 18px; height: 18px; }
+.sheet--m .agr__tick { width: 10px; height: 5px; }
+
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 36px; }
+.sheet--m .nav { margin-top: 0; gap: 10px; }
+.btn { font-family: inherit; font-size: 13px; font-weight: 500; letter-spacing: 0.08em; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.btn--back { padding: 13px 24px; background: transparent; color: #1a1a1a; border: 0.5px solid #d0d0d0; }
+.btn--back:hover { border-color: #888; background: #f8f8f8; }
+.btn--next { padding: 13px 32px; background: #2D5467; color: #fff; border: none; }
+.btn--next:hover { background: #3C728D; }
+.sheet--m .btn--back { padding: 13px 20px; }
+.sheet--m .btn--next { padding: 13px 26px; }
+
+/* ===== состояния шага 2 (статичные макеты) ===== */
+.tab--on { background:#fff !important; box-shadow: inset 0 3px 0 #1a1a1a; }
+.tab--on .tab__name { color:#1a1a1a; }
+.panel--show { display:block; }
+.buy--on { border-color:#111; box-shadow: inset 0 0 0 1.5px #111; }
+.buy--on .buy__name { color:#1a1a1a; }
+.lvl2__block--show { display:block; }
+.lvl2__block--show + .lvl2__block--show .lvl2__title { margin-top:16px; }
+.range::-webkit-slider-runnable-track { background: linear-gradient(to right,#1a1a1a 0,#1a1a1a var(--p,40%),#ececec var(--p,40%),#ececec 100%); }
+
+/* ошибка поля */
+.plate--err { border-color:#b3261e; }
+.plate--err .plate__sep { background:#b3261e; }
+.plate--err .plate__main, .plate--err .plate__regnum { color:#b3261e; }
+.ferr { display:flex; flex-direction:column; gap:4px; margin:-8px 0 0 264px; font-size:13px; line-height:1.5; color:#6a6a6a; }
+.ferr__main { color:#b3261e; font-weight:600; }
+.ferr__letters { letter-spacing:0.12em; font-weight:600; color:#1a1a1a; }
+.sheet--m .ferr { margin:-6px 0 0; font-size:12px; }
+
+/* кнопки: заблокирована / ожидание */
+.btn[disabled] { background:#c7d0d4; color:#fff; cursor:not-allowed; }
+.btn--back[disabled] { background:transparent; color:#b5b5b5; border-color:#e4e4e4; }
+.btn--next { display:inline-flex; align-items:center; gap:10px; }
+.spin { width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,.45); border-top-color:#fff; animation:spin .8s linear infinite; }
+.spin--dark { border-color:#d6dde0; border-top-color:#2D5467; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.navr { display:flex; align-items:center; gap:16px; }
+.status { display:flex; align-items:center; gap:8px; font-size:13px; color:#6a6a6a; line-height:1.4; }
+.status--busy { color:#2D5467; font-weight:600; }
+.sheet--m .status { margin:-8px 0 14px; font-size:12px; }
+.locked { opacity:.5; pointer-events:none; }
+
+/* сбой открытия кабинета */
+.fail { display:flex; gap:12px; margin-top:28px; padding:16px 18px; background:#fdf4f3; border:0.5px solid #f0d3cf; border-radius:12px; }
+.fail__i { flex-shrink:0; width:20px; height:20px; border-radius:50%; background:#b3261e; color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-top:1px; }
+.fail__body { display:flex; flex-direction:column; gap:12px; min-width:0; }
+.fail__text { font-size:14px; line-height:1.5; color:#1a1a1a; }
+.fail__text b { display:block; }
+.fail__alts { display:flex; flex-wrap:wrap; gap:8px; }
+.alt { display:inline-flex; align-items:center; gap:8px; padding:9px 14px; border:0.5px solid #d0d0d0; border-radius:8px; background:#fff; font-family:inherit; font-size:13px; font-weight:600; color:#1a1a1a; cursor:pointer; }
+.alt:hover { border-color:#888; }
+.alt span { font-size:16px; line-height:1; }
+.nav--after-fail { margin-top:20px; }
+.sheet--m .fail { margin:0 0 16px; padding:14px; }
+.sheet--m .fail__text { font-size:13px; }
+.sheet--m .alt { flex:1; justify-content:center; padding:11px 10px; min-height:44px; }
+
+/* мобайл: подсказка прокрутки таб-бара */
+.sheet--m .tabs { position:relative; }
+.sheet--m .tabs::before, .sheet--m .tabs::after { content:''; position:absolute; top:0; height:58px; width:28px; pointer-events:none; z-index:1; transition:opacity .2s; }
+.sheet--m .tabs::after { right:0; background:linear-gradient(to right, rgba(250,250,250,0), #fafafa); }
+.sheet--m .tabs::before { left:0; background:linear-gradient(to left, rgba(250,250,250,0), #fafafa); opacity:0; }
+.sheet--m .tabs.is-end::after { opacity:0; }
+.sheet--m .tabs.is-mid::before, .sheet--m .tabs.is-end::before { opacity:1; }
+
+/* черновые тексты */
+.draft { background:#fff3c4; box-shadow:0 0 0 2px #fff3c4; border-radius:2px; }
+.btn .draft { background:none; box-shadow:none; border-bottom:2px dashed #ffd84d; }
+#hide-drafts:checked ~ .page .btn .draft { border-bottom:none; }
+#hide-drafts:checked ~ .page .draft { background:none; box-shadow:none; }
+
+/* подсказка прокрутки таб-бара без JS: scroll-driven animation */
+@supports (animation-timeline: scroll()) {
+  .sheet--m .tabs { timeline-scope: --tabs; }
+  .sheet--m .tabbar { scroll-timeline: --tabs inline; }
+  .sheet--m .tabs::before { animation: fadeIn linear both; animation-timeline: --tabs; animation-range: 0 40px; }
+  .sheet--m .tabs::after { animation: fadeOut linear both; animation-timeline: --tabs; animation-range: calc(100% - 40px) 100%; }
+}
+@keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+@keyframes fadeOut { from { opacity:1 } to { opacity:0 } }
+.toggle__box { width:14px; height:14px; border:1.5px solid #9a9a96; border-radius:3px; display:inline-block; position:relative; }
+#hide-drafts:checked ~ .page .toggle__box { background:#1a1a1a; border-color:#1a1a1a; }
+#hide-drafts:checked ~ .page .toggle__box::after { content:''; position:absolute; left:3.5px; top:0.5px; width:4px; height:8px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
+/* тултип у неактивной «Далее» */
+.tipw { position:relative; display:inline-flex; outline:none; }
+.tipw .btn[disabled] { pointer-events:none; }
+.tip { position:absolute; right:0; bottom:calc(100% + 10px); background:#1a1a1a; color:#fff; font-size:13px; line-height:1.4; padding:8px 12px; border-radius:6px; white-space:nowrap; opacity:0; visibility:hidden; transform:translateY(4px); transition:opacity .15s, transform .15s, visibility .15s; z-index:5; pointer-events:none; }
+.tip::after { content:''; position:absolute; right:28px; top:100%; border:6px solid transparent; border-top-color:#1a1a1a; }
+.tipw:hover .tip, .tipw:focus .tip, .tip--open { opacity:1; visibility:visible; transform:none; }
+.sheet--m .tip { font-size:12px; }
+.tip .draft { background:none; box-shadow:none; border-bottom:2px dashed #ffd84d; }
+#hide-drafts:checked ~ .page .tip .draft { border-bottom:none; }
+/* страница-галерея */
+.page { padding:40px 40px 80px; display:flex; flex-direction:column; gap:56px; }
+.head { max-width:1440px; display:flex; flex-direction:column; gap:16px; }
+.head h1 { margin:0; font-size:24px; font-weight:700; }
+.head p { margin:0; font-size:14px; color:#6a6a6a; line-height:1.55; max-width:760px; }
+.legend { display:flex; align-items:center; gap:16px; flex-wrap:wrap; font-size:13px; color:#6a6a6a; }
+.legend label { display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+.decisions { background:#fff; border-radius:4px; padding:20px 24px; max-width:1000px; }
+.decisions h2 { margin:0 0 10px; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:#9a9a96; font-weight:600; }
+.decisions ol { margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px; font-size:14px; line-height:1.5; }
+.st { display:flex; flex-direction:column; gap:16px; }
+.st__head { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.st__id { font-size:12px; font-weight:700; letter-spacing:.08em; background:#1a1a1a; color:#fff; padding:3px 8px; border-radius:4px; }
+.st__title { font-size:18px; font-weight:700; }
+.st__desc { font-size:13px; color:#6a6a6a; line-height:1.55; max-width:1000px; margin:0; }
+.st__row { display:flex; gap:48px; align-items:flex-start; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+<input class="state" type="checkbox" id="hide-drafts" style="position:absolute;opacity:0;pointer-events:none">
+<div class="page">
+  <div class="head">
+    <h1>Шаг 2 · вкладка «В личном кабинете» — состояния</h1>
+    <p>Лендинг, десктоп 1000 px и мобайл 390 px. Кабинетная часть (lk-source-v4.html) не затронута.</p>
+    <div class="legend"><span class="draft">Жёлтым</span> — предлагаемые тексты, черновик. <label for="hide-drafts" class="toggle"><span class="toggle__box"></span> Скрыть подсветку</label></div>
+  </div>
+  <div class="decisions"><h2>Решения, принятые без согласования</h2><ol><li>Ошибка неполного госномера появляется после ухода из поля, а не во время ввода.</li><li>Подсказка у неактивной «Далее» — тёмный тултип над кнопкой; на мобайле открывается по нажатию и закрывается по нажатию вне кнопки.</li><li>Пустой пробег не подсвечиваем красным, если поле ещё не трогали — подсказка только у кнопки.</li><li>В ожидании блокируются вкладки, поля, способ покупки, согласие и «Назад»; индикатор — только спиннер в кнопке.</li><li>При сбое данные не сбрасываются; «Далее» превращается в «Повторить», альтернативы — кнопками-вкладками внутри плашки ошибки. Одна формулировка на все причины сбоя.</li><li>Если 30 000 ₽ вне границ, в поле суммы подставляется значение границы, а не 30 000 — чтобы поле и ползунок не расходились.</li><li>На мобайле добавлено затухание у края таб-бара как подсказка прокрутки.</li><li>Сумма, округлённая при уходе из поля, всегда остаётся в пределах шкалы: 7 000 при минимуме 10 000 станет 10 000.</li><li>Все новые тексты состояний (ошибки, тултипы у кнопки, «Повторить», текст сбоя) помечены жёлтым как черновики.</li></ol></div>
+<section class="st" id="s1а">
+  <div class="st__head"><span class="st__id">1а</span><span class="st__title">Платёж по умолчанию — 30 000 ₽</span></div>
+  <p class="st__desc">Границы шкалы берутся из выбранной машины и округляются до 5 000 ₽: минимум вверх, максимум вниз (7 133 → 10 000, 165 684 → 165 000). Шаг ползунка — 5 000 ₽. Сумму, вписанную вручную, при уходе из поля приводим к ближайшей кратной 5 000 (например, 32 400 → 30 000) в пределах шкалы. Поле и ползунок синхронны. Плитка «В кредит» показывает минимум шкалы: «Платеж от 10 000 ₽». «Далее» активна: для кредита других обязательных полей нет.</p>
+  <div class="st__row"><div class="stage__col"><div class="stage__cap">Десктоп — 1000 px</div>
+<div class="sheet sheet--d">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  <div class="tabbar__filler"></div>
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки для получения расчета</p>
+      <div class="buys">
+  <label class="buy buy--on"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span><span class="buy__desc">Платеж от 10 000 ₽<br>в месяц</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span><span class="buy__desc">Зачтем ваш<br>автомобиль</span></label>
+  <label class="buy buy--wide"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span><span class="buy__desc">Платеж с учетом<br>вашего автомобиля</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="10000" max="165000" step="5000" value="30000" style="--p:12.9%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>10 000 ₽</span><span>165 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="30 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><div class="navr"><button class="btn btn--next" type="button">ДАЛЕЕ →</button></div></div>
+</div></div><div class="stage__col"><div class="stage__cap">Мобайл — 390 px</div>
+<div class="sheet sheet--m">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки</p>
+      <div class="buys">
+  <label class="buy buy--on"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span></label>
+  <label class="buy"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="10000" max="165000" step="5000" value="30000" style="--p:12.9%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>10 000 ₽</span><span>165 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="30 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><button class="btn btn--next" type="button">ДАЛЕЕ →</button></div>
+</div></div></div>
+</section>
+<section class="st" id="s1б">
+  <div class="st__head"><span class="st__id">1б</span><span class="st__title">30 000 ₽ вне границ шкалы</span></div>
+  <p class="st__desc">У машины минимальный платёж 38 450 ₽ → шкала от 40 000 ₽ (максимум 212 900 → 210 000). 30 000 вне шкалы — ползунок у ближайшей границы, в поле то же значение. Плитка «В кредит»: «Платеж от 40 000 ₽». Для машины с максимумом ниже 30 000 — зеркально, у правой границы.</p>
+  <div class="st__row"><div class="stage__col"><div class="stage__cap">Десктоп — 1000 px</div>
+<div class="sheet sheet--d">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  <div class="tabbar__filler"></div>
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки для получения расчета</p>
+      <div class="buys">
+  <label class="buy buy--on"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span><span class="buy__desc">Платеж от 40 000 ₽<br>в месяц</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span><span class="buy__desc">Зачтем ваш<br>автомобиль</span></label>
+  <label class="buy buy--wide"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span><span class="buy__desc">Платеж с учетом<br>вашего автомобиля</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="40000" max="210000" step="5000" value="40000" style="--p:0%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>40 000 ₽</span><span>210 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="40 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><div class="navr"><button class="btn btn--next" type="button">ДАЛЕЕ →</button></div></div>
+</div></div><div class="stage__col"><div class="stage__cap">Мобайл — 390 px</div>
+<div class="sheet sheet--m">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки</p>
+      <div class="buys">
+  <label class="buy buy--on"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span></label>
+  <label class="buy"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="40000" max="210000" step="5000" value="40000" style="--p:0%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>40 000 ₽</span><span>210 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="40 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><button class="btn btn--next" type="button">ДАЛЕЕ →</button></div>
+</div></div></div>
+</section>
+<section class="st" id="s2">
+  <div class="st__head"><span class="st__id">2</span><span class="st__title">Госномер неполный</span></div>
+  <p class="st__desc">Поле принимает только А В Е К М Н О Р С Т У Х и цифры по маске: прочие буквы не вводятся, латинские двойники (A B E K M H O P C T Y X) заменяются на кириллицу. Поэтому ошибка возможна только при неполном номере — показываем её при уходе из поля. «Далее» неактивна; причина — во всплывающей подсказке: десктоп — при наведении на кнопку, мобайл — по нажатию на неактивную кнопку.</p>
+  <div class="st__row"><div class="stage__col"><div class="stage__cap">Десктоп — 1000 px · наведение на «Далее»</div>
+<div class="sheet sheet--d">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  <div class="tabbar__filler"></div>
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки для получения расчета</p>
+      <div class="buys">
+  <label class="buy"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span><span class="buy__desc">Платеж от 10 000 ₽<br>в месяц</span></label>
+  <label class="buy buy--on"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span><span class="buy__desc">Зачтем ваш<br>автомобиль</span></label>
+  <label class="buy buy--wide"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span><span class="buy__desc">Платеж с учетом<br>вашего автомобиля</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Данные текущего автомобиля</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Введите гос. номер</div>
+      <div class="plate plate--err">
+        <input class="plate__main" type="text" placeholder="А 123 ВС" value="А 12_ ВС" maxlength="8" pattern="[АВЕКМНОРСТУХ] ?\d{3} ?[АВЕКМНОРСТУХ]{2}" aria-label="Гос. номер" aria-invalid="true">
+        <div class="plate__sep"></div>
+        <div class="plate__region"><input class="plate__regnum" type="text" placeholder="77" value="77" maxlength="3" inputmode="numeric" aria-label="Код региона">
+        <div class="plate__rus"><span>RUS</span><div class="flag"><i></i><i></i><i></i></div></div></div>
+      </div></div>
+    <div class="ferr" role="alert"><span class="ferr__main"><span class="draft">Номер указан с ошибкой. Проверьте буквы, цифры и код региона.</span></span></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Укажите пробег</div>
+      <div class="field"><input class="field__input" type="text" inputmode="numeric" placeholder="120 000" maxlength="9" pattern="\d{1,3}( \d{3}){0,2}|1 000 000" value="86 000" aria-label="Пробег, км"><span class="field__suffix">км</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text note__text--accent">По номеру и пробегу проверим цены сделок по аналогичным авто</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><div class="navr"><span class="tipw" tabindex="0" aria-label="Исправьте гос. номер, чтобы продолжить"><button class="btn btn--next" type="button" disabled>ДАЛЕЕ →</button><span class="tip tip--open" role="tooltip"><span class="draft">Исправьте гос. номер, чтобы продолжить</span></span></span></div></div>
+</div></div><div class="stage__col"><div class="stage__cap">Мобайл — 390 px · нажатие на «Далее»</div>
+<div class="sheet sheet--m">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки</p>
+      <div class="buys">
+  <label class="buy"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span></label>
+  <label class="buy buy--on"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span></label>
+  <label class="buy"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Данные текущего автомобиля</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Введите гос. номер</div>
+      <div class="plate plate--err">
+        <input class="plate__main" type="text" placeholder="А 123 ВС" value="А 12_ ВС" maxlength="8" pattern="[АВЕКМНОРСТУХ] ?\d{3} ?[АВЕКМНОРСТУХ]{2}" aria-label="Гос. номер" aria-invalid="true">
+        <div class="plate__sep"></div>
+        <div class="plate__region"><input class="plate__regnum" type="text" placeholder="77" value="77" maxlength="3" inputmode="numeric" aria-label="Код региона">
+        <div class="plate__rus"><span>RUS</span><div class="flag"><i></i><i></i><i></i></div></div></div>
+      </div></div>
+    <div class="ferr" role="alert"><span class="ferr__main"><span class="draft">Номер указан с ошибкой. Проверьте буквы, цифры и код региона.</span></span></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Укажите пробег</div>
+      <div class="field"><input class="field__input" type="text" inputmode="numeric" placeholder="120 000" maxlength="9" pattern="\d{1,3}( \d{3}){0,2}|1 000 000" value="86 000" aria-label="Пробег, км"><span class="field__suffix">км</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text note__text--accent">По номеру и пробегу проверим цены сделок по аналогичным авто</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><span class="tipw" tabindex="0" aria-label="Исправьте гос. номер, чтобы продолжить"><button class="btn btn--next" type="button" disabled>ДАЛЕЕ →</button><span class="tip tip--open" role="tooltip"><span class="draft">Исправьте гос. номер, чтобы продолжить</span></span></span></div>
+</div></div></div>
+</section>
+<section class="st" id="s3а">
+  <div class="st__head"><span class="st__id">3а</span><span class="st__title">Пробег не заполнен — трейд-ин</span></div>
+  <p class="st__desc">Номер корректный, пробег пуст. Поле не подсвечиваем красным (пользователь его ещё не трогал). Пробег — только цифры, с разделителем тысяч, максимум 1 000 000 км (больше не вводится). Причина неактивной «Далее» — во всплывающей подсказке: наведите на кнопку.</p>
+  <div class="st__row"><div class="stage__col"><div class="stage__cap">Десктоп — 1000 px</div>
+<div class="sheet sheet--d">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  <div class="tabbar__filler"></div>
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки для получения расчета</p>
+      <div class="buys">
+  <label class="buy"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span><span class="buy__desc">Платеж от 10 000 ₽<br>в месяц</span></label>
+  <label class="buy buy--on"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span><span class="buy__desc">Зачтем ваш<br>автомобиль</span></label>
+  <label class="buy buy--wide"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span><span class="buy__desc">Платеж с учетом<br>вашего автомобиля</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Данные текущего автомобиля</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Введите гос. номер</div>
+      <div class="plate">
+        <input class="plate__main" type="text" placeholder="А 123 ВС" value="А 123 ВС" maxlength="8" pattern="[АВЕКМНОРСТУХ] ?\d{3} ?[АВЕКМНОРСТУХ]{2}" aria-label="Гос. номер">
+        <div class="plate__sep"></div>
+        <div class="plate__region"><input class="plate__regnum" type="text" placeholder="77" value="77" maxlength="3" inputmode="numeric" aria-label="Код региона">
+        <div class="plate__rus"><span>RUS</span><div class="flag"><i></i><i></i><i></i></div></div></div>
+      </div></div>
+    
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Укажите пробег</div>
+      <div class="field"><input class="field__input" type="text" inputmode="numeric" placeholder="120 000" maxlength="9" pattern="\d{1,3}( \d{3}){0,2}|1 000 000" value="" aria-label="Пробег, км"><span class="field__suffix">км</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text note__text--accent">По номеру и пробегу проверим цены сделок по аналогичным авто</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><div class="navr"><span class="tipw" tabindex="0" aria-label="Укажите пробег, чтобы продолжить"><button class="btn btn--next" type="button" disabled>ДАЛЕЕ →</button><span class="tip" role="tooltip"><span class="draft">Укажите пробег, чтобы продолжить</span></span></span></div></div>
+</div></div><div class="stage__col"><div class="stage__cap">Мобайл — 390 px</div>
+<div class="sheet sheet--m">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки</p>
+      <div class="buys">
+  <label class="buy"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span></label>
+  <label class="buy buy--on"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span></label>
+  <label class="buy"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Данные текущего автомобиля</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Введите гос. номер</div>
+      <div class="plate">
+        <input class="plate__main" type="text" placeholder="А 123 ВС" value="А 123 ВС" maxlength="8" pattern="[АВЕКМНОРСТУХ] ?\d{3} ?[АВЕКМНОРСТУХ]{2}" aria-label="Гос. номер">
+        <div class="plate__sep"></div>
+        <div class="plate__region"><input class="plate__regnum" type="text" placeholder="77" value="77" maxlength="3" inputmode="numeric" aria-label="Код региона">
+        <div class="plate__rus"><span>RUS</span><div class="flag"><i></i><i></i><i></i></div></div></div>
+      </div></div>
+    
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Укажите пробег</div>
+      <div class="field"><input class="field__input" type="text" inputmode="numeric" placeholder="120 000" maxlength="9" pattern="\d{1,3}( \d{3}){0,2}|1 000 000" value="" aria-label="Пробег, км"><span class="field__suffix">км</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text note__text--accent">По номеру и пробегу проверим цены сделок по аналогичным авто</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><span class="tipw" tabindex="0" aria-label="Укажите пробег, чтобы продолжить"><button class="btn btn--next" type="button" disabled>ДАЛЕЕ →</button><span class="tip" role="tooltip"><span class="draft">Укажите пробег, чтобы продолжить</span></span></span></div>
+</div></div></div>
+</section>
+<section class="st" id="s3б">
+  <div class="st__head"><span class="st__id">3б</span><span class="st__title">Пробег не заполнен — кредит + трейд-ин</span></div>
+  <p class="st__desc">То же правило для комбо-сценария: платёж задан, номер корректный, пробег пуст.</p>
+  <div class="st__row"><div class="stage__col"><div class="stage__cap">Десктоп — 1000 px</div>
+<div class="sheet sheet--d">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  <div class="tabbar__filler"></div>
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки для получения расчета</p>
+      <div class="buys">
+  <label class="buy"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span><span class="buy__desc">Платеж от 10 000 ₽<br>в месяц</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span><span class="buy__desc">Зачтем ваш<br>автомобиль</span></label>
+  <label class="buy buy--wide buy--on"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span><span class="buy__desc">Платеж с учетом<br>вашего автомобиля</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="10000" max="165000" step="5000" value="30000" style="--p:12.9%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>10 000 ₽</span><span>165 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="30 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Данные текущего автомобиля</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Введите гос. номер</div>
+      <div class="plate">
+        <input class="plate__main" type="text" placeholder="А 123 ВС" value="А 123 ВС" maxlength="8" pattern="[АВЕКМНОРСТУХ] ?\d{3} ?[АВЕКМНОРСТУХ]{2}" aria-label="Гос. номер">
+        <div class="plate__sep"></div>
+        <div class="plate__region"><input class="plate__regnum" type="text" placeholder="77" value="77" maxlength="3" inputmode="numeric" aria-label="Код региона">
+        <div class="plate__rus"><span>RUS</span><div class="flag"><i></i><i></i><i></i></div></div></div>
+      </div></div>
+    
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Укажите пробег</div>
+      <div class="field"><input class="field__input" type="text" inputmode="numeric" placeholder="120 000" maxlength="9" pattern="\d{1,3}( \d{3}){0,2}|1 000 000" value="" aria-label="Пробег, км"><span class="field__suffix">км</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text note__text--accent">По номеру и пробегу проверим цены сделок по аналогичным авто</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><div class="navr"><span class="tipw" tabindex="0" aria-label="Укажите пробег, чтобы продолжить"><button class="btn btn--next" type="button" disabled>ДАЛЕЕ →</button><span class="tip" role="tooltip"><span class="draft">Укажите пробег, чтобы продолжить</span></span></span></div></div>
+</div></div><div class="stage__col"><div class="stage__cap">Мобайл — 390 px</div>
+<div class="sheet sheet--m">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки</p>
+      <div class="buys">
+  <label class="buy"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span></label>
+  <label class="buy buy--on"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="10000" max="165000" step="5000" value="30000" style="--p:12.9%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>10 000 ₽</span><span>165 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="30 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Данные текущего автомобиля</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Введите гос. номер</div>
+      <div class="plate">
+        <input class="plate__main" type="text" placeholder="А 123 ВС" value="А 123 ВС" maxlength="8" pattern="[АВЕКМНОРСТУХ] ?\d{3} ?[АВЕКМНОРСТУХ]{2}" aria-label="Гос. номер">
+        <div class="plate__sep"></div>
+        <div class="plate__region"><input class="plate__regnum" type="text" placeholder="77" value="77" maxlength="3" inputmode="numeric" aria-label="Код региона">
+        <div class="plate__rus"><span>RUS</span><div class="flag"><i></i><i></i><i></i></div></div></div>
+      </div></div>
+    
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Укажите пробег</div>
+      <div class="field"><input class="field__input" type="text" inputmode="numeric" placeholder="120 000" maxlength="9" pattern="\d{1,3}( \d{3}){0,2}|1 000 000" value="" aria-label="Пробег, км"><span class="field__suffix">км</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text note__text--accent">По номеру и пробегу проверим цены сделок по аналогичным авто</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><span class="tipw" tabindex="0" aria-label="Укажите пробег, чтобы продолжить"><button class="btn btn--next" type="button" disabled>ДАЛЕЕ →</button><span class="tip" role="tooltip"><span class="draft">Укажите пробег, чтобы продолжить</span></span></span></div>
+</div></div></div>
+</section>
+<section class="st" id="s4">
+  <div class="st__head"><span class="st__id">4</span><span class="st__title">Ожидание после «Далее»</span></div>
+  <p class="st__desc">Кнопка заблокирована, в ней спиннер — без дополнительного текста. Вкладки, поля, способ покупки, согласие и «Назад» блокируются на время отправки.</p>
+  <div class="st__row"><div class="stage__col"><div class="stage__cap">Десктоп — 1000 px</div>
+<div class="sheet sheet--d">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar locked">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  <div class="tabbar__filler"></div>
+</div>
+    <div class="panel panel--show">
+      <div class="locked">
+      <p class="hint">Укажите способ и параметры покупки для получения расчета</p>
+      <div class="buys">
+  <label class="buy"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span><span class="buy__desc">Платеж от 10 000 ₽<br>в месяц</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span><span class="buy__desc">Зачтем ваш<br>автомобиль</span></label>
+  <label class="buy buy--wide buy--on"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span><span class="buy__desc">Платеж с учетом<br>вашего автомобиля</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="10000" max="165000" step="5000" value="30000" style="--p:12.9%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>10 000 ₽</span><span>165 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="30 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Данные текущего автомобиля</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Введите гос. номер</div>
+      <div class="plate">
+        <input class="plate__main" type="text" placeholder="А 123 ВС" value="А 123 ВС" maxlength="8" pattern="[АВЕКМНОРСТУХ] ?\d{3} ?[АВЕКМНОРСТУХ]{2}" aria-label="Гос. номер">
+        <div class="plate__sep"></div>
+        <div class="plate__region"><input class="plate__regnum" type="text" placeholder="77" value="77" maxlength="3" inputmode="numeric" aria-label="Код региона">
+        <div class="plate__rus"><span>RUS</span><div class="flag"><i></i><i></i><i></i></div></div></div>
+      </div></div>
+    
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Укажите пробег</div>
+      <div class="field"><input class="field__input" type="text" inputmode="numeric" placeholder="120 000" maxlength="9" pattern="\d{1,3}( \d{3}){0,2}|1 000 000" value="86 000" aria-label="Пробег, км"><span class="field__suffix">км</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text note__text--accent">По номеру и пробегу проверим цены сделок по аналогичным авто</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr locked"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button" disabled>← НАЗАД</button><div class="navr"><button class="btn btn--next" type="button" disabled><span class="spin"></span>ДАЛЕЕ</button></div></div>
+</div></div><div class="stage__col"><div class="stage__cap">Мобайл — 390 px</div>
+<div class="sheet sheet--m">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar locked">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  
+</div>
+    <div class="panel panel--show">
+      <div class="locked">
+      <p class="hint">Укажите способ и параметры покупки</p>
+      <div class="buys">
+  <label class="buy"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span></label>
+  <label class="buy buy--on"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="10000" max="165000" step="5000" value="30000" style="--p:12.9%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>10 000 ₽</span><span>165 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="30 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Данные текущего автомобиля</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Введите гос. номер</div>
+      <div class="plate">
+        <input class="plate__main" type="text" placeholder="А 123 ВС" value="А 123 ВС" maxlength="8" pattern="[АВЕКМНОРСТУХ] ?\d{3} ?[АВЕКМНОРСТУХ]{2}" aria-label="Гос. номер">
+        <div class="plate__sep"></div>
+        <div class="plate__region"><input class="plate__regnum" type="text" placeholder="77" value="77" maxlength="3" inputmode="numeric" aria-label="Код региона">
+        <div class="plate__rus"><span>RUS</span><div class="flag"><i></i><i></i><i></i></div></div></div>
+      </div></div>
+    
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Укажите пробег</div>
+      <div class="field"><input class="field__input" type="text" inputmode="numeric" placeholder="120 000" maxlength="9" pattern="\d{1,3}( \d{3}){0,2}|1 000 000" value="86 000" aria-label="Пробег, км"><span class="field__suffix">км</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text note__text--accent">По номеру и пробегу проверим цены сделок по аналогичным авто</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr locked"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button" disabled>← НАЗАД</button><button class="btn btn--next" type="button" disabled><span class="spin"></span>ДАЛЕЕ</button></div>
+</div></div></div>
+</section>
+<section class="st" id="s5">
+  <div class="st__head"><span class="st__id">5</span><span class="st__title">Кабинет открыть не удалось</span></div>
+  <p class="st__desc">Один экран на все причины (сбой отправки, лимит, сервис недоступен). Введённые данные сохраняются. Основная кнопка становится «Повторить», в плашке — переход на вкладки «В чате» / «По телефону». Про звонок менеджера не пишем: телефона ещё нет.</p>
+  <div class="st__row"><div class="stage__col"><div class="stage__cap">Десктоп — 1000 px</div>
+<div class="sheet sheet--d">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab tab--narrow"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  <div class="tabbar__filler"></div>
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки для получения расчета</p>
+      <div class="buys">
+  <label class="buy"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span><span class="buy__desc">Платеж от 10 000 ₽<br>в месяц</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span><span class="buy__desc">Зачтем ваш<br>автомобиль</span></label>
+  <label class="buy buy--wide buy--on"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span><span class="buy__desc">Платеж с учетом<br>вашего автомобиля</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="10000" max="165000" step="5000" value="30000" style="--p:12.9%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>10 000 ₽</span><span>165 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="30 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Данные текущего автомобиля</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Введите гос. номер</div>
+      <div class="plate">
+        <input class="plate__main" type="text" placeholder="А 123 ВС" value="А 123 ВС" maxlength="8" pattern="[АВЕКМНОРСТУХ] ?\d{3} ?[АВЕКМНОРСТУХ]{2}" aria-label="Гос. номер">
+        <div class="plate__sep"></div>
+        <div class="plate__region"><input class="plate__regnum" type="text" placeholder="77" value="77" maxlength="3" inputmode="numeric" aria-label="Код региона">
+        <div class="plate__rus"><span>RUS</span><div class="flag"><i></i><i></i><i></i></div></div></div>
+      </div></div>
+    
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Укажите пробег</div>
+      <div class="field"><input class="field__input" type="text" inputmode="numeric" placeholder="120 000" maxlength="9" pattern="\d{1,3}( \d{3}){0,2}|1 000 000" value="86 000" aria-label="Пробег, км"><span class="field__suffix">км</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text note__text--accent">По номеру и пробегу проверим цены сделок по аналогичным авто</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  <div class="fail" role="alert">
+  <span class="fail__i">!</span>
+  <div class="fail__body">
+    <div class="fail__text"><span class="draft"><b>Не удалось открыть личный кабинет.</b> Попробуйте ещё раз или получите расчёт другим способом</span></div>
+    <div class="fail__alts">
+      <button class="alt" type="button"><span>🤖</span>В чате</button>
+      <button class="alt" type="button"><span>👨‍💼</span>По телефону</button>
+    </div>
+  </div></div>
+  
+  <div class="nav nav--after-fail"><button class="btn btn--back" type="button">← НАЗАД</button><div class="navr"><button class="btn btn--next" type="button">↻ <span class="draft">ПОВТОРИТЬ</span></button></div></div>
+</div></div><div class="stage__col"><div class="stage__cap">Мобайл — 390 px</div>
+<div class="sheet sheet--m">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки</p>
+      <div class="buys">
+  <label class="buy"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span></label>
+  <label class="buy buy--on"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="10000" max="165000" step="5000" value="30000" style="--p:12.9%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>10 000 ₽</span><span>165 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="30 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Данные текущего автомобиля</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Введите гос. номер</div>
+      <div class="plate">
+        <input class="plate__main" type="text" placeholder="А 123 ВС" value="А 123 ВС" maxlength="8" pattern="[АВЕКМНОРСТУХ] ?\d{3} ?[АВЕКМНОРСТУХ]{2}" aria-label="Гос. номер">
+        <div class="plate__sep"></div>
+        <div class="plate__region"><input class="plate__regnum" type="text" placeholder="77" value="77" maxlength="3" inputmode="numeric" aria-label="Код региона">
+        <div class="plate__rus"><span>RUS</span><div class="flag"><i></i><i></i><i></i></div></div></div>
+      </div></div>
+    
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Укажите пробег</div>
+      <div class="field"><input class="field__input" type="text" inputmode="numeric" placeholder="120 000" maxlength="9" pattern="\d{1,3}( \d{3}){0,2}|1 000 000" value="86 000" aria-label="Пробег, км"><span class="field__suffix">км</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text note__text--accent">По номеру и пробегу проверим цены сделок по аналогичным авто</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  <div class="fail" role="alert">
+  <span class="fail__i">!</span>
+  <div class="fail__body">
+    <div class="fail__text"><span class="draft"><b>Не удалось открыть личный кабинет.</b> Попробуйте ещё раз или получите расчёт другим способом</span></div>
+    <div class="fail__alts">
+      <button class="alt" type="button"><span>🤖</span>В чате</button>
+      <button class="alt" type="button"><span>👨‍💼</span>По телефону</button>
+    </div>
+  </div></div>
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><button class="btn btn--next" type="button">↻ <span class="draft">ПОВТОРИТЬ</span></button></div>
+</div></div></div>
+</section>
+<section class="st" id="s6">
+  <div class="st__head"><span class="st__id">6</span><span class="st__title">Мобайл 390 px — таб-бар прокручивается</span></div>
+  <p class="st__desc">Вкладки в одну строку с горизонтальной прокруткой, как в текущем макете. Добавлено затухание у края, которое показывает, что за краем есть ещё вкладки. Затухание переключается при прокрутке. Таб-бар можно прокрутить во всех мобильных макетах выше.</p>
+  <div class="st__row"><div class="stage__col"><div class="stage__cap">Мобайл — 390 px</div>
+<div class="sheet sheet--m">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки</p>
+      <div class="buys">
+  <label class="buy buy--on"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span></label>
+  <label class="buy"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="10000" max="165000" step="5000" value="30000" style="--p:12.9%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>10 000 ₽</span><span>165 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="30 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><button class="btn btn--next" type="button">ДАЛЕЕ →</button></div>
+</div></div><div><div class="stage__col"><div class="stage__cap">Мобайл — 390 px</div>
+<div class="sheet sheet--m">
+  <div class="bridge"><div class="bridge__bar"></div><span class="bridge__text">Расчет цены, кредита и trade-in</span></div>
+  <div class="tabs">
+<div class="tabbar">
+  <label class="tab tab--on"><span class="tab__emoji">🔑</span><span><span class="tab__name">В личном кабинете</span><span class="tab__desc">Получить расчет на сайте</span></span></label>
+  <label class="tab"><span class="tab__emoji">🤖</span><span><span class="tab__name">В чате</span><span class="tab__desc">Инфобот пришлёт расчёт</span></span></label>
+  <label class="tab"><span class="tab__emoji">👨‍💼</span><span><span class="tab__name">По телефону</span><span class="tab__desc">Позвонит менеджер</span></span></label>
+  
+</div>
+    <div class="panel panel--show">
+      <div class="">
+      <p class="hint">Укажите способ и параметры покупки</p>
+      <div class="buys">
+  <label class="buy buy--on"><span class="buy__icon">💳</span><span class="buy__name">В КРЕДИТ</span></label>
+  <label class="buy"><span class="buy__icon">🔄</span><span class="buy__name">В ТРЕЙД-ИН</span></label>
+  <label class="buy"><span class="buy__icon buy__icon--duo"><span>💳</span><span>🔄</span></span><span class="buy__name">В КРЕДИТ + ТРЕЙД-ИН</span></label>
+</div>
+      <div class="lvl2"><div class="lvl2__block lvl2__block--show">
+  <p class="lvl2__title">Параметры Кредита</p>
+  <div class="pane">
+    <div class="row"><div class="row__label">Выберите платеж на шкале</div>
+      <div class="slider"><input class="range js-range" type="range" min="10000" max="165000" step="5000" value="30000" style="--p:12.9%" aria-label="Ежемесячный платеж">
+      <div class="range__ends"><span>10 000 ₽</span><span>165 000 ₽</span></div></div></div>
+    <div class="hr"></div>
+    <div class="row"><div class="row__label">Или впишите сумму сами</div>
+      <div class="field"><input class="field__input js-sum" type="text" inputmode="numeric" value="30 000" aria-label="Сумма платежа"><span class="field__suffix">₽</span></div></div>
+    <div class="note"><span class="note__i">i</span><span class="note__text">По платежу подберем срок кредита и размер первого взноса</span></div>
+  </div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="agr"><div class="agr__box"><div class="agr__tick"></div></div><span>Я ознакомлен(а) с <a href="#privacy">Политикой конфиденциальности</a> и даю <a href="#consent">Согласие</a> на предоставление и обработку персональных данных</span></div>
+  
+  
+  <div class="nav"><button class="btn btn--back" type="button">← НАЗАД</button><button class="btn btn--next" type="button">ДАЛЕЕ →</button></div>
+</div></div></div></div>
+</section>
+</div>
+</body>
+</html>

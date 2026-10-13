@@ -1,0 +1,18 @@
+{
+  "name": "tilda-landing-2",
+  "private": true,
+  "description": "Сборка блоков Tilda T123 для вставки: docs/tilda-blocks/Ver_4_dev → Ver_4_dev/Production",
+  "type": "module",
+  "scripts": {
+    "build:prod": "node tools/build-production.mjs",
+    "check:prod": "node tools/build-production.mjs --check",
+    "test:harness": "python3 tools/run-harnesses.py",
+    "test:visual": "python3 tools/visual-check.py",
+    "test:swiper": "python3 tools/swiper-fallback-check.py",
+    "test:hero": "python3 tools/hero-early-click-check.py",
+    "measure:ready": "python3 tools/ready-waterfall.py"
+  },
+  "devDependencies": {
+    "html-minifier-terser": "^7.2.0"
+  }
+}
