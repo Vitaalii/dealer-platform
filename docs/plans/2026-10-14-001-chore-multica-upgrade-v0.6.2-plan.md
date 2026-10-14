@@ -209,8 +209,9 @@ MUL-7281 (#8300, первый тег v0.4.43) — расширение. `REDIS_U
 - **В1.** Целевая версия — v0.6.2.
 - **В2.** Caddy обновляется на этапе A (`--force-confold`, контрольная сумма Caddyfile до и после).
 - **В3.** Устаревшие переменные `MULTICA_ENTITLEMENT_*` и `MULTICA_CODEX_TIMEOUT` остаются в `.env`.
-- **В4.** Проверенную процедуру восстановления владелец пришлёт отдельно. До этого действует
-  процедура R из раздела C; её проверяет репетиция B0.
+- **В4.** Записанной процедуры учений при развёртывании нет: сессия закрыта, на сервере процедура
+  не сохранилась. Восстанавливать по памяти не будем. Основная процедура — R из раздела C,
+  её проверка — репетиция B0.
 - **В5.** Шаг B5a обязателен: дамп на Mac в ту же папку, что и копия `.env` (вне облачных папок и
   git, исключена из Time Machine, `chmod 600`).
 - **В6.** Репетиция B0 обязательна: свежий дамп, восстановление в `multica_rehearsal`, прогон
@@ -294,7 +295,7 @@ MUL-7281 (#8300, первый тег v0.4.43) — расширение. `REDIS_U
 меняется; создаётся и удаляется отдельная база `multica_rehearsal` в том же контейнере postgres.
 Пароль нигде не выводится: строка подключения копируется из окружения работающего backend в файл с
 правами 600, в ней меняется только имя базы, а контейнер миграций получает её через `--env-file`.
-Аварийная остановка на любом шаге: `docker rm -f multica-rehearsal-migrate`, затем шаг 0.17.
+Аварийная остановка на любом шаге: `docker rm -f multica-rehearsal-migrate`, затем шаги 0.17, 0.18, 0.21.
 
 **Подготовка**
 
@@ -322,10 +323,13 @@ MUL-7281 (#8300, первый тег v0.4.43) — расширение. `REDIS_U
 0.12. `$ echo 'DO_NOT_TRACK=1' >> /root/rehearsal.env`
 0.13. **Проверка имени базы — подтвердите вручную:**
       `$ sed -n 's|.*@\(postgres:5432\)/\([^?]*\)?.*|host=\1 db=\2|p' /root/rehearsal.env`
-      → ровно одна строка `host=postgres:5432 db=multica_rehearsal`. Если строк нет, их больше
-      одной или `db` другой — **стоп**, шаг 0.14 не выполнять.
+      → ровно одна строка `host=postgres:5432 db=multica_rehearsal`.
+      Если вывод другой (пусто, больше одной строки, `db=` с любым другим именем, в том числе имя
+      рабочей базы) — **0.14 не запускать**, выполнить `$ rm /root/rehearsal.env` и сообщить.
 0.13a. `$ grep -c '' /root/rehearsal.env` → `2`; `$ grep -c '^DO_NOT_TRACK=1$' /root/rehearsal.env` → `1` (две отдельные команды).
 0.13b. `$ stat -c '%a' /root/rehearsal.env` → `600`.
+0.13c. Только чтение: `$ docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{println $k}}{{end}}' multica-postgres-1`
+       → ровно `multica_default`. Если сеть другая — стоп: 0.14 не запускать, исправить `--network` в 0.14.
 
 **Прогон миграций (только `./migrate up`, сервер не запускается)**
 
@@ -348,8 +352,7 @@ MUL-7281 (#8300, первый тег v0.4.43) — расширение. `REDIS_U
 0.18. `$ docker exec multica-postgres-1 sh -c 'psql -U "$POSTGRES_USER" -d postgres -At -c "select count(*) from pg_database where datname = '\''multica_rehearsal'\''"'` → `0`.
 0.19. `$ docker exec multica-postgres-1 sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -c "select count(*) from schema_migrations"'` → `429`: рабочая база не тронута.
 0.20. `$ curl -fsS 127.0.0.1:8080/readyz` → `db:ok`, `migrations:ok`.
-0.21. `$ rm /root/rehearsal.env`
-0.22. Лог `/root/rehearsal-migrate.log` (права 600) оставить до разбора; присылать только вывод шагов 0.15–0.15c.
+0.21. `$ rm /root/rehearsal.env /root/rehearsal-migrate.log` — после того как вывод шагов 0.15–0.15c прислан.
 
 **Критерий перехода к окну B:** 0.9 `exit=0`, 0.14 `exit=0`, 0.16 = 598, 0.16a совпадает с D5, 0.19 = 429.
 Если упало — присылаете вывод, разбираем до окна B.
@@ -537,12 +540,21 @@ self-host не описывает. Единственный надёжный о�
 
 **R. Восстановление на v0.4.32 из дампа**
 
-Проверенную процедуру владелец пришлёт отдельно (В4). До этого действует процедура ниже: она совместима
-с форматом `backup.sh`, а шаги R.5–R.7 проверяются репетицией B0.
+Основная процедура отката (В4). Происхождение и статус проверки:
+- процедура учений при развёртывании не сохранилась; R собрана заново по формату `backup.sh` (`pg_dump -Fc`);
+- шаги R.5–R.7 (createdb, pg_restore, проверка 429) проверены репетицией B0;
+- шаг R.4 (`dropdb` рабочей базы) репетицией **не** проверяется; от безвозвратной потери его страхует шаг R.3a.
 
 1. `$ /opt/multica/mc stop frontend backend`
 2. `$ cp -p /opt/multica/.env.bak-v0.4.32 /opt/multica/.env` — возвращает `MULTICA_IMAGE_TAG=v0.4.32` и убирает `DO_NOT_TRACK`.
 3. `$ git -C /opt/multica/src checkout v0.4.32`
+3a. **Страховочный дамп текущего состояния (после миграций v0.6.2), до `dropdb`:**
+    `$ (umask 077; docker exec multica-postgres-1 sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' > /var/backups/multica-pre-v0.6.2/db-v0.6.2-before-rollback.dump.part; echo "exit=$?")` → `exit=0`.
+3b. `$ mv /var/backups/multica-pre-v0.6.2/db-v0.6.2-before-rollback.dump.part /var/backups/multica-pre-v0.6.2/db-v0.6.2-before-rollback.dump`
+3c. `$ test -s /var/backups/multica-pre-v0.6.2/db-v0.6.2-before-rollback.dump; echo "exit=$?"` → `exit=0` (файл не пустой).
+3d. `$ ls -l /var/backups/multica-pre-v0.6.2/db-v0.6.2-before-rollback.dump` — размер порядка дампа B5 или больше.
+3e. `$ docker exec -i multica-postgres-1 pg_restore -f /dev/null < /var/backups/multica-pre-v0.6.2/db-v0.6.2-before-rollback.dump; echo "exit=$?"` → `exit=0`.
+    Если любой из шагов 3a–3e не прошёл — **стоп, R.4 не выполнять**, сообщить.
 4. `$ docker exec multica-postgres-1 sh -c 'dropdb -U "$POSTGRES_USER" "$POSTGRES_DB"'`
    Если ругается на активные подключения: убедитесь, что backend остановлен, и повторите.
 5. `$ docker exec multica-postgres-1 sh -c 'createdb -U "$POSTGRES_USER" -O "$POSTGRES_USER" "$POSTGRES_DB"'`
@@ -635,7 +647,7 @@ self-host не описывает. Единственный надёжный о�
 ## Что не проверял
 
 - Работу daemon с этим сервером в single-domain схеме: выполнится на пилоте.
-- Процедуру восстановления владельца (В4): ждём от владельца. Процедура R проверяется на B0, кроме шага `dropdb` рабочей базы.
+- Шаг R.4 (`dropdb` рабочей базы) репетицией не проверяется; страховка — дамп R.3a. Процедура учений при развёртывании не сохранилась (В4).
 - Что `mc up -d` после обновления `docker-compose-plugin` 5.5 → 5.6 не пересоздаст postgres. Если пересоздаст — это безвредно, том сохраняется.
 - Точную первую версию Multica с поддержкой Claude Code: для пилота не нужна.
 - `apt list --upgradable` снят 2026-10-14 по кэшу от 2026-10-13; к окну этапа A список может вырасти.
