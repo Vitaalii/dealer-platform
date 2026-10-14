@@ -150,6 +150,44 @@ sha256 нового `92346651…303f4f`). Что изменилось:
 
 Рекомендация: вариант 1 отдельной задачей после пилота (или раньше, если email публичен).
 
+## Redis и лимиты на /auth — 2026-10-14 06:22–06:30 UTC (агент, по решению владельца)
+
+План: `docs/plans/2026-10-14-002-feat-multica-redis-rate-limit-plan.md`. Решения: лимит verify 5/мин
+на IP; пароль Redis в `.env` (`REDIS_PASSWORD`), `REDIS_URL` собирается в override. Расхождений с
+ожидаемым выводом и стоп-условий не было; откат не понадобился; Caddy не менялся.
+
+- **U1.** Дамп `db-2026-10-14-0622.dump`, копия в `/var/backups/multica-pre-redis/`,
+  `pg_restore -f /dev/null` exit=0; `.bak-pre-redis` для override и `.env`; контрольные суммы.
+- **U2.** `redis:7.4.11-alpine3.21@sha256:858f009f…3499`, amd64, digest совпал.
+- **U3.** В `.env` добавлен `REDIS_PASSWORD` (64 hex, не выводился; права 600). Новый
+  `compose.override.yml` — по сравнению только добавления (сервис redis; у backend `depends_on`,
+  `REDIS_URL`, `RATE_LIMIT_TRUSTED_PROXIES=172.18.0.0/16`, `RATE_LIMIT_AUTH_VERIFY=5`), healthcheck'и
+  прежние. `mc config` валиден, в команде redis — ссылка `$REDIS_PASSWORD`, не значение.
+- **U4.** `mc up -d` в 06:24:27: redis создан, backend пересоздан, postgres/frontend не тронуты;
+  все 4 контейнера healthy в 06:24:52.
+- **V1.** `realtime: Redis relay enabled … mode=sharded`; строки «auth rate limiting disabled» нет;
+  ERR — 0.
+- **V2.** readyz `db:ok, migrations:ok`; сайт 200, verify=0.
+- **V3.** С сервера 7 запросов `verify-code` на несуществующий email: `400 ×5, 429 ×2`; ключ
+  `mul:ratelimit:auth:verify-code:65.109.167.1` (адрес клиента, не прокси). Запрос с
+  `X-Forwarded-For: 203.0.113.9` засчитан на реальный адрес (429), ключа `203.0.113.9` нет.
+  Контроль с Mac — 400 (отдельный ключ, владелец не заблокирован).
+- **V4a.** `redis-cli -h redis ping` из чужого контейнера без пароля — `NOAUTH Authentication required.`;
+  `SCAN` — тоже NOAUTH.
+- **V5.** 6379 снаружи закрыт, на хосте не слушается; 3000/8080/5432 закрыты, 443 открыт; список
+  слушающих портов прежний.
+- **V6.** used_memory 1.31M, maxmemory 128M, `noeviction`, save и AOF выключены, томов нет, `/data`
+  в tmpfs, лимит памяти 256 MB, порт не опубликован.
+- **V7.** `backup.sh` exit=0, дамп 1 842 424 байт, `pg_restore` exit=0.
+- **V8/V9.** VERSIONS.md: строка redis с digest и заметка. UPGRADE.md: проверка redis/RATE_LIMIT/
+  подсети в разделе 0, `REDIS_PASSWORD` в «Keep», проверки relay и NOAUTH (sha256 `a7f8cb87…8af8`;
+  прежние версии — `.bak-pre-redis`).
+- **Копия `.env` на Mac:** `~/.multica-server-backup/multica.env.v0.6.2-redis-2026-10-14` (600),
+  хэш совпал, `REDIS_PASSWORD` в ней есть. Прежние копии не удалялись.
+- **Не проверено агентом:** V4 (realtime в двух вкладках) — за владельцем.
+- **Остаточный риск:** гонка в `VerifyCode` остаётся в пределах 5 проверок/мин на IP; атакующий с
+  многими IP получает лимит на каждый. Полное закрытие — атомарный инкремент в upstream.
+
 ## Что не проверено
 
 - Процедура учений при развёртывании не сохранилась (В4). Процедура R собрана заново по формату
@@ -167,6 +205,7 @@ sha256 нового `92346651…303f4f`). Что изменилось:
   образов v0.4.32, `/var/backups/multica-pre-v0.6.2/`, `/opt/multica/.env.bak-v0.4.32`,
   `/opt/multica/VERSIONS.md.bak-v0.4.32`, `/opt/multica/UPGRADE.md.bak-v0.4.32` — отдельными
   командами по команде владельца. Копии на Mac (`multica.env.v0.4.32`, дамп) — тоже по его решению.
-- Защита входа: план `docs/plans/2026-10-14-002-feat-multica-redis-rate-limit-plan.md` (Redis с паролем,
-  `RATE_LIMIT_TRUSTED_PROXIES=172.18.0.0/16`, `RATE_LIMIT_AUTH_VERIFY`) — ждёт решения владельца;
-  выполнить до подключения runtime.
+- Владелец: V4 плана Redis — realtime в двух вкладках интерфейса.
+- Отложено вместе с остальным (после первой недели пилота): `/var/backups/multica-pre-redis/`,
+  `compose.override.yml.bak-pre-redis`, `.env.bak-pre-redis`, `VERSIONS.md.bak-pre-redis`,
+  `UPGRADE.md.bak-pre-redis`.

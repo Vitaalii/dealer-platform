@@ -1,7 +1,7 @@
 ---
 title: "feat: Redis для self-hosted Multica v0.6.2 — лимиты на /auth до подключения runtime"
 type: feat
-status: draft
+status: executed-2026-10-14 (V4 — за владельцем)
 date: 2026-10-14
 target_host: root@65.109.167.1 (multica.autodc.org)
 related: docs/plans/2026-10-14-001-chore-multica-upgrade-v0.6.2-plan.md
@@ -296,7 +296,11 @@ compose (слияние `environment` по ключу). Если хотите с
 
 ---
 
-## 6. Открытые вопросы
+## 6. Решения владельца (2026-10-14)
+
+В1 — 5/мин на IP; В2 — пароль в `.env`, URL в override; В3 — выполняет агент целиком.
+
+### Варианты, которые рассматривались
 
 - **В1. `RATE_LIMIT_AUTH_VERIFY`:**
   - `5` на IP — рекомендую: соответствует задуманной защите, владельцу хватает;
