@@ -167,4 +167,6 @@ sha256 нового `92346651…303f4f`). Что изменилось:
   образов v0.4.32, `/var/backups/multica-pre-v0.6.2/`, `/opt/multica/.env.bak-v0.4.32`,
   `/opt/multica/VERSIONS.md.bak-v0.4.32`, `/opt/multica/UPGRADE.md.bak-v0.4.32` — отдельными
   командами по команде владельца. Копии на Mac (`multica.env.v0.4.32`, дамп) — тоже по его решению.
-- Решение по защите входа (Redis в override) — отдельная задача.
+- Защита входа: план `docs/plans/2026-10-14-002-feat-multica-redis-rate-limit-plan.md` (Redis с паролем,
+  `RATE_LIMIT_TRUSTED_PROXIES=172.18.0.0/16`, `RATE_LIMIT_AUTH_VERIFY`) — ждёт решения владельца;
+  выполнить до подключения runtime.
