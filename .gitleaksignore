@@ -1,0 +1,19 @@
+# Известные находки gitleaks, разобранные при сборке монорепозитория
+# (docs/handoff/2026-10-13-monorepo-bootstrap.md, landing/SOURCE.md). Значений ключей здесь нет.
+# Формат: <коммит>:<файл>:<правило>:<строка>. Новые находки сюда — только по решению владельца.
+
+# Браузерный ключ Яндекс.Карт, блок контактов Tilda (сборка Production). Оставлен сознательно:
+# ключ публичен на живых страницах; ограничение по доменам — на владельце.
+fb9d80f3118027c4ddf4165b6aea3e47d20a8677:landing/docs/tilda-blocks/Ver_4_dev/Production/u7-contacts.html:generic-api-key:1
+
+# Тот же браузерный ключ Яндекс.Карт, сборка Production-test. Оставлен по той же причине.
+fb9d80f3118027c4ddf4165b6aea3e47d20a8677:landing/docs/tilda-blocks/Ver_4_dev/Production-test/u7-contacts.html:generic-api-key:1
+
+# Тот же браузерный ключ Яндекс.Карт, исходник блока. Оставлен по той же причине.
+fb9d80f3118027c4ddf4165b6aea3e47d20a8677:landing/docs/tilda-blocks/Ver_4_dev/u7-contacts.html:generic-api-key:303
+
+# Ложное срабатывание: заголовок X-N8N-API-KEY, значение берётся из env.N8N_API_KEY, в файле ключа нет.
+fb9d80f3118027c4ddf4165b6aea3e47d20a8677:n8n/flow/cabinet-web-entry/api/check_n4_exec.mjs:generic-api-key:23
+
+# Ложное срабатывание: то же, значение из env.N8N_API_KEY.
+fb9d80f3118027c4ddf4165b6aea3e47d20a8677:n8n/flow/cabinet-web-entry/api/check_combo_executions.mjs:generic-api-key:26
