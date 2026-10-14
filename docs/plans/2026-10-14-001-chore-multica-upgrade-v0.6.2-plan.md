@@ -1,7 +1,7 @@
 ---
 title: "chore: Обновление self-hosted Multica v0.4.32 → v0.6.2 и системные обновления Ubuntu"
 type: chore
-status: approved-pending-execution
+status: executed-2026-10-14 (A, B0, B, D; D4 — за владельцем)
 date: 2026-10-14
 target_host: root@65.109.167.1 (multica.autodc.org)
 ---
