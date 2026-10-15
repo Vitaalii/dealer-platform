@@ -1,0 +1,6 @@
+{
+  "name": "dealer-platform-mods",
+  "description": "Моды Claude Code проекта «Платформа дилеров»",
+  "owner": { "name": "Vitaalii" },
+  "plugins": [{ "name": "command-log", "source": "./" }]
+}
