@@ -1,0 +1,6 @@
+{
+  "name": "guard",
+  "version": "0.1.0",
+  "description": "Запреты для агентов: отправка в main, force-push и слияние PR; старая система и SSH; правка ~/.claude, ~/.multica, модов и настроек Claude Code.",
+  "author": { "name": "Vitaalii" }
+}
