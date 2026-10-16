@@ -1,0 +1,6 @@
+{
+  "name": "dealer-platform-guard",
+  "description": "Мод-сторож Claude Code проекта «Платформа дилеров»",
+  "owner": { "name": "Vitaalii" },
+  "plugins": [{ "name": "guard", "source": "./" }]
+}
