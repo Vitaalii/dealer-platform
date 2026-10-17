@@ -1,0 +1,151 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "ncRecordId",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ncRecordHash",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ID_color",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Model",
+   "uidt": "SingleSelect",
+   "options": [
+    "HAVAL M6",
+    "HAVAL DARGO",
+    "HAVAL DARGO X",
+    "HAVAL JOLION",
+    "НОВЫЙ HAVAL F7",
+    "GWM POER KINGKONG",
+    "GWM POER",
+    "HAVAL F7X"
+   ]
+  },
+  {
+   "title": "Color",
+   "uidt": "SingleSelect",
+   "options": [
+    "Белый",
+    "Серый",
+    "Черный",
+    "Графитовый кварц",
+    "Галактический черный",
+    "Терракотовый сапфир",
+    "Благородный агат",
+    "Магматический красный",
+    "Небесный топаз",
+    "Платиновый неон",
+    "Океанический лазурит",
+    "Дымчатый жемчуг",
+    "Коричневый",
+    "Красный",
+    "Синий",
+    "Серебристый",
+    "Голубой"
+   ]
+  },
+  {
+   "title": "Model id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Color short",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Active",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "Color_Pic",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Model utm",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Brand",
+   "uidt": "SingleSelect",
+   "options": [
+    "HAVAL"
+   ]
+  },
+  {
+   "title": "Brand id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Color_ext",
+   "uidt": "SingleSelect",
+   "options": [
+    "Белый",
+    "Серый",
+    "Черный",
+    "Графитовый кварц",
+    "Галактический черный",
+    "Терракотовый сапфир",
+    "Благородный агат",
+    "Магматический красный",
+    "Небесный топаз",
+    "Платиновый неон",
+    "Океанический лазурит",
+    "Дымчатый жемчуг",
+    "Коричневый",
+    "Красный",
+    "Синий",
+    "Серебристый",
+    "Голубой"
+   ]
+  },
+  {
+   "title": "Color number",
+   "uidt": "SingleLineText",
+   "options": []
+  }
+ ]
+}

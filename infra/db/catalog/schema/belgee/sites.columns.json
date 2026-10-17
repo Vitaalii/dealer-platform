@@ -1,0 +1,94 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "brand",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "model",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "pricelist_url",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "download_strategy",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "parser_module",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "parser_version",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "checksum",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "last_successful_download_level",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "direct_url",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "active",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "parser_options",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "view_id",
+   "uidt": "SingleLineText",
+   "options": []
+  }
+ ]
+}

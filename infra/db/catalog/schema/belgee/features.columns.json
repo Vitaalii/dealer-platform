@@ -1,0 +1,116 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "ID_feature",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Feature name",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Feature category",
+   "uidt": "SingleSelect",
+   "options": [
+    "Интерьер",
+    "Комфорт",
+    "Экстерьер",
+    "Безопасность"
+   ]
+  },
+  {
+   "title": "Active",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "Model",
+   "uidt": "SingleSelect",
+   "options": [
+    "S50",
+    "Новый X50+",
+    "Обновленный X70",
+    "Новый X50"
+   ]
+  },
+  {
+   "title": "Model ID",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Category icon",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Feature number",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Brand",
+   "uidt": "SingleSelect",
+   "options": [
+    "BELGEE"
+   ]
+  },
+  {
+   "title": "Brand id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "replaces_pending",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "replaces",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "born_from",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "source_text",
+   "uidt": "LongText",
+   "options": []
+  }
+ ]
+}

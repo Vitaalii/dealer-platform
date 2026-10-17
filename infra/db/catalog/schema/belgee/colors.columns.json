@@ -1,0 +1,94 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "ID_color",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Brand",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Brand id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Color short",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Color",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Color_ext",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Color number",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model utm",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Active",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "Color_Pic",
+   "uidt": "Attachment",
+   "options": []
+  }
+ ]
+}

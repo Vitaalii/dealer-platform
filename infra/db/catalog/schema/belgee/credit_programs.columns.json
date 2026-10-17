@@ -1,0 +1,69 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "Program_id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Bank_name",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Bank_id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model_Pattern",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Min_Down_Payment",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Max_Term_Months",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Base_Rate",
+   "uidt": "Number",
+   "options": []
+  }
+ ]
+}

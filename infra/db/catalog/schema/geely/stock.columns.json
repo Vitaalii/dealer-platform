@@ -1,0 +1,106 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "ncRecordId",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ncRecordHash",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Number",
+   "uidt": "Decimal",
+   "options": []
+  },
+  {
+   "title": "VIN",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Production year",
+   "uidt": "SingleSelect",
+   "options": [
+    "2024"
+   ]
+  },
+  {
+   "title": "Special price",
+   "uidt": "Currency",
+   "options": []
+  },
+  {
+   "title": "Product_link",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Created",
+   "uidt": "DateTime",
+   "options": []
+  },
+  {
+   "title": "Changed",
+   "uidt": "DateTime",
+   "options": []
+  },
+  {
+   "title": "Availible",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "_nc_m2m_GEELY_NOCO_GEELY_Stocks",
+   "uidt": "LinkToAnotherRecord",
+   "options": []
+  },
+  {
+   "title": "GEELY copy",
+   "uidt": "Links",
+   "options": []
+  },
+  {
+   "title": "_nc_m2m_GEELY_Color_NOC_GEELY_Stocks",
+   "uidt": "LinkToAnotherRecord",
+   "options": []
+  },
+  {
+   "title": "GEELY Color copy",
+   "uidt": "Links",
+   "options": []
+  }
+ ]
+}

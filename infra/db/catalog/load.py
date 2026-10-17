@@ -34,7 +34,8 @@ LOCK_ID = 5_5_0001  # постоянный номер advisory-блокиров�
 TEXT_TYPES = {"SingleLineText", "LongText", "Email", "URL", "PhoneNumber", "SingleSelect", "MultiSelect"}
 DECIMAL_TYPES = {"Decimal", "Currency", "Percent"}
 DATETIME_TYPES = {"DateTime", "CreatedTime", "LastModifiedTime"}
-# Служебное поле ответа API NocoDB, не колонка таблицы (его же убирает бот, bot/main.py:2772).
+# Служебное поле ответа API NocoDB (его же убирает бот, bot/main.py:2772). Пропускается, только если
+# такой колонки нет в таблице: в каталогах geely и haval ncRecordHash — обычная колонка (файлы CE 17.10).
 API_SERVICE_FIELDS = {"ncRecordHash"}
 # Что остаётся во вложении; signedUrl, signedPath, thumbnails и прочее — временное, убирается.
 ATTACHMENT_KEEP = ("path", "title", "mimetype", "size")
@@ -144,7 +145,7 @@ def check_fields(records: list[dict], table: TableMeta) -> None:
     expected = {c.name for c in table.columns}
     present: set[str] = set()
     for r in records:
-        present.update(k for k in r if k not in API_SERVICE_FIELDS)
+        present.update(k for k in r if k in expected or k not in API_SERVICE_FIELDS)
     extra = sorted(present - expected)
     absent = sorted(expected - present) if records else []
     if extra or absent:

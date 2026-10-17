@@ -137,6 +137,14 @@ class LoadTest(unittest.TestCase):
         with self.assertRaisesRegex(load.LoadError, r"missing \['slug'\]"):
             load.check_fields(recs, self.catalog)
 
+    def test_service_field_that_is_a_column_is_kept(self):
+        table = load.TableMeta("demo", "t", "demo_t", (load.Column("Id", "ID"), load.Column("ncRecordHash", "SingleLineText")))
+        records = [{"Id": 1, "ncRecordHash": "h1"}]
+        load.check_fields(records, table)
+        self.assertEqual(load.prepare_rows(records, table).rows, [{"Id": 1, "ncRecordHash": "h1"}])
+        with self.assertRaisesRegex(load.LoadError, r"missing \['ncRecordHash'\]"):
+            load.check_fields([{"Id": 1}], table)
+
     # --- manifest
 
     def test_manifest_mismatch(self):
