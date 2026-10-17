@@ -102,6 +102,15 @@ services:
       PLATFORM_DB_NAME: platform
       PLATFORM_DB_USER: platform_app
       PLATFORM_DB_PASSWORD: ${PLATFORM_APP_PASSWORD:?missing PLATFORM_APP_PASSWORD}
+      # Почта (core/platform_core/mail, infra/README.md, раздел 14)
+      MAIL_PROVIDER: ${MAIL_PROVIDER:?missing MAIL_PROVIDER}
+      MAIL_FROM: ${MAIL_FROM:?missing MAIL_FROM}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-}
+      MAIL_MAX_PER_SECOND: ${MAIL_MAX_PER_SECOND:-}
+      POSTBOX_KEY_ID: ${POSTBOX_KEY_ID:?missing POSTBOX_KEY_ID}
+      POSTBOX_SECRET_KEY: ${POSTBOX_SECRET_KEY:?missing POSTBOX_SECRET_KEY}
+      POSTBOX_ENDPOINT: ${POSTBOX_ENDPOINT:-}
+      POSTBOX_REGION: ${POSTBOX_REGION:-}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
       interval: 30s
