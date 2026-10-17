@@ -1,0 +1,249 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "run_id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "site_id",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "status",
+   "uidt": "SingleSelect",
+   "options": [
+    "PENDING",
+    "APPROVED",
+    "REJECTED",
+    "SUPERSEDED",
+    "UNCHANGED_OK"
+   ]
+  },
+  {
+   "title": "change_type",
+   "uidt": "SingleSelect",
+   "options": [
+    "NEW",
+    "CHANGED",
+    "UNCHANGED"
+   ]
+  },
+  {
+   "title": "telegram_message_id",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Brand",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Body",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Engine",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Engine type",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Transmission",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Transmission_ru",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Drivetrain",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Drivetrain_ru",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Complectation",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Complication full",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model title",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model Modification",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Acceleration",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Сonsumption",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "clearance",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Price old",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Price new",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Trade-in bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Cash in hook",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Credit condition",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Credit bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Gift",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Features",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Minus Features",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "source_file",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "missing_features",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "parsed_year",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "option_questions",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Brand id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Complectation id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ID",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model_short",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model utm",
+   "uidt": "SingleLineText",
+   "options": []
+  }
+ ]
+}

@@ -1,0 +1,71 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "run_id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "site_id",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "change_type",
+   "uidt": "SingleSelect",
+   "options": [
+    "NEW_MODEL"
+   ]
+  },
+  {
+   "title": "status",
+   "uidt": "SingleSelect",
+   "options": [
+    "PENDING",
+    "APPROVED",
+    "REJECTED",
+    "SUPERSEDED"
+   ]
+  },
+  {
+   "title": "payload",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "telegram_message_id",
+   "uidt": "Number",
+   "options": []
+  }
+ ]
+}

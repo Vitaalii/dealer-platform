@@ -1,0 +1,19 @@
+{
+  "list": [
+    {
+      "Id": 1,
+      "Model": "Alfa",
+      "Feature": "Подогрев сидений",
+      "Group": "Comfort"
+    },
+    {
+      "Id": 2,
+      "Model": "Beta",
+      "Feature": "Шесть подушек",
+      "Group": "Safety"
+    }
+  ],
+  "pageInfo": {
+    "totalRows": 2
+  }
+}

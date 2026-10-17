@@ -1,0 +1,103 @@
+[
+  {
+    "Id": 1,
+    "Model": "Alfa",
+    "Complectation": "Base",
+    "Engine": "1.5",
+    "Transmission": "AT",
+    "Drivetrain": "FWD",
+    "Model id": 1,
+    "Complectation id": 11,
+    "Price old": 1000000,
+    "Price new": "950000.50",
+    "Credit bonus": null,
+    "Сonsumption": 6.5,
+    "Minus Features": "Опция А",
+    "Pics": [
+      {
+        "path": "download/demo/pic1.jpg",
+        "title": "pic1.jpg",
+        "mimetype": "image/jpeg",
+        "size": 1001,
+        "signedUrl": "https://example.invalid/signed/pic1?sig=fake",
+        "signedPath": "dltemp/fake/pic1.jpg",
+        "thumbnails": {
+          "tiny": {
+            "signedUrl": "https://example.invalid/t"
+          }
+        }
+      }
+    ],
+    "Title_pic": [
+      {
+        "path": "download/demo/pic2.jpg",
+        "title": "pic2.jpg",
+        "mimetype": "image/jpeg",
+        "size": 1002,
+        "signedUrl": "https://example.invalid/signed/pic2?sig=fake",
+        "signedPath": "dltemp/fake/pic2.jpg",
+        "thumbnails": {
+          "tiny": {
+            "signedUrl": "https://example.invalid/t"
+          }
+        }
+      }
+    ],
+    "slug": "alfa-base",
+    "Active": true,
+    "Active_1": false,
+    "CreatedAt": "2026-01-15 10:00:00+00:00",
+    "ncRecordHash": "fakehash1",
+    "nc_created_by": "usr_fake1",
+    "nc_order": 1,
+    "Stock": 0
+  },
+  {
+    "Id": 2,
+    "Model": "Alfa",
+    "Complectation": "Top",
+    "Engine": "2.0",
+    "Transmission": "CVT",
+    "Drivetrain": "AWD",
+    "Model id": 1,
+    "Complectation id": 12,
+    "Price old": 1200000,
+    "Price new": 1150000,
+    "Credit bonus": 50000,
+    "Сonsumption": "7.25",
+    "Minus Features": null,
+    "Pics": [
+      {
+        "url": "https://storage.example.invalid/demo-bucket/cat/pic3.jpg",
+        "title": "pic3.jpg",
+        "mimetype": "image/jpeg",
+        "size": 1003
+      }
+    ],
+    "Title_pic": null,
+    "slug": "alfa-top",
+    "Active": false,
+    "Active_1": true,
+    "CreatedAt": "2026-01-15 10:00:00+00:00"
+  },
+  {
+    "Id": 5,
+    "Model": "Beta",
+    "Complectation": "Base",
+    "Engine": "1.5",
+    "Transmission": "MT",
+    "Drivetrain": "FWD",
+    "Model id": 2,
+    "Complectation id": 21,
+    "Price old": 900000,
+    "Price new": 900000,
+    "Credit bonus": null,
+    "Сonsumption": null,
+    "Minus Features": "",
+    "Pics": [],
+    "Title_pic": null,
+    "slug": "beta-base",
+    "Active": false,
+    "Active_1": false
+  }
+]

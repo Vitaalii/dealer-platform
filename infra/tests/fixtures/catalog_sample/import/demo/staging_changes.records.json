@@ -1,0 +1,14 @@
+[
+  {
+    "Id": 1,
+    "Kind": "NEW",
+    "Payload": "{}",
+    "Applied": false
+  },
+  {
+    "Id": 2,
+    "Kind": "CHANGED",
+    "Payload": "{}",
+    "Applied": true
+  }
+]

@@ -1,0 +1,51 @@
+{
+  "exported_at": "2026-01-15",
+  "note": "synthetic sample for tests, all values invented",
+  "tables": [
+    {
+      "brand": "demo",
+      "table": "catalog",
+      "rows": 3
+    },
+    {
+      "brand": "demo",
+      "table": "features",
+      "rows": 2
+    },
+    {
+      "brand": "demo",
+      "table": "sites",
+      "rows": 2
+    },
+    {
+      "brand": "demo",
+      "table": "parsed_prices",
+      "rows": 2
+    },
+    {
+      "brand": "demo",
+      "table": "staging_changes",
+      "rows": 2
+    },
+    {
+      "brand": "demo",
+      "table": "run_log",
+      "rows": 2
+    },
+    {
+      "brand": "demo",
+      "table": "site_config_history",
+      "rows": 2
+    },
+    {
+      "brand": "demo",
+      "table": "option_silences",
+      "rows": 2
+    },
+    {
+      "brand": "demo",
+      "table": "credit_programs",
+      "rows": 2
+    }
+  ]
+}

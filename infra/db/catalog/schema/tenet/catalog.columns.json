@@ -1,0 +1,418 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "Model",
+   "uidt": "SingleSelect",
+   "options": [
+    "TIGGO 4 PRO",
+    "TIGGO 7 PRO\nPLUG-IN HYBRID",
+    "TIGGO  8 PRO MAX",
+    "НОВЫЙ TIGGO 4",
+    "НОВЫЙ TIGGO 7 PRO MAX",
+    "НОВЫЙ TIGGO 9",
+    "ARRIZO  8",
+    "НОВЫЙ TIGGO 7L",
+    "TENET Т4",
+    "TENET Т7",
+    "TENET Т8",
+    "TENET Т4L",
+    "TENET А8",
+    "TENET Т9"
+   ]
+  },
+  {
+   "title": "Engine",
+   "uidt": "SingleSelect",
+   "options": [
+    "1.5 113 л.с.",
+    "1.5T 147 л.с.",
+    "1.6 150 л.с. ",
+    "1.5T PHEV 147 л.с",
+    "1.6T 186 л.с",
+    "2.0 TGDI 197 л.с",
+    "1.6T 150 л.с",
+    "1.5 PT 147 л.с. ",
+    "2.0 TGDI 249 л.с. ",
+    "2.0T 197 л.с.",
+    "1.5T 150 л.с.",
+    "1.6T 150 л.с.",
+    "1.6T 186 л.с.",
+    "2.0T 245 л.с."
+   ]
+  },
+  {
+   "title": "Transmission",
+   "uidt": "SingleSelect",
+   "options": [
+    "MT",
+    "AT",
+    "CVT",
+    "DHT",
+    "DCT"
+   ]
+  },
+  {
+   "title": "Drivetrain",
+   "uidt": "SingleSelect",
+   "options": [
+    "2WD",
+    "4WD"
+   ]
+  },
+  {
+   "title": "Complectation",
+   "uidt": "SingleSelect",
+   "options": [
+    "Action",
+    "Family",
+    "Style",
+    "Ultimate",
+    "Ultimate Hybrid",
+    "Elite",
+    "Dreamline",
+    "Active",
+    "Prime",
+    "Ultra",
+    "Ultra Black",
+    "Line",
+    "Актив",
+    "Прайм",
+    "Ультра",
+    "Экшн",
+    "Фемили",
+    "Стайл",
+    "Ультима",
+    "Ультима Гибрид",
+    "Элит",
+    "Дримлайн",
+    "Ультра Черный",
+    "Лайн",
+    "Ультра 5 мест",
+    "Ультра 7 мест"
+   ]
+  },
+  {
+   "title": "Model id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Complectation id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Price new",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Price old",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Features",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Active",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "Pics",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Engine type",
+   "uidt": "SingleSelect",
+   "options": [
+    "2.0T",
+    "1.5T",
+    "1.6T",
+    "1.5",
+    "2.0"
+   ]
+  },
+  {
+   "title": "Transmission_ru",
+   "uidt": "SingleSelect",
+   "options": [
+    "МКПП",
+    "АКПП",
+    "Робот",
+    "Вариатор",
+    "Гибридная",
+    "Робот 4WD",
+    "Робот 2WD",
+    "МКПП5"
+   ]
+  },
+  {
+   "title": "Drivetrain_ru",
+   "uidt": "SingleSelect",
+   "options": [
+    "Передний",
+    "Полный"
+   ]
+  },
+  {
+   "title": "Acceleration",
+   "uidt": "SingleSelect",
+   "options": [
+    "10 с до 100 км/ч",
+    "13,9 с до 100 км/ч",
+    "14,6 с до 100 км/ч",
+    "9,7 с до 100 км/ч",
+    "9,8 с до 100 км/ч",
+    "7,5 с до 100 км/ч",
+    "8,4 с до 100 км/ч",
+    "8,0 с до 100 км/ч",
+    "9,1 с до 100 км/ч",
+    "9 с до 100 км/ч",
+    "6 с до 100 км/ч",
+    "7 с до 100 км/ч",
+    "10,5 с до 100 км/ч",
+    "11,4 с до 100 км/ч",
+    "9,3 с до 100 км/ч",
+    "9,9 с до 100 км/ч"
+   ]
+  },
+  {
+   "title": "Сonsumption",
+   "uidt": "SingleSelect",
+   "options": [
+    "9,3 л/100 км",
+    "9,7 л/100 км",
+    "7,5 л/100 км",
+    "7,8 л/100 км",
+    "8,4 л/100 км",
+    "8,7 л/100 км",
+    "7,3 л/100 км",
+    "8,1 л/100 км",
+    "8,0 л/100 км",
+    "6,8 л/100 км",
+    "7,4 л/100 км",
+    "7,1 л/100 км",
+    "7,7 л/100 км",
+    "7,9 л/100 км",
+    "от 1,8 л/100 км",
+    "8,3 л/100 км",
+    "от 1,5 л/100 км",
+    "7,2 л/100 км",
+    "8,8 л/100 км",
+    "8,5 л/100 км",
+    "9,4 л/100 км"
+   ]
+  },
+  {
+   "title": "clearance",
+   "uidt": "SingleSelect",
+   "options": [
+    "220 мм",
+    "160 мм",
+    "186 мм",
+    "204 мм",
+    "210 мм",
+    "215 мм",
+    "190 мм",
+    "189 мм",
+    "180 мм",
+    "200 мм",
+    "144 мм",
+    "208 мм",
+    "196 мм",
+    "203 мм",
+    "138 мм",
+    "145 мм",
+    "188 мм",
+    "197 мм",
+    "202 мм",
+    "213 мм",
+    "222 мм"
+   ]
+  },
+  {
+   "title": "Minus Features",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Title_pic",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Trade-in bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Credit condition",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Credit bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Cash in hook",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Gift",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Active_2",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "Active_3",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "Brand",
+   "uidt": "SingleSelect",
+   "options": [
+    "CHERY",
+    "TENET"
+   ]
+  },
+  {
+   "title": "Brand id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model_short",
+   "uidt": "SingleSelect",
+   "options": [
+    "TIGGO 4 PRO",
+    "TIGGO 7 PRO\nPLUG-IN HYBRID",
+    "TIGGO  8 PRO MAX",
+    "НОВЫЙ TIGGO 4",
+    "НОВЫЙ TIGGO 7 PRO MAX",
+    "НОВЫЙ TIGGO 9",
+    "ARRIZO  8",
+    "НОВЫЙ TIGGO 7L",
+    "TIGGO4 NEW",
+    "TIGGO4 PRO",
+    "TIGGO7 PRO MAX",
+    "TIGGO 7L",
+    "TIGGO8 PRO MAX NEW",
+    "TIGGO 9",
+    "ARRIZO8",
+    "TENET T4",
+    "TENET T7",
+    "TENET T8",
+    "TENET T4L",
+    "TENET A8",
+    "TENET T9"
+   ]
+  },
+  {
+   "title": "Body",
+   "uidt": "SingleSelect",
+   "options": [
+    "Кроссовер",
+    "Внедорожник",
+    "Седан"
+   ]
+  },
+  {
+   "title": "slug",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ID",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Model utm",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Complication full",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model Modification",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model title",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Unique_ID",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Link",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Link old",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Price year",
+   "uidt": "Number",
+   "options": []
+  }
+ ]
+}

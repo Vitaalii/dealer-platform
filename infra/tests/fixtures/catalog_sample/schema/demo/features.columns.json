@@ -1,0 +1,24 @@
+{
+  "columns": [
+    {
+      "title": "Id",
+      "uidt": "ID"
+    },
+    {
+      "title": "Model",
+      "uidt": "SingleLineText"
+    },
+    {
+      "title": "Feature",
+      "uidt": "LongText"
+    },
+    {
+      "title": "Group",
+      "uidt": "SingleSelect",
+      "options": [
+        "Comfort",
+        "Safety"
+      ]
+    }
+  ]
+}

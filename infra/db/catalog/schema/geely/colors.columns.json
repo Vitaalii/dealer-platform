@@ -1,0 +1,151 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "ncRecordId",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ncRecordHash",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ID_color",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model",
+   "uidt": "SingleSelect",
+   "options": [
+    "EMGRAND",
+    "PREFACE",
+    "COOLRAY",
+    "CITYRAY",
+    "ATLAS PRO",
+    "ATLAS",
+    "OKAVANGO",
+    "MONJARO",
+    "EX5",
+    "EX5 EM-i",
+    "001",
+    "NORDCROSS 001",
+    "Новый COOLRAY"
+   ]
+  },
+  {
+   "title": "Model id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Color short",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Color",
+   "uidt": "SingleSelect",
+   "options": [
+    "Бежевый металлик",
+    "Белый",
+    "Голубой металлик",
+    "Серо-голубой металлик",
+    "Серый металлик",
+    "Тёмно-синий металлик",
+    "Зеленый металлик",
+    "Серо-фиолетовый металлик",
+    "Чёрный металлик",
+    "Красный",
+    "Красный металлик",
+    "Серебристый металлик",
+    "Зелёный металлик",
+    "Черный металлик",
+    "Синий металлик",
+    "Белый металлик",
+    "Изумрудный металлик",
+    "Лиловый перламутр",
+    "Бирюзово-синий металлик"
+   ]
+  },
+  {
+   "title": "Color_Pic",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Active",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "ART_Stock",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Brand",
+   "uidt": "SingleSelect",
+   "options": [
+    "GEELY",
+    "NORDCROSS"
+   ]
+  },
+  {
+   "title": "Brand id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Color-ext",
+   "uidt": "SingleSelect",
+   "options": []
+  },
+  {
+   "title": "Color Number",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "_nc_m2m_GEELY_Color_NOC_GEELY_Stocks",
+   "uidt": "LinkToAnotherRecord",
+   "options": []
+  },
+  {
+   "title": "GEELY_Stock",
+   "uidt": "Links",
+   "options": []
+  }
+ ]
+}

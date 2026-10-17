@@ -1,0 +1,134 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "Model",
+   "uidt": "SingleSelect",
+   "options": [
+    "НОВЫЙ TIGGO 4",
+    "TIGGO 4 PRO",
+    "НОВЫЙ TIGGO 7 PRO MAX",
+    "НОВЫЙ TIGGO 7L",
+    "TIGGO 7 PRO\nPLUG-IN HYBRID",
+    "TIGGO  8 PRO MAX",
+    "НОВЫЙ TIGGO 9",
+    "ARRIZO  8",
+    "TIGGO 8 PRO MAX",
+    "TENET Т4L",
+    "TENET Т4",
+    "TENET Т7",
+    "TENET Т8",
+    "TENET А8",
+    "TENET Т9"
+   ]
+  },
+  {
+   "title": "Model ID",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Feature number",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Category icon",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Active",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "Brand",
+   "uidt": "SingleSelect",
+   "options": [
+    "CHERY",
+    "TENET"
+   ]
+  },
+  {
+   "title": "Brand id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Feature name",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Feature category",
+   "uidt": "SingleSelect",
+   "options": [
+    "Дизайн",
+    "Безопасность",
+    "Управление",
+    "Комфорт",
+    "Технологии и мультимедиа"
+   ]
+  },
+  {
+   "title": "ID_feature",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "replaces_pending",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "replaces",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "born_from",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "source_text",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "source_text_alt",
+   "uidt": "LongText",
+   "options": []
+  }
+ ]
+}

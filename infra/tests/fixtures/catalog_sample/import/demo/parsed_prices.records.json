@@ -1,0 +1,16 @@
+[
+  {
+    "Id": 1,
+    "Model": "Alfa",
+    "Complectation": "Base",
+    "Price": 950000,
+    "Parsed at": "2026-01-15 10:00:00+00:00"
+  },
+  {
+    "Id": 2,
+    "Model": "Beta",
+    "Complectation": "Base",
+    "Price": 900000,
+    "Parsed at": "2026-01-15 10:00:00+00:00"
+  }
+]

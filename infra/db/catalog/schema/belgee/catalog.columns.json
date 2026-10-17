@@ -1,0 +1,282 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "slug",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ID",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Brand",
+   "uidt": "SingleSelect",
+   "options": [
+    "BELGEE"
+   ]
+  },
+  {
+   "title": "Brand id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model",
+   "uidt": "SingleSelect",
+   "options": [
+    "Обновленный X70",
+    "X50",
+    "S50",
+    "X70",
+    "Новый X50+",
+    "Новый X50"
+   ]
+  },
+  {
+   "title": "Model_short",
+   "uidt": "SingleSelect",
+   "options": [
+    "X50",
+    "S50",
+    "X70",
+    "Новый X50+"
+   ]
+  },
+  {
+   "title": "Model utm",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Engine",
+   "uidt": "SingleSelect",
+   "options": [
+    "1.5T 177 л.с.",
+    "1.5T 150 л.с.",
+    "1.5 122 л.с.",
+    "1.5T 147 л.с."
+   ]
+  },
+  {
+   "title": "Engine type",
+   "uidt": "SingleSelect",
+   "options": [
+    "1.5",
+    "1.5T"
+   ]
+  },
+  {
+   "title": "Transmission",
+   "uidt": "SingleSelect",
+   "options": [
+    "AT",
+    "MT",
+    "DCT7"
+   ]
+  },
+  {
+   "title": "Transmission_ru",
+   "uidt": "SingleSelect",
+   "options": [
+    "АКПП",
+    "АКПП6",
+    "Робот",
+    "МКПП5",
+    "АКПП7"
+   ]
+  },
+  {
+   "title": "Drivetrain",
+   "uidt": "SingleSelect",
+   "options": [
+    "4WD",
+    "2WD"
+   ]
+  },
+  {
+   "title": "Drivetrain_ru",
+   "uidt": "SingleSelect",
+   "options": [
+    "Передний",
+    "Полный"
+   ]
+  },
+  {
+   "title": "Complectation",
+   "uidt": "SingleSelect",
+   "options": [
+    "Престиж",
+    "Актив",
+    "Стиль",
+    "Престиж +",
+    "Оникс",
+    "Престиж+"
+   ]
+  },
+  {
+   "title": "Complication full",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model Modification",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model title",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Acceleration",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Сonsumption",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "clearance",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Features",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Minus Features",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Price old",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Price new",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Trade-in bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Credit condition",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Credit bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Cash in hook",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Gift",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Complectation id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Unique_ID",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Link",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Link old",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Active",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "Body",
+   "uidt": "SingleSelect",
+   "options": [
+    "Кроссовер",
+    "Седан"
+   ]
+  },
+  {
+   "title": "Title_pic",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Pics",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Price year",
+   "uidt": "Number",
+   "options": []
+  }
+ ]
+}

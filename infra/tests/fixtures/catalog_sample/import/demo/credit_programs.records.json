@@ -1,0 +1,16 @@
+[
+  {
+    "CreatedAt": "2026-01-15 10:00:00+00:00",
+    "nc_order": 1,
+    "Program_id": "P1",
+    "Bank_name": "Банк Альфа",
+    "Base_Rate": 10
+  },
+  {
+    "CreatedAt": null,
+    "nc_order": 2,
+    "Program_id": "P2",
+    "Bank_name": "Банк Бета",
+    "Base_Rate": 12
+  }
+]

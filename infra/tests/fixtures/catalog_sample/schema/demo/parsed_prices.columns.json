@@ -1,0 +1,24 @@
+{
+  "columns": [
+    {
+      "title": "Id",
+      "uidt": "ID"
+    },
+    {
+      "title": "Model",
+      "uidt": "SingleLineText"
+    },
+    {
+      "title": "Complectation",
+      "uidt": "SingleLineText"
+    },
+    {
+      "title": "Price",
+      "uidt": "Currency"
+    },
+    {
+      "title": "Parsed at",
+      "uidt": "DateTime"
+    }
+  ]
+}

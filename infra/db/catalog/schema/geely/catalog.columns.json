@@ -1,0 +1,404 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "ncRecordId",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ncRecordHash",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "slug",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model",
+   "uidt": "SingleSelect",
+   "options": [
+    "EMGRAND",
+    "PREFACE",
+    "COOLRAY",
+    "CITYRAY",
+    "ATLAS PRO",
+    "ATLAS",
+    "OKAVANGO",
+    "MONJARO",
+    "EX5",
+    "NORDCROSS 001",
+    "Новый COOLRAY",
+    "EX5 ГИБРИД"
+   ]
+  },
+  {
+   "title": "Engine",
+   "uidt": "SingleSelect",
+   "options": [
+    "1.5 122 л.с.",
+    "2.0 150 л.с.",
+    "1.5T 147 л.с.",
+    "1,5T 150 л.с.",
+    "1.5T 177 л.с.",
+    "2.0T 238 л.с.",
+    "BEV 218 л.с.",
+    "1.5 PHEV 218 л.с.",
+    "2.0T 254 л.с.",
+    "2.0T 200 л.с.",
+    "2.0T 150 л.с."
+   ]
+  },
+  {
+   "title": "Transmission",
+   "uidt": "SingleSelect",
+   "options": [
+    "MT",
+    "AT",
+    "DCT7"
+   ]
+  },
+  {
+   "title": "Drivetrain",
+   "uidt": "SingleSelect",
+   "options": [
+    "2WD",
+    "4WD"
+   ]
+  },
+  {
+   "title": "Complectation",
+   "uidt": "SingleSelect",
+   "options": [
+    "Standard",
+    "Comfort",
+    "Luxury",
+    "Flagship",
+    "Exclusive",
+    "Flagship Sport",
+    "Flagship +",
+    "Flagship SE",
+    "Pro",
+    "Max",
+    "Стандарт",
+    "Комфорт",
+    "Люкс",
+    "Флагман",
+    "Эксклюзив",
+    "Спорт",
+    "Флагман +",
+    "Флагман СЕ",
+    "Про",
+    "Макс",
+    "Ультра",
+    "EM-i Макс",
+    "EM-R Макс",
+    "EM-R Про"
+   ]
+  },
+  {
+   "title": "Model id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Complectation id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ID",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Unique_ID",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Price new",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Price old",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Features",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Active",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "Active_1",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "Model title",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Pics",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Model utm",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Link",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Engine type",
+   "uidt": "SingleSelect",
+   "options": [
+    "1.5",
+    "2.0",
+    "1.5T",
+    "BEV",
+    "PHEV",
+    "2.0T"
+   ]
+  },
+  {
+   "title": "Transmission_ru",
+   "uidt": "SingleSelect",
+   "options": [
+    "МКПП",
+    "АКПП",
+    "Робот"
+   ]
+  },
+  {
+   "title": "Drivetrain_ru",
+   "uidt": "SingleSelect",
+   "options": [
+    "Передний",
+    "Полный"
+   ]
+  },
+  {
+   "title": "Complication full",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model Modification",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Acceleration",
+   "uidt": "SingleSelect",
+   "options": [
+    "12,9 с до 100 км/ч",
+    "12,6 с до 100 км/ч",
+    "7,1 с до 100 км/ч",
+    "8,1 с до 100 км/ч",
+    "8,9 с до 100 км/ч",
+    "11,0 с до 100 км/ч",
+    "9,9 с до 100 км/ч",
+    "8,2 с до 100 км/ч",
+    "9,6 с до 100 км/ч",
+    "7,7 с до 100 км/ч",
+    "6,9 с до 100 км/ч",
+    "9,5 с до 100 км/ч",
+    "9,7 с до 100 км/ч",
+    "8",
+    "1 с до 100 км/ч"
+   ]
+  },
+  {
+   "title": "Сonsumption",
+   "uidt": "SingleSelect",
+   "options": [
+    "5,8 л/100 км",
+    "6,4 л/100 км",
+    "7,2 л/100 км",
+    "6,1 л/100 км",
+    "6,5 л/100 км",
+    "7,4 л/100 км",
+    "6,8 л/100 км",
+    "8,3 л/100 км",
+    "7,7 л/100 км",
+    "8,5 л/100 км",
+    "15,8 кВт-ч/100 км",
+    "6,2 л/100 км",
+    "10,6 л/100 км",
+    "7,1 л/100 км",
+    "6",
+    "1 л/100 км",
+    "16,0 кВт-ч/100 км",
+    "4,3 л/100 км",
+    "4,5 л/100 км"
+   ]
+  },
+  {
+   "title": "clearance",
+   "uidt": "SingleSelect",
+   "options": [
+    "151 мм",
+    "135 мм",
+    "180 мм",
+    "185 мм",
+    "171 мм",
+    "215 мм",
+    "184 мм",
+    "210 мм",
+    "173 мм",
+    "221 мм",
+    "136 мм",
+    "172 мм",
+    "182 мм"
+   ]
+  },
+  {
+   "title": "Minus Features",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Title_pic",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Trade-in bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Credit condition",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Credit bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Cash in hook",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Bonus",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Gift",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Link old",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ART_Stock",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Brand",
+   "uidt": "SingleSelect",
+   "options": [
+    "GEELY",
+    "NORDCROSS"
+   ]
+  },
+  {
+   "title": "Brand id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model_short",
+   "uidt": "SingleSelect",
+   "options": [
+    "EMGRAND",
+    "PREFACE",
+    "COOLRAY",
+    "CITYRAY",
+    "ATLAS PRO",
+    "ATLAS",
+    "OKAVANGO",
+    "MONJARO",
+    "EX5",
+    "EX5 EM-i",
+    "001",
+    "Новый COOLRAY"
+   ]
+  },
+  {
+   "title": "Body",
+   "uidt": "SingleSelect",
+   "options": [
+    "Седан",
+    "Кроссовер"
+   ]
+  },
+  {
+   "title": "_nc_m2m_GEELY_NOCO_GEELY_Stocks",
+   "uidt": "LinkToAnotherRecord",
+   "options": []
+  },
+  {
+   "title": "GEELY_Stock",
+   "uidt": "Links",
+   "options": []
+  },
+  {
+   "title": "Price year",
+   "uidt": "Number",
+   "options": []
+  }
+ ]
+}

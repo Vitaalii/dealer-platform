@@ -1,0 +1,24 @@
+{
+  "columns": [
+    {
+      "title": "Id",
+      "uidt": "ID"
+    },
+    {
+      "title": "Kind",
+      "uidt": "SingleSelect",
+      "options": [
+        "NEW",
+        "CHANGED"
+      ]
+    },
+    {
+      "title": "Payload",
+      "uidt": "LongText"
+    },
+    {
+      "title": "Applied",
+      "uidt": "Checkbox"
+    }
+  ]
+}

@@ -1,0 +1,360 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "ncRecordId",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ncRecordHash",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "slug",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model",
+   "uidt": "SingleSelect",
+   "options": [
+    "HAVAL M6",
+    "HAVAL DARGO",
+    "HAVAL DARGO X",
+    "HAVAL JOLION",
+    "НОВЫЙ HAVAL F7",
+    "GWM POER KINGKONG",
+    "GWM POER",
+    "HAVAL F7X"
+   ]
+  },
+  {
+   "title": "Engine",
+   "uidt": "SingleSelect",
+   "options": [
+    "1.5 143 л.с.",
+    "2.0T 192 л.с.",
+    "1.5T 143 л.с.",
+    "1.5T 150 л.с.",
+    "2.0T 190 л.с.",
+    "2.0D 150 л.с.",
+    "2.0T 200 л.с.",
+    "2.0T 231 л.с.",
+    "2.0T 218 л.с.",
+    "2.0D 163 л.с.",
+    "2.4D 184 л.с."
+   ]
+  },
+  {
+   "title": "Transmission",
+   "uidt": "SingleSelect",
+   "options": [
+    "MT",
+    "AT"
+   ]
+  },
+  {
+   "title": "Drivetrain",
+   "uidt": "SingleSelect",
+   "options": [
+    "2WD",
+    "4WD"
+   ]
+  },
+  {
+   "title": "Complectation",
+   "uidt": "SingleSelect",
+   "options": [
+    "Family",
+    "Comfort",
+    "Elite",
+    "Premium",
+    "Tech Plus",
+    "Tech+",
+    "Elite Plus",
+    "Комфорт",
+    "Оптимум",
+    "Премиум",
+    "Техно +"
+   ]
+  },
+  {
+   "title": "Model id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Complectation id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "ID",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Unique ID",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Price new",
+   "uidt": "Currency",
+   "options": []
+  },
+  {
+   "title": "Price old",
+   "uidt": "Currency",
+   "options": []
+  },
+  {
+   "title": "Features",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Active",
+   "uidt": "Checkbox",
+   "options": []
+  },
+  {
+   "title": "Model title",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Pics",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Model utm",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Link",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Transmission_ru",
+   "uidt": "SingleSelect",
+   "options": [
+    "МКПП",
+    "АКПП"
+   ]
+  },
+  {
+   "title": "Drivetrain_ru",
+   "uidt": "SingleSelect",
+   "options": [
+    "Передний",
+    "Полный"
+   ]
+  },
+  {
+   "title": "Acceleration",
+   "uidt": "SingleSelect",
+   "options": [
+    "12,9 с до 100 км/ч",
+    "12,7 с до 100 км/ч",
+    "9,0 с до 100 км/ч",
+    "10,0 с до 100 км/ч",
+    "9,8 с до 100 км/ч",
+    "10,9 с до 100 км/ч",
+    "9,4 с до 100 км/ч",
+    "14,5 с до 100 км/ч",
+    "19,2 с до 100 км/ч",
+    "16,0 с до 100 км/ч",
+    "11,0 с до 100 км/ч",
+    "7,8 с до 100 км/ч",
+    "8,7 с до 100 км/ч",
+    "9,3 с до 100 км/ч"
+   ]
+  },
+  {
+   "title": "Сonsumption",
+   "uidt": "SingleSelect",
+   "options": [
+    "8,2 л/100 км",
+    "8,3 л/100 км",
+    "9,2 л/100 км",
+    "7,5 л/100 км",
+    "8,1 л/100 км",
+    "7,3 л/100 км",
+    "8,6 л/100 км",
+    "11,7 л/100 км",
+    "9,4 л/100 км",
+    "9,9 л/100 км",
+    "9,5 л/100 км",
+    "8,4 л/100 км",
+    "7,1 л/100 км",
+    "7,6 л/100 км",
+    "8,5 л/100 км",
+    "8,8 л/100 км",
+    "10,3 л/100 км",
+    "10,6 л/100 км"
+   ]
+  },
+  {
+   "title": "clearance",
+   "uidt": "SingleSelect",
+   "options": [
+    "170 мм",
+    "200 мм",
+    "190 мм",
+    "232 мм",
+    "183 мм",
+    "191 мм",
+    "227 мм"
+   ]
+  },
+  {
+   "title": "Engine type",
+   "uidt": "SingleSelect",
+   "options": [
+    "1.5",
+    "1.5T",
+    "2.0T",
+    "2.0D",
+    "2.4D"
+   ]
+  },
+  {
+   "title": "Model Modification",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Title_pic",
+   "uidt": "Attachment",
+   "options": []
+  },
+  {
+   "title": "Trade-in bonus",
+   "uidt": "Currency",
+   "options": []
+  },
+  {
+   "title": "Cash in hook",
+   "uidt": "Currency",
+   "options": []
+  },
+  {
+   "title": "Credit bonus",
+   "uidt": "Currency",
+   "options": []
+  },
+  {
+   "title": "Minus Features",
+   "uidt": "LongText",
+   "options": []
+  },
+  {
+   "title": "Credit condition",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Gift",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Link old",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Complication full",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Bonus",
+   "uidt": "Currency",
+   "options": []
+  },
+  {
+   "title": "Brand",
+   "uidt": "SingleSelect",
+   "options": [
+    "HAVAL"
+   ]
+  },
+  {
+   "title": "Brand id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Model_short",
+   "uidt": "SingleSelect",
+   "options": [
+    "HAVAL M6",
+    "HAVAL DARGO",
+    "HAVAL DARGO X",
+    "HAVAL JOLION",
+    "НОВЫЙ HAVAL F7",
+    "GWM POER KINGKONG",
+    "GWM POER",
+    "HAVAL F7X",
+    "M6",
+    "DARGO",
+    "DARGO X",
+    "JOLION",
+    "KINGKONG POER",
+    "POER",
+    "F7",
+    "F7X"
+   ]
+  },
+  {
+   "title": "Body",
+   "uidt": "SingleSelect",
+   "options": [
+    "Кроссовер",
+    "Пикап",
+    "Внедорожник"
+   ]
+  },
+  {
+   "title": "Price year",
+   "uidt": "Number",
+   "options": []
+  }
+ ]
+}

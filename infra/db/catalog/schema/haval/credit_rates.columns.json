@@ -1,0 +1,69 @@
+{
+ "columns": [
+  {
+   "title": "Id",
+   "uidt": "ID",
+   "options": []
+  },
+  {
+   "title": "CreatedAt",
+   "uidt": "CreatedTime",
+   "options": []
+  },
+  {
+   "title": "UpdatedAt",
+   "uidt": "LastModifiedTime",
+   "options": []
+  },
+  {
+   "title": "nc_created_by",
+   "uidt": "CreatedBy",
+   "options": []
+  },
+  {
+   "title": "nc_updated_by",
+   "uidt": "LastModifiedBy",
+   "options": []
+  },
+  {
+   "title": "nc_order",
+   "uidt": "Order",
+   "options": []
+  },
+  {
+   "title": "Rate_id",
+   "uidt": "SingleLineText",
+   "options": []
+  },
+  {
+   "title": "Term_From",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Term_To",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Downpayment_From",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Downpayment_To",
+   "uidt": "Number",
+   "options": []
+  },
+  {
+   "title": "Rate",
+   "uidt": "Decimal",
+   "options": []
+  },
+  {
+   "title": "Program_id",
+   "uidt": "SingleLineText",
+   "options": []
+  }
+ ]
+}

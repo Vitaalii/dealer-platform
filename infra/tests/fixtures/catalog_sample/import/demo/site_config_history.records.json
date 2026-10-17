@@ -1,0 +1,14 @@
+[
+  {
+    "Id": 1,
+    "Model": "Alfa",
+    "Config": "{}",
+    "Changed on": "2026-01-10"
+  },
+  {
+    "Id": 2,
+    "Model": "Beta",
+    "Config": "{}",
+    "Changed on": "2026-01-11"
+  }
+]

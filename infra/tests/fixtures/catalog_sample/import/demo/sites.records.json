@@ -1,0 +1,14 @@
+[
+  {
+    "Id": 1,
+    "Model": "Alfa",
+    "Url": "https://example.invalid/alfa.pdf",
+    "Enabled": true
+  },
+  {
+    "Id": 2,
+    "Model": "Beta",
+    "Url": "https://example.invalid/beta.pdf",
+    "Enabled": false
+  }
+]
