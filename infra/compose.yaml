@@ -4,12 +4,15 @@
 # Наружу открыты только 80 и 443 у Caddy: Docker обходит ufw для опубликованных портов,
 # поэтому другим сервисам ports не задаются.
 # Ключи — только из infra/.env; ${VAR:?} останавливает compose, если ключа нет.
+# Образы платформы, бота и базы собирает GitHub Actions (.github/workflows/build.yml) и кладёт в GHCR;
+# сервер берёт их по IMAGE_PREFIX и PLATFORM_TAG из infra/.env (метку ставят скрипты infra/deploy/).
+# Без этих переменных — прежние локальные имена dealers/…: build: остаётся запасным путём сборки на сервере.
 name: dealers
 
 services:
   caddy:
     restart: unless-stopped
-    image: caddy:2
+    image: caddy:${CADDY_VERSION:-2.11.7}
     mem_limit: 256m
     ports:
       - "80:80"
@@ -36,7 +39,7 @@ services:
   postgres:
     restart: unless-stopped
     build: ./postgres
-    image: dealers/postgres:17
+    image: ${IMAGE_PREFIX:-dealers}/postgres:${PLATFORM_TAG:-17}
     mem_limit: 2g
     shm_size: 256m
     # Архив журнала в Yandex Object Storage (ARCHITECTURE.md 7.5); то же — в compose.test.yaml.
@@ -72,10 +75,9 @@ services:
 
   migrate:
     # Разовый запуск миграций перед стартом platform; завершается с кодом 0.
-    # Образ — тот же, что у platform (его собирает сервис platform), из реестра не скачивается.
+    # Образ — тот же, что у platform: из GHCR или собранный сервисом platform на сервере.
     restart: "no"
-    image: dealers/platform:latest
-    pull_policy: never
+    image: ${IMAGE_PREFIX:-dealers}/platform:${PLATFORM_TAG:-latest}
     mem_limit: 256m
     command: ["python", "/app/db/migrate.py"]
     environment:
@@ -94,7 +96,7 @@ services:
       dockerfile: infra/platform/Dockerfile
       args:
         PLATFORM_VERSION: ${PLATFORM_VERSION:-dev}
-    image: dealers/platform:latest
+    image: ${IMAGE_PREFIX:-dealers}/platform:${PLATFORM_TAG:-latest}
     mem_limit: 1536m
     environment:
       PLATFORM_ENV: ${PLATFORM_ENV:?missing PLATFORM_ENV}
@@ -179,7 +181,7 @@ services:
     # Заглушка до этапа 7: отвечает только на /health, наружу не открыта.
     restart: unless-stopped
     build: ./bot-stub
-    image: dealers/bot-stub:latest
+    image: ${IMAGE_PREFIX:-dealers}/bot-stub:${PLATFORM_TAG:-latest}
     mem_limit: 1g
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]

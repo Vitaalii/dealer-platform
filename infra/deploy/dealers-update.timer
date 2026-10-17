@@ -1,0 +1,10 @@
+# Раз в 5 минут — проверка нового коммита в main (infra/README.md, раздел 15). Только на тесте.
+[Unit]
+Description=Dealers platform: check main every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target

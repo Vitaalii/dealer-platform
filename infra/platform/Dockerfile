@@ -2,6 +2,8 @@
 #   ядро core/platform_core + модули leads, dealer_cabinet, billing + миграции infra/db.
 # Ключей в образе нет: они приходят только из окружения сервера (ARCHITECTURE.md, 7.4).
 FROM python:3.12-slim
+# Привязка пакета GHCR к репозиторию (docs.github.com, «Working with the Container registry»).
+LABEL org.opencontainers.image.source=https://github.com/Vitaalii/dealer-platform
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app

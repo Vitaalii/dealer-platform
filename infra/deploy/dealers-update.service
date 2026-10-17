@@ -1,0 +1,14 @@
+# Автообновление теста из main (infra/README.md, раздел 15). Запускает dealers-update.timer.
+# Установка: sudo cp ~/dealer-platform/infra/deploy/dealers-update.* /etc/systemd/system/
+# Журнал: journalctl -u dealers-update
+[Unit]
+Description=Dealers platform: update test server from main
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+User=deploy
+WorkingDirectory=/home/deploy/dealer-platform/infra
+ExecStart=/home/deploy/dealer-platform/infra/deploy/update.sh
+TimeoutStartSec=20min

@@ -16,7 +16,10 @@ set -uo pipefail
 . "$(dirname "$0")/lib.sh"
 JOB=restore-check
 
-IMAGE=${RESTORE_IMAGE:-dealers/postgres:17}
+# Образ базы — тот же, что у рабочего postgres (compose.yaml: IMAGE_PREFIX и PLATFORM_TAG из .env, задача 5.2).
+IMAGE_PREFIX=$(env_get IMAGE_PREFIX)
+PLATFORM_TAG=$(env_get PLATFORM_TAG)
+IMAGE=${RESTORE_IMAGE:-${IMAGE_PREFIX:-dealers}/postgres:${PLATFORM_TAG:-17}}
 VOLUME=dealers_restore_check
 CONTAINER=dealers-restore-check
 RESTORE_PATH=/restore            # не путь рабочего тома /var/lib/postgresql/data

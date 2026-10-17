@@ -1,5 +1,7 @@
 # PostgreSQL платформы со своим образом: pgBackRest, rclone и скрипт дампа (задача 5.3).
 FROM postgres:17
+# Привязка пакета GHCR к репозиторию (docs.github.com, «Working with the Container registry»).
+LABEL org.opencontainers.image.source=https://github.com/Vitaalii/dealer-platform
 
 # pgbackrest — из репозитория PGDG, он уже подключён в базовом образе postgres:17;
 # rclone и openssl — для ежедневного зашифрованного дампа (infra/README.md, раздел 13).
