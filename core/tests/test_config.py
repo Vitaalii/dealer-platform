@@ -13,6 +13,8 @@ def full_env(**over):
         "PLATFORM_DB_NAME": "platform",
         "PLATFORM_DB_USER": "platform_app",
         "PLATFORM_DB_PASSWORD": SECRET,
+        "MAIL_PROVIDER": "log",
+        "MAIL_FROM": "no-reply@notify.example.org",
     }
     env.update(over)
     return env

@@ -385,9 +385,17 @@ PGBACKREST_REPO1_S3_KEY=<идентификатор статического к�
 PGBACKREST_REPO1_S3_KEY_SECRET=<секретный ключ, раздел 13.1>
 DUMP_RETENTION_DAYS=30
 HEALTHCHECKS_PING_KEY=<ping key проекта Healthchecks, раздел 13.1>
+MAIL_PROVIDER=postbox
+MAIL_FROM=no-reply@notify.dealers.autodc.org
+MAIL_FROM_NAME=Платформа дилеров
+MAIL_MAX_PER_SECOND=1
+POSTBOX_KEY_ID=<идентификатор статического ключа Postbox, раздел 14.1>
+POSTBOX_SECRET_KEY=<секретный ключ Postbox, раздел 14.1>
+POSTBOX_ENDPOINT=https://postbox.cloud.yandex.net
+POSTBOX_REGION=ru-central1
 ```
 Без бакета и ключа хранилища стек не запустится (`docker compose config` назовёт переменную): сначала
-раздел 13.1.
+раздел 13.1. То же с ключом Postbox — раздел 14.1.
 
 ```
 grep -c '=$' .env
@@ -748,3 +756,141 @@ docker volume rm dealers_restore_manual
 | `disk` красный | `df -h` и `docker system df` в задачу; ничего не удалять вручную |
 | строки `healthchecks signal failed` | нет связи с hc-ping.com; само задание при этом выполнено — смотреть код выхода в строке `finished with exit code` |
 | остался временный том после сбоя | `docker rm -f dealers-restore-check` и `docker volume rm dealers_restore_check` (следующий запуск убирает их и сам) |
+
+## 14. Почта (Postbox)
+
+Письма платформы (заявки дилерам, уведомления биллинга, сброс пароля) уходят через Yandex Cloud Postbox
+(`docs/architecture/ARCHITECTURE.md`, 7.6), код — `core/platform_core/mail/`. Тест: домен отправки
+`notify.dealers.autodc.org`, отправитель `no-reply@notify.dealers.autodc.org`, имя «Платформа дилеров»,
+DMARC `p=none` без отчётов (решения владельца 17.10, PDL-31). Боевой домен — вместе с боевым адресом.
+
+Квоты нового аккаунта Postbox — 200 писем в сутки и 1 письмо в секунду
+(https://yandex.cloud/ru/docs/postbox/concepts/limits): до приёма заявок их нужно поднять заявкой
+в поддержку. Когда поднимут — поменять `MAIL_MAX_PER_SECOND` в `.env`.
+
+### 14.1. Что сделать в консоли Yandex Cloud (один раз, в браузере)
+
+По https://yandex.cloud/ru/docs/postbox/quickstart:
+
+1. **Postbox → Создать адрес:** `notify.dealers.autodc.org`, подпись DKIM — «Простая». На странице адреса
+   появятся DNS-записи для подтверждения домена и DKIM — их вносите в шаге 14.2.
+2. **Сервисный аккаунт** с ролью `postbox.sender`, у него — статический ключ доступа. Идентификатор ключа →
+   `POSTBOX_KEY_ID`, секретный ключ → `POSTBOX_SECRET_KEY`. Секрет показывается один раз: сразу в `.env`
+   на сервере, больше никуда.
+3. **Заявка на повышение квот** (см. выше).
+
+### 14.2. DNS-записи (у регистратора `autodc.org`)
+
+| № | Что | Тип | Имя | Значение |
+|---|---|---|---|---|
+| 1 | подтверждение домена и DKIM | как в консоли Postbox (страница адреса) | из консоли | из консоли |
+| 2 | SPF | TXT | `notify.dealers.autodc.org` | `v=spf1 include:spf.postbox.yandexcloud.net ~all` — **только если консоль Postbox предлагает эту запись**: в официальной документации Postbox значения SPF нет. Не предлагает — запись не ставить |
+| 3 | DMARC | TXT | `_dmarc.notify.dealers.autodc.org` | `v=DMARC1; p=none` |
+
+Порядок: сначала записи 1 и 2, запись 3 — не раньше чем через 48 часов. Записи DKIM после проверки не
+удалять (https://yandex.cloud/ru/docs/postbox/operations/check-domain). Если проверка висит больше
+24 часов — на странице адреса кнопка «Запустить проверку».
+
+Проверка (`dig` — на сервере или на своём компьютере; есть ли он на vm.mini, не проверялось):
+```
+dig +short TXT _dmarc.notify.dealers.autodc.org
+```
+Ожидается: `"v=DMARC1; p=none"`.
+
+```
+dig +short CNAME <имя записи DKIM из консоли Postbox>
+```
+Ожидается: значение из консоли Postbox (повторить для каждой записи из строки 1).
+
+В консоли Postbox у адреса `notify.dealers.autodc.org` статус — `Success`.
+
+### 14.3. Ключи почты в `.env`
+
+`.env`, созданный до этого раздела, строк почты не содержит — их нужно дописать:
+```
+nano .env
+```
+Добавить в конец (значения ключей — из 14.1), сохранить и выйти:
+```
+MAIL_PROVIDER=postbox
+MAIL_FROM=no-reply@notify.dealers.autodc.org
+MAIL_FROM_NAME=Платформа дилеров
+MAIL_MAX_PER_SECOND=1
+POSTBOX_KEY_ID=<идентификатор ключа>
+POSTBOX_SECRET_KEY=<секретный ключ>
+POSTBOX_ENDPOINT=https://postbox.cloud.yandex.net
+POSTBOX_REGION=ru-central1
+```
+
+```
+grep -c '^\(MAIL_\|POSTBOX_\)' .env
+```
+Ожидается: `8`.
+
+```
+grep -c '=$' .env
+```
+Ожидается: `0`.
+
+### 14.4. Запуск и проверка отправки
+
+Код почты должен быть на сервере (после слияния PR задачи PDL-31 в `main`):
+```
+git -C ~/dealer-platform pull
+```
+Ожидается: список изменённых файлов, среди них `core/platform_core/mail/…`, без `error`.
+
+```
+docker compose config --quiet
+```
+Ожидается: пустой вывод. `required variable MAIL_… is missing a value` — не заполнена названная строка 14.3.
+
+```
+PLATFORM_VERSION=$(git rev-parse --short HEAD) docker compose build platform
+```
+Ожидается: сборка без `ERROR`.
+
+```
+docker compose up -d platform
+```
+Ожидается: `Container dealers-platform-1 Started` (или `Recreated`), без `Error`.
+
+```
+docker compose logs platform --tail 20
+```
+Ожидается: строка `mail provider=postbox`, нет `CONFIG ERROR`.
+
+Письмо одному адресу (подставьте свой ящик):
+```
+docker compose exec platform python -m platform_core.mail --to <ваш адрес>
+```
+Ожидается: `SENT message_id=… recipients=1`, письмо «Проверка почты платформы дилеров» пришло
+(проверьте и папку «Спам»).
+
+Письмо нескольким адресам — одно письмо на всех:
+```
+docker compose exec platform python -m platform_core.mail --to <адрес 1> --to <адрес 2>
+```
+Ожидается: `SENT message_id=… recipients=2`, письмо пришло на оба адреса.
+
+В пришедшем письме открыть «Показать оригинал» (Gmail) или «Свойства письма» (Яндекс Почта).
+Ожидается: `dkim=pass`, `dmarc=pass` (DMARC — после записи 3).
+
+**Результат — в задачу PDL-31 комментарием:** строки `SENT …` и строки `dkim=…`, `dmarc=…`. Адреса
+получателей и ключи не присылать.
+
+### 14.5. Если что-то не так
+
+| Что видно | Что сделать |
+|---|---|
+| `CONFIG ERROR: missing MAIL_…` / `POSTBOX_…` | не заполнена названная строка в `.env` (14.3), затем `docker compose up -d platform` |
+| `MAIL ERROR: MailPermanentError: postbox status=400 code=MailFromDomainNotVerifiedException` | домен ещё не подтверждён: статус адреса в консоли Postbox (14.2) |
+| `… status=400 code=BadRequestException` | адрес `MAIL_FROM` не на домене `notify.dealers.autodc.org` или ключ без роли `postbox.sender` |
+| `… status=403 …` | неверный ключ или регион: `POSTBOX_KEY_ID`, `POSTBOX_SECRET_KEY`, `POSTBOX_REGION=ru-central1` |
+| `MAIL ERROR: MailTemporaryError: … status=429 …` | квота исчерпана (200 в сутки или 1 в секунду): подождать, проверить заявку на квоты |
+| `MAIL ERROR: MailTemporaryError: … network …` | нет связи с `postbox.cloud.yandex.net`; повторить позже. Повторилось — вывод в задачу |
+| `SENT`, но письма нет | папка «Спам»; DNS-записи 14.2; через 10 минут — вывод `docker compose logs platform --tail 50` в задачу |
+
+Пока Postbox не готов, можно проверить запуск без отправки: `MAIL_PROVIDER=log` — письма не уходят, в лог
+пишутся только тема и число получателей. Ключи `POSTBOX_…` `compose.yaml` требует и в этом случае, поэтому
+сначала всё равно шаг 14.1. На бою (`PLATFORM_ENV=prod`) `log` запрещён — сервис не запустится.
