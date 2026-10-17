@@ -6,7 +6,10 @@ services:
     mem_limit: 128m
   postgres:
     mem_limit: 768m
-    command: ["postgres", "-c", "shared_buffers=192MB"]
+    # command заменяется целиком: архив журнала повторён здесь, иначе на тесте он не включится.
+    command: ["postgres", "-c", "shared_buffers=192MB",
+              "-c", "archive_mode=on", "-c", "archive_timeout=60",
+              "-c", "archive_command=pgbackrest --stanza=dealers archive-push %p"]
   migrate:
     mem_limit: 256m
   platform:

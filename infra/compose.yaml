@@ -39,7 +39,10 @@ services:
     image: dealers/postgres:17
     mem_limit: 2g
     shm_size: 256m
-    command: ["postgres", "-c", "shared_buffers=512MB"]
+    # Архив журнала в Yandex Object Storage (ARCHITECTURE.md 7.5); то же — в compose.test.yaml.
+    command: ["postgres", "-c", "shared_buffers=512MB",
+              "-c", "archive_mode=on", "-c", "archive_timeout=60",
+              "-c", "archive_command=pgbackrest --stanza=dealers archive-push %p"]
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?missing POSTGRES_PASSWORD}
       PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD:?missing PLATFORM_ADMIN_PASSWORD}
@@ -49,8 +52,18 @@ services:
       N8N_READER_PASSWORD: ${N8N_READER_PASSWORD:?missing N8N_READER_PASSWORD}
       N8N_DB_PASSWORD: ${N8N_DB_PASSWORD:?missing N8N_DB_PASSWORD}
       NOCODB_META_PASSWORD: ${NOCODB_META_PASSWORD:?missing NOCODB_META_PASSWORD}
+      # pgBackRest (infra/postgres/pgbackrest/pgbackrest.conf) и дамп (infra/postgres/bin/dealers-dump.sh).
+      PGBACKREST_REPO1_S3_BUCKET: ${PGBACKREST_REPO1_S3_BUCKET:?missing PGBACKREST_REPO1_S3_BUCKET}
+      PGBACKREST_REPO1_S3_KEY: ${PGBACKREST_REPO1_S3_KEY:?missing PGBACKREST_REPO1_S3_KEY}
+      PGBACKREST_REPO1_S3_KEY_SECRET: ${PGBACKREST_REPO1_S3_KEY_SECRET:?missing PGBACKREST_REPO1_S3_KEY_SECRET}
+      PGBACKREST_REPO1_CIPHER_PASS: ${PGBACKREST_REPO1_CIPHER_PASS:?missing PGBACKREST_REPO1_CIPHER_PASS}
+      DUMP_CIPHER_PASS: ${DUMP_CIPHER_PASS:?missing DUMP_CIPHER_PASS}
+      DUMP_RETENTION_DAYS: ${DUMP_RETENTION_DAYS:-30}
     volumes:
       - pg_data:/var/lib/postgresql/data
+      # Очередь архива журнала (archive-async) и последний дамп — на томах, переживают пересоздание контейнера.
+      - pg_spool:/var/spool/pgbackrest
+      - pg_dump:/var/backups/dealers-dump
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-d", "postgres"]
       interval: 10s
@@ -178,5 +191,7 @@ volumes:
   caddy_data:
   caddy_config:
   pg_data:
+  pg_spool:
+  pg_dump:
   nocodb_data:
   n8n_data:

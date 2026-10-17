@@ -7,6 +7,9 @@ KEYS = env_example_keys(INFRA / ".env.example")
 COMPOSE_TEXT = read(INFRA / "compose.yaml")
 ROLES_TEXT = read(INFRA / "postgres" / "init" / "10-roles.sh")
 CADDY_TEXT = read(INFRA / "caddy" / "Caddyfile")
+# Переменные, которые скрипты бэкапов читают из .env сами (env_get в infra/backup/*.sh), а не через compose.
+BACKUP_TEXT = "\n".join(read(p) for p in sorted((INFRA / "backup").glob("*.sh")))
+BACKUP_KEYS = set(re.findall(r"env_get ([A-Z0-9_]+)", BACKUP_TEXT))
 
 
 class EnvExampleTest(unittest.TestCase):
@@ -18,7 +21,7 @@ class EnvExampleTest(unittest.TestCase):
         self.assertEqual(required - set(KEYS), set())
 
     def test_no_unused_keys(self):
-        used = set(variables(COMPOSE_TEXT)) | {"COMPOSE_FILE"}
+        used = set(variables(COMPOSE_TEXT)) | {"COMPOSE_FILE"} | BACKUP_KEYS
         self.assertEqual(set(KEYS) - used, set())
 
     def test_optional_vars_have_defaults(self):

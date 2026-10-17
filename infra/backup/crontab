@@ -1,0 +1,15 @@
+# Расписание бэкапов платформы — crontab пользователя deploy (infra/README.md, раздел 13):
+#   crontab ~/dealer-platform/infra/backup/crontab
+# Время — по часам сервера. Порядок ночью: копия 03:00 → дамп 04:00 → пробное восстановление пн 05:00.
+# Тяжёлые задания идут по очереди через общий замок (lib.sh, flock), если предыдущее затянулось.
+# Лог — ~/dealers-backup.log; сигналы — Healthchecks.io (имена проверок — в шапке каждого скрипта).
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+
+# m  h  dom mon dow  команда
+0    3  *   *   0    cd ~/dealer-platform/infra && ./backup/backup.sh full >> ~/dealers-backup.log 2>&1
+0    3  *   *   1-6  cd ~/dealer-platform/infra && ./backup/backup.sh diff >> ~/dealers-backup.log 2>&1
+0    4  *   *   *    cd ~/dealer-platform/infra && ./backup/dump.sh >> ~/dealers-backup.log 2>&1
+0    5  *   *   1    cd ~/dealer-platform/infra && ./backup/restore-check.sh >> ~/dealers-backup.log 2>&1
+45   *  *   *   *    cd ~/dealer-platform/infra && ./backup/wal-check.sh >> ~/dealers-backup.log 2>&1
+50   *  *   *   *    cd ~/dealer-platform/infra && ./backup/disk-check.sh >> ~/dealers-backup.log 2>&1
