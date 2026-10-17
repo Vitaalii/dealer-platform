@@ -15,9 +15,10 @@
 | `postgres/init/10-roles.sh` | первый запуск базы: роли и базы `platform`, `n8n`, `nocodb_meta` |
 | `postgres/pgbackrest/` | место под бэкапы, настраивается в 5.3 |
 | `db/migrate.py`, `db/migrations/` | миграции базы `platform`: схемы `catalog`, `content`, `platform_ro` и права |
+| `db/catalog/` | каталоги марок: генератор миграции по описаниям колонок и загрузчик разовой копии (раздел 13) |
 | `platform/Dockerfile` | образ сервиса платформы: `core/` + `leads/` + `dealer-cabinet/` + `billing/` + `db/` |
 | `bot-stub/` | заглушка бота до этапа 7, отвечает только на `/health` |
-| `tests/` | проверки файлов этой папки без сервера |
+| `tests/` | проверки файлов этой папки без сервера; `tests/fixtures/catalog_sample/` — выдуманный образец каталога |
 | `claude-mods/` | моды Claude Code (command-log, guard), к серверу не относятся |
 
 Сервисы и лимиты:
@@ -471,3 +472,122 @@ docker compose exec postgres psql -U nocodb_src -d platform -c "INSERT INTO plat
 с базой.
 
 Выкатка и откат появятся здесь в задаче 5.2, бэкапы и восстановление — в 5.3.
+
+## 13. Каталог
+
+Каталоги марок из старой NocoDB — разовая копия от CE (ARCHITECTURE.md, 2.4). В базе `platform` у каждой марки
+свои таблицы в схеме `catalog`: `catalog.<марка>_<таблица>`, например `catalog.haval_catalog`. Имена колонок —
+точно как поля в NocoDB. Фото — только ссылки (DEC:20): сами файлы переносятся отдельной задачей.
+
+Как это устроено:
+
+| Что | Где |
+|---|---|
+| описания колонок от CE (без записей) | `db/catalog/schema/<марка>/<таблица>.columns.json` |
+| генератор миграции | `db/catalog/gen_migration.py` → `db/migrations/0002_catalog_brands.py` |
+| загрузчик копии | `db/catalog/load.py`, запускается в сервисе `migrate` |
+| типы полей и варианты SingleSelect | `platform_meta.catalog_columns` |
+| журнал загрузок | `platform_meta.catalog_imports` |
+
+Права на таблицы каталога даёт миграция `0001`: бот и n8n только читают, NocoDB и код платформы правят строки.
+Служебные таблицы `platform_meta` доступны только `platform_admin`.
+
+**Раздел выполняется, когда в `main` есть миграция `0002_catalog_brands.py`** (она появится, когда CE пришлёт
+описания колонок). Записи каталога (`*.records.json`) в задачу и в репозиторий не кладутся — только на сервер,
+командами ниже.
+
+### Формат выгрузки от CE
+
+Папка, внутри:
+
+- `manifest.json` — `{"exported_at": "<дата>", "tables": [{"brand": "haval", "table": "catalog", "rows": 26}, …]}`;
+- `<марка>/<таблица>.records.json` — записи как отдаёт API NocoDB: массив объектов или `{"list": [...]}`,
+  с `Id`, вложения — массивом объектов, Checkbox — `true`/`false`, пустое — `null`;
+- имя марки и таблицы — маленькими латинскими буквами, как папка и файл в `db/catalog/schema/`.
+
+Описание колонок `<марка>/<таблица>.columns.json`: `{"columns": [{"title": "<имя поля>", "uidt": "<тип>",
+"options": ["<вариант>", …]}, …]}`; варианты можно отдать и как в мета-API NocoDB (`colOptions.options[].title`).
+
+### Команды на тестовом сервере
+
+Выполнять из `~/dealer-platform/infra` (шаг 9), по одной.
+
+```
+mkdir -p ~/catalog-import
+```
+Ожидается: пустой вывод.
+
+С **вашего компьютера**, из папки с выгрузкой от CE:
+```
+scp -r ./* deploy@185.149.145.139:~/catalog-import/
+```
+Ожидается: строки с именами файлов, без ошибок.
+
+Снова на сервере:
+```
+chmod -R a+rX ~/catalog-import
+```
+Ожидается: пустой вывод. Нужно, потому что процесс в контейнере работает не от root (`platform/Dockerfile`).
+
+```
+git pull
+```
+Ожидается: `Fast-forward …` или `Already up to date.`
+
+```
+PLATFORM_VERSION=$(git rev-parse --short HEAD) docker compose build platform
+```
+Ожидается: в конце `Built` (или `naming to …`), без `ERROR`.
+
+```
+docker compose run --rm migrate
+```
+Ожидается: `migration applied: 0002_catalog_brands` и `migrations done: 1 applied`.
+
+Проверка без записи:
+```
+docker compose run --rm -v ~/catalog-import:/import:ro migrate python /app/db/catalog/load.py --dir /import --dry-run
+```
+Ожидается: по строке на таблицу — `haval_catalog: будет вставлено N, будет обновлено 0, …`, в конце
+`dry run done, nothing written`. Строка `IMPORT ERROR: …` — остановиться и прислать её в задачу.
+
+Загрузка:
+```
+docker compose run --rm -v ~/catalog-import:/import:ro migrate python /app/db/catalog/load.py --dir /import
+```
+Ожидается: `вставлено N, обновлено 0` по каждой таблице, строки `photo: …` (фото, которые нужно перенести в S3),
+в конце `import done`.
+
+Повтор той же команды:
+```
+docker compose run --rm -v ~/catalog-import:/import:ro migrate python /app/db/catalog/load.py --dir /import
+```
+Ожидается: у каждой таблицы `вставлено 0, обновлено 0` — дублей нет.
+
+Чтение под ролью бота:
+```
+docker compose exec postgres psql -U bot_app -d platform -c 'SELECT count(*) FROM catalog.haval_catalog'
+```
+Ожидается: `count` — число строк `haval`/`catalog` из `manifest.json`.
+
+Запись под ролью бота запрещена:
+```
+docker compose exec postgres psql -U bot_app -d platform -c "UPDATE catalog.haval_catalog SET \"Active\" = false"
+```
+Ожидается: `ERROR:  permission denied for table haval_catalog`.
+
+Копия уже в базе (и попадёт в бэкапы 5.3), файлы выгрузки больше не нужны:
+```
+rm -rf ~/catalog-import
+```
+Ожидается: пустой вывод.
+
+Ключи загрузчика: `--dry-run` — только показать; `--prune` — удалить строки, которых нет в файле (без него они
+только перечисляются: `нет в файле, id: …`); `--photo-base-url <адрес S3>` — записать во вложения `url` = адрес +
+путь фото. Свежая копия в день переезда марки загружается той же командой.
+
+Для разработчика — новая миграция после смены описаний колонок, из корня репозитория:
+```
+python3 infra/db/catalog/gen_migration.py
+python3 infra/db/catalog/gen_migration.py --check
+```

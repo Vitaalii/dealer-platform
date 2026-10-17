@@ -1,0 +1,20 @@
+{
+  "columns": [
+    {
+      "title": "Id",
+      "uidt": "ID"
+    },
+    {
+      "title": "Model",
+      "uidt": "SingleLineText"
+    },
+    {
+      "title": "Config",
+      "uidt": "LongText"
+    },
+    {
+      "title": "Changed on",
+      "uidt": "Date"
+    }
+  ]
+}

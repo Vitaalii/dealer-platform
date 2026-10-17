@@ -1,0 +1,20 @@
+{
+  "columns": [
+    {
+      "title": "Id",
+      "uidt": "ID"
+    },
+    {
+      "title": "Model",
+      "uidt": "SingleLineText"
+    },
+    {
+      "title": "Url",
+      "uidt": "URL"
+    },
+    {
+      "title": "Enabled",
+      "uidt": "Checkbox"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "Id": 1,
+    "Model": "Alfa",
+    "Option": "Люк",
+    "Percent off": 10
+  },
+  {
+    "Id": 2,
+    "Model": "Beta",
+    "Option": "Фаркоп",
+    "Percent off": null
+  }
+]

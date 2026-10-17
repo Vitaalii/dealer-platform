@@ -1,0 +1,89 @@
+{
+  "columns": [
+    {
+      "title": "Id",
+      "uidt": "ID"
+    },
+    {
+      "title": "Model",
+      "uidt": "SingleLineText"
+    },
+    {
+      "title": "Complectation",
+      "uidt": "SingleLineText"
+    },
+    {
+      "title": "Engine",
+      "uidt": "SingleLineText"
+    },
+    {
+      "title": "Transmission",
+      "uidt": "SingleSelect",
+      "options": [
+        "AT",
+        "MT",
+        "CVT"
+      ]
+    },
+    {
+      "title": "Drivetrain",
+      "uidt": "SingleSelect",
+      "options": [
+        "FWD",
+        "AWD"
+      ]
+    },
+    {
+      "title": "Model id",
+      "uidt": "Number"
+    },
+    {
+      "title": "Complectation id",
+      "uidt": "Number"
+    },
+    {
+      "title": "Price old",
+      "uidt": "Currency"
+    },
+    {
+      "title": "Price new",
+      "uidt": "Currency"
+    },
+    {
+      "title": "Credit bonus",
+      "uidt": "Currency"
+    },
+    {
+      "title": "Сonsumption",
+      "uidt": "Decimal"
+    },
+    {
+      "title": "Minus Features",
+      "uidt": "LongText"
+    },
+    {
+      "title": "Pics",
+      "uidt": "Attachment"
+    },
+    {
+      "title": "Title_pic",
+      "uidt": "Attachment"
+    },
+    {
+      "title": "slug",
+      "uidt": "SingleLineText"
+    },
+    {
+      "title": "Active",
+      "uidt": "Checkbox"
+    },
+    {
+      "title": "Active_1",
+      "uidt": "Checkbox"
+    },
+    {
+      "title": "CreatedAt",
+      "uidt": "CreatedTime"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "columns": [
+    {
+      "title": "Id",
+      "uidt": "ID"
+    },
+    {
+      "title": "Started",
+      "uidt": "DateTime"
+    },
+    {
+      "title": "Status",
+      "uidt": "SingleSelect",
+      "options": [
+        "ok",
+        "error"
+      ]
+    },
+    {
+      "title": "Rows",
+      "uidt": "Number"
+    }
+  ]
+}
