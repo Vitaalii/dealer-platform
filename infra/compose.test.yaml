@@ -1,0 +1,23 @@
+# Тестовый сервер (vm.mini, 6 ГБ): те же сервисы с уменьшенными лимитами.
+# Значения — docs/research/2026-10-16-server-sizing.md, §4; NocoDB — +1,5 ГиБ оттуда же.
+# Сумма лимитов ≈ 4,4 ГиБ, остальное — системе.
+services:
+  caddy:
+    mem_limit: 128m
+  postgres:
+    mem_limit: 768m
+    command: ["postgres", "-c", "shared_buffers=192MB"]
+  migrate:
+    mem_limit: 256m
+  platform:
+    mem_limit: 512m
+  nocodb:
+    mem_limit: 1536m
+    environment:
+      NODE_OPTIONS: --max-old-space-size=1152
+  n8n:
+    mem_limit: 1g
+    environment:
+      NODE_OPTIONS: --max-old-space-size=768
+  bot:
+    mem_limit: 512m
