@@ -1,0 +1,12 @@
+# Контекст сборки — корень репозитория. В образ идут только папки кода платформы
+# (docs.docker.com: ignore-файл с именем Dockerfile рядом с Dockerfile важнее корневого .dockerignore).
+*
+!core/requirements.txt
+!core/platform_core/
+!leads/leads/
+!dealer-cabinet/dealer_cabinet/
+!billing/billing/
+!infra/db/
+**/__pycache__
+**/*.pyc
+**/.env

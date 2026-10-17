@@ -1,0 +1,182 @@
+# Платформа дилеров: весь стек одного сервера (docs/architecture/ARCHITECTURE.md, 7.3).
+# Этот файл — боевые лимиты. На тесте поверх него ложится compose.test.yaml:
+# какие файлы брать, задаёт COMPOSE_FILE в infra/.env (см. .env.example).
+# Наружу открыты только 80 и 443 у Caddy: Docker обходит ufw для опубликованных портов,
+# поэтому другим сервисам ports не задаются.
+# Ключи — только из infra/.env; ${VAR:?} останавливает compose, если ключа нет.
+name: dealers
+
+services:
+  caddy:
+    restart: unless-stopped
+    image: caddy:2
+    mem_limit: 256m
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?missing ACME_EMAIL}
+      PLATFORM_DOMAIN: ${PLATFORM_DOMAIN:?missing PLATFORM_DOMAIN}
+      N8N_DOMAIN: ${N8N_DOMAIN:?missing N8N_DOMAIN}
+      NOCODB_DOMAIN: ${NOCODB_DOMAIN:?missing NOCODB_DOMAIN}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      - platform
+      - n8n
+      - nocodb
+
+  postgres:
+    restart: unless-stopped
+    build: ./postgres
+    image: dealers/postgres:17
+    mem_limit: 2g
+    shm_size: 256m
+    command: ["postgres", "-c", "shared_buffers=512MB"]
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?missing POSTGRES_PASSWORD}
+      PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD:?missing PLATFORM_ADMIN_PASSWORD}
+      PLATFORM_APP_PASSWORD: ${PLATFORM_APP_PASSWORD:?missing PLATFORM_APP_PASSWORD}
+      NOCODB_SRC_PASSWORD: ${NOCODB_SRC_PASSWORD:?missing NOCODB_SRC_PASSWORD}
+      BOT_APP_PASSWORD: ${BOT_APP_PASSWORD:?missing BOT_APP_PASSWORD}
+      N8N_READER_PASSWORD: ${N8N_READER_PASSWORD:?missing N8N_READER_PASSWORD}
+      N8N_DB_PASSWORD: ${N8N_DB_PASSWORD:?missing N8N_DB_PASSWORD}
+      NOCODB_META_PASSWORD: ${NOCODB_META_PASSWORD:?missing NOCODB_META_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    # Разовый запуск миграций перед стартом platform; завершается с кодом 0.
+    # Образ — тот же, что у platform (его собирает сервис platform), из реестра не скачивается.
+    restart: "no"
+    image: dealers/platform:latest
+    pull_policy: never
+    mem_limit: 256m
+    command: ["python", "/app/db/migrate.py"]
+    environment:
+      PLATFORM_DB_HOST: postgres
+      PLATFORM_DB_NAME: platform
+      MIGRATE_DB_USER: platform_admin
+      MIGRATE_DB_PASSWORD: ${PLATFORM_ADMIN_PASSWORD:?missing PLATFORM_ADMIN_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  platform:
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: infra/platform/Dockerfile
+      args:
+        PLATFORM_VERSION: ${PLATFORM_VERSION:-dev}
+    image: dealers/platform:latest
+    mem_limit: 1536m
+    environment:
+      PLATFORM_ENV: ${PLATFORM_ENV:?missing PLATFORM_ENV}
+      PLATFORM_DB_HOST: postgres
+      PLATFORM_DB_NAME: platform
+      PLATFORM_DB_USER: platform_app
+      PLATFORM_DB_PASSWORD: ${PLATFORM_APP_PASSWORD:?missing PLATFORM_APP_PASSWORD}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  nocodb:
+    restart: unless-stopped
+    image: nocodb/nocodb:${NOCODB_VERSION:-latest}
+    mem_limit: 2g
+    environment:
+      # Пароль в строке подключения: только hex из openssl rand -hex 32 (без символов URL).
+      NC_DB: pg://postgres:5432?u=nocodb_meta&p=${NOCODB_META_PASSWORD:?missing NOCODB_META_PASSWORD}&d=nocodb_meta
+      NC_AUTH_JWT_SECRET: ${NC_AUTH_JWT_SECRET:?missing NC_AUTH_JWT_SECRET}
+      NC_SITE_URL: https://${NOCODB_DOMAIN:?missing NOCODB_DOMAIN}
+      NC_DISABLE_TELE: "true"
+      NODE_OPTIONS: --max-old-space-size=1536
+    volumes:
+      - nocodb_data:/usr/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  n8n:
+    restart: unless-stopped
+    image: n8nio/n8n:${N8N_VERSION:-2.43.0}
+    mem_limit: 3g
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: "5432"
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: n8n
+      DB_POSTGRESDB_PASSWORD: ${N8N_DB_PASSWORD:?missing N8N_DB_PASSWORD}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?missing N8N_ENCRYPTION_KEY}
+      N8N_HOST: ${N8N_DOMAIN:?missing N8N_DOMAIN}
+      N8N_PORT: "5678"
+      N8N_PROTOCOL: https
+      N8N_WEBHOOK_URL: https://${N8N_DOMAIN:?missing N8N_DOMAIN}/
+      N8N_PROXY_HOPS: "1"
+      NODE_ENV: production
+      GENERIC_TIMEZONE: ${PLATFORM_TIMEZONE:?missing PLATFORM_TIMEZONE}
+      TZ: ${PLATFORM_TIMEZONE:?missing PLATFORM_TIMEZONE}
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: "true"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      # ARCHITECTURE.md 7.3: двоичные данные на диске, история 72 ч, до ~60 000 запусков.
+      N8N_DEFAULT_BINARY_DATA_MODE: filesystem
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: "72"
+      EXECUTIONS_DATA_PRUNE_MAX_COUNT: "60000"
+      N8N_CONCURRENCY_PRODUCTION_LIMIT: "20"
+      NODE_OPTIONS: --max-old-space-size=2304
+    volumes:
+      - n8n_data:/home/node/.n8n
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5678/healthz/readiness').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  bot:
+    # Заглушка до этапа 7: отвечает только на /health, наружу не открыта.
+    restart: unless-stopped
+    build: ./bot-stub
+    image: dealers/bot-stub:latest
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  caddy_data:
+  caddy_config:
+  pg_data:
+  nocodb_data:
+  n8n_data:

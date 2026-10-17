@@ -1,0 +1,20 @@
+# Caddy: HTTPS и проксирование на сервисы платформы. Сертификаты Let's Encrypt выпускаются сами
+# при первом запросе, если A-записи доменов указывают на сервер (infra/README.md, раздел «DNS»).
+# Имена доменов и почта — из окружения ({$VAR}, подставляется до разбора файла, caddyserver.com).
+# Поддомены дилеров «только из базы» (REQUIREMENTS.md:167) — этап 6.
+{
+	email {$ACME_EMAIL}
+}
+
+{$PLATFORM_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy platform:8000
+}
+
+{$N8N_DOMAIN} {
+	reverse_proxy n8n:5678
+}
+
+{$NOCODB_DOMAIN} {
+	reverse_proxy nocodb:8080
+}
