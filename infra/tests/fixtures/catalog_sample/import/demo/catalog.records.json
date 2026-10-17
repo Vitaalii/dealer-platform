@@ -47,7 +47,10 @@
     "Active": true,
     "Active_1": false,
     "CreatedAt": "2026-01-15 10:00:00+00:00",
-    "ncRecordHash": "fakehash1"
+    "ncRecordHash": "fakehash1",
+    "nc_created_by": "usr_fake1",
+    "nc_order": 1,
+    "Stock": 0
   },
   {
     "Id": 2,
@@ -63,7 +66,14 @@
     "Credit bonus": 50000,
     "Сonsumption": "7.25",
     "Minus Features": null,
-    "Pics": null,
+    "Pics": [
+      {
+        "url": "https://storage.example.invalid/demo-bucket/cat/pic3.jpg",
+        "title": "pic3.jpg",
+        "mimetype": "image/jpeg",
+        "size": 1003
+      }
+    ],
     "Title_pic": null,
     "slug": "alfa-top",
     "Active": false,

@@ -5,11 +5,13 @@
     <марка>/<таблица>.records.json  — записи как их отдаёт API NocoDB: массив или {"list": [...]}
 
 Порядок: сверка manifest с файлами, сверка полей с колонками таблицы (platform_meta.catalog_columns),
-затем по каждой таблице в одной транзакции — upsert по исходному id, перестановка счётчика и строка
-журнала в platform_meta.catalog_imports. Повтор того же файла — 0 изменений. Строки, которых нет в
+затем по каждой таблице в одной транзакции — upsert по ключу (исходный id или поле из schema/keys.json),
+перестановка счётчика и строка журнала в platform_meta.catalog_imports. Поля, которые не переносятся
+(role = skipped: системные поля старой NocoDB и связи со складом), в записях пропускаются. Повтор того же файла — 0 изменений. Строки, которых нет в
 файле, по умолчанию только перечисляются; --prune их удаляет. --dry-run ничего не пишет.
-Фото — только ссылки (DEC:20): из вложений убираются временные поля signedUrl, signedPath, thumbnails;
-с --photo-base-url поле url = адрес S3 + path.
+Фото — только ссылки (DEC:20): из вложений убираются временные поля signedUrl, signedPath, thumbnails.
+Без --photo-base-url исходная url сохраняется как есть (фото уже в Yandex S3 — решение 4, PDL-32);
+с ключом url = адрес + path (если path нет — путь из исходной url).
 
 Запуск — в сервисе migrate (infra/README.md, раздел «Каталог»):
     python /app/db/catalog/load.py --dir /import [--dry-run] [--prune] [--photo-base-url URL]
@@ -23,6 +25,7 @@ import hashlib
 import json
 import os
 import sys
+from urllib.parse import urlsplit
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
@@ -49,6 +52,8 @@ class LoadError(ValueError):
 class Column:
     name: str
     uidt: str
+    pg_type: str | None = None
+    role: str | None = None  # key / generated / skipped (platform_meta.catalog_columns.role)
 
 
 @dataclass(frozen=True)
@@ -59,8 +64,17 @@ class TableMeta:
     columns: tuple[Column, ...]
 
     @property
-    def pk(self) -> str:
-        return next(c.name for c in self.columns if c.uidt == "ID")
+    def key(self) -> Column:
+        return next(c for c in self.columns if c.role == "key")
+
+    @property
+    def data(self) -> tuple[Column, ...]:
+        """Колонки, которые приходят из выгрузки: без пропущенных полей и без Id, созданного базой."""
+        return tuple(c for c in self.columns if c.role not in ("skipped", "generated"))
+
+    @property
+    def skipped(self) -> set[str]:
+        return {c.name for c in self.columns if c.role == "skipped"}
 
 
 @dataclass(frozen=True)
@@ -76,7 +90,7 @@ class Changes:
     inserts: list[dict] = field(default_factory=list)
     updates: list[dict] = field(default_factory=list)
     unchanged: int = 0
-    missing: list = field(default_factory=list)  # id строк базы, которых нет в файле
+    missing: list = field(default_factory=list)  # ключи строк базы, которых нет в файле
 
 
 @dataclass
@@ -140,12 +154,14 @@ def read_records(entry: Entry) -> tuple[list[dict], str]:
 def check_fields(records: list[dict], table: TableMeta) -> None:
     """Лишнее поле в любой записи или колонка, которой нет ни в одной записи, — отказ с перечнем.
 
-    Колонка, которой нет только в части записей, считается пустой (null).
+    Колонка, которой нет только в части записей, считается пустой (null). Пропущенные поля
+    (role = skipped) могут быть в записях, а могут и не быть.
     """
-    expected = {c.name for c in table.columns}
+    expected = {c.name for c in table.data}
+    ignored = table.skipped | (API_SERVICE_FIELDS - expected)
     present: set[str] = set()
     for r in records:
-        present.update(k for k in r if k in expected or k not in API_SERVICE_FIELDS)
+        present.update(k for k in r if k not in ignored)
     extra = sorted(present - expected)
     absent = sorted(expected - present) if records else []
     if extra or absent:
@@ -156,7 +172,7 @@ def check_fields(records: list[dict], table: TableMeta) -> None:
 # --- Подготовка строк -----------------------------------------------------------------------------
 
 def clean_attachments(value, photo_base_url: str | None, photos: list[str]) -> str | None:
-    """Вложение -> JSON-текст только со ссылками; без --photo-base-url путь попадает в список переноса."""
+    """Вложение -> JSON-текст только со ссылками. Вложение без url и без адреса S3 — в список переноса."""
     if value is None:
         return None
     if isinstance(value, str):
@@ -166,15 +182,14 @@ def clean_attachments(value, photo_base_url: str | None, photos: list[str]) -> s
     cleaned = []
     for item in value:
         out = {k: item[k] for k in ATTACHMENT_KEEP if k in item}
-        path = item.get("path")
+        source_url = item.get("url")
+        path = item.get("path") or (urlsplit(str(source_url)).path if source_url else None)
         if path and photo_base_url:
             out["url"] = photo_base_url.rstrip("/") + "/" + str(path).lstrip("/")
+        elif source_url:
+            out["url"] = source_url
         elif path:
             photos.append(str(path))
-        elif item.get("url"):
-            # Вложение без path: другой ссылки нет — сохраняем исходную и отмечаем к переносу.
-            out["url"] = item["url"]
-            photos.append(str(item["url"]))
         cleaned.append(out)
     return json.dumps(cleaned, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
@@ -215,14 +230,14 @@ def convert(value, uidt: str, photo_base_url: str | None, photos: list[str]):
 
 
 def prepare_rows(records: list[dict], table: TableMeta, photo_base_url: str | None = None) -> Prepared:
-    """Строки для базы: все колонки таблицы, значения нужных типов, вложения без временных полей."""
+    """Строки для базы: колонки из выгрузки, значения нужных типов, вложения без временных полей."""
     rows: list[dict] = []
     photos: list[str] = []
     ids = set()
-    pk = table.pk
+    pk = table.key.name
     for n, record in enumerate(records, start=1):
         row = {}
-        for c in table.columns:
+        for c in table.data:
             try:
                 row[c.name] = convert(record.get(c.name), c.uidt, photo_base_url, photos)
             except (ValueError, TypeError) as exc:
@@ -237,7 +252,7 @@ def prepare_rows(records: list[dict], table: TableMeta, photo_base_url: str | No
 
 
 def plan_changes(rows: list[dict], existing: list[dict], pk: str) -> Changes:
-    """Что вставить, что обновить, сколько без изменений и каких id нет в файле."""
+    """Что вставить, что обновить, сколько без изменений и каких ключей нет в файле."""
     by_id = {r[pk]: r for r in existing}
     changes = Changes()
     for row in rows:
@@ -273,25 +288,27 @@ class PgStore:
 
     async def tables(self) -> dict[tuple[str, str], TableMeta]:
         rows = await self.conn.fetch(
-            "SELECT brand, source_table, pg_table, column_name, uidt FROM platform_meta.catalog_columns"
-            " ORDER BY pg_table, position")
+            "SELECT brand, source_table, pg_table, column_name, uidt, pg_type, role"
+            " FROM platform_meta.catalog_columns ORDER BY pg_table, position")
         grouped: dict[tuple[str, str], list] = {}
         names: dict[tuple[str, str], str] = {}
         for r in rows:
             key = (r["brand"], r["source_table"])
-            grouped.setdefault(key, []).append(Column(r["column_name"], r["uidt"]))
+            grouped.setdefault(key, []).append(Column(r["column_name"], r["uidt"], r["pg_type"], r["role"]))
             names[key] = r["pg_table"]
         return {k: TableMeta(k[0], k[1], names[k], tuple(cols)) for k, cols in grouped.items()}
 
     async def existing(self, table: TableMeta) -> list[dict]:
-        cols = ", ".join(quote_ident(c.name) for c in table.columns)
+        cols = ", ".join(quote_ident(c.name) for c in table.data)
         rows = await self.conn.fetch(f"SELECT {cols} FROM catalog.{quote_ident(table.pg_table)}")
         return [dict(r) for r in rows]
 
     async def apply(self, table: TableMeta, changes: Changes, prune: bool, log: dict) -> None:
         target = f"catalog.{quote_ident(table.pg_table)}"
-        names = [c.name for c in table.columns]
-        pk = table.pk
+        names = [c.name for c in table.data]
+        key = table.key
+        pk = key.name
+        key_type = "bigint" if key.pg_type == "bigserial" else key.pg_type
         async with self.conn.transaction():
             if changes.inserts:
                 cols = ", ".join(quote_ident(n) for n in names)
@@ -304,13 +321,15 @@ class PgStore:
                 await self.conn.executemany(f"UPDATE {target} SET {sets} WHERE {quote_ident(pk)} = $1",
                                             [[row[pk]] + [row[n] for n in others] for row in changes.updates])
             if prune and changes.missing:
-                await self.conn.execute(f"DELETE FROM {target} WHERE {quote_ident(pk)} = ANY($1::bigint[])",
+                await self.conn.execute(f"DELETE FROM {target} WHERE {quote_ident(pk)} = ANY($1::{key_type}[])",
                                         changes.missing)
-            # Счётчик id — на максимум: новые строки из NocoDB не должны столкнуться с перенесёнными.
-            await self.conn.execute(
-                f"SELECT setval(pg_get_serial_sequence($1, $2),"
-                f" COALESCE((SELECT max({quote_ident(pk)}) FROM {target}), 0) + 1, false)",
-                target, pk)
+            if key.uidt == "ID":
+                # Счётчик id — на максимум: новые строки из NocoDB не должны столкнуться с перенесёнными.
+                # Для Id, созданного базой (role = generated), счётчик и так верный.
+                await self.conn.execute(
+                    f"SELECT setval(pg_get_serial_sequence($1, $2),"
+                    f" COALESCE((SELECT max({quote_ident(pk)}) FROM {target}), 0) + 1, false)",
+                    target, pk)
             await self.conn.execute(
                 "INSERT INTO platform_meta.catalog_imports (brand, source_table, pg_table, file_sha256,"
                 " inserted, updated, unchanged, deleted, missing) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
@@ -338,7 +357,7 @@ async def run(store, directory: Path, dry_run: bool = False, prune: bool = False
 
     photos: list[str] = []
     for e, table, p, sha in prepared:
-        changes = plan_changes(p.rows, await store.existing(table), table.pk)
+        changes = plan_changes(p.rows, await store.existing(table), table.key.name)
         if not dry_run:
             await store.apply(table, changes, prune, {
                 "brand": e.brand, "source_table": e.table, "pg_table": table.pg_table, "file_sha256": sha,
@@ -346,10 +365,10 @@ async def run(store, directory: Path, dry_run: bool = False, prune: bool = False
                 "deleted": len(changes.missing) if prune else 0, "missing": len(changes.missing)})
         out(summary(table.pg_table, changes, dry_run, prune))
         if changes.missing and not prune:
-            out(f"  нет в файле, id: {', '.join(str(i) for i in changes.missing)} (удалить — ключ --prune)")
+            out(f"  нет в файле, ключ {table.key.name}: {', '.join(str(i) for i in changes.missing)} (удалить — ключ --prune)")
         photos.extend(p.photos_to_move)
     if photos:
-        out(f"фото к переносу в S3: {len(photos)}")
+        out(f"фото без ссылки (только path), к переносу в S3: {len(photos)}")
         for path in photos:
             out(f"photo: {path}")
     out("dry run done, nothing written" if dry_run else "import done")

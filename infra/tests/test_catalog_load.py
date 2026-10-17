@@ -21,7 +21,7 @@ CYRILLIC_C = "Сonsumption"
 def sample_tables() -> dict:
     """Метаданные таблиц так, как их отдаст platform_meta.catalog_columns после миграции образца."""
     return {(t.brand, t.source_table): load.TableMeta(t.brand, t.source_table, t.pg_table,
-                                                      tuple(load.Column(c.name, c.uidt) for c in t.columns))
+                                                      tuple(load.Column(c.name, c.uidt, c.pg_type, c.role) for c in t.columns))
             for t in gen.load_schema(SAMPLE / "schema")}
 
 
@@ -42,7 +42,7 @@ class MemoryStore:
     async def apply(self, table, changes, prune, log):
         rows = self.data[table.pg_table]
         for r in changes.inserts + changes.updates:
-            rows[r[table.pk]] = copy.deepcopy(r)
+            rows[r[table.key.name]] = copy.deepcopy(r)
         if prune:
             for i in changes.missing:
                 del rows[i]
@@ -106,6 +106,46 @@ class LoadTest(unittest.TestCase):
         self.assertEqual(prepared.photos_to_move, ["download/demo/pic1.jpg", "download/demo/pic2.jpg"])
         self.assertEqual(prepared.rows[2]["Pics"], "[]")
 
+    def test_photo_source_url_kept(self):
+        prepared = load.prepare_rows(self.records(), self.catalog)
+        self.assertEqual(json.loads(prepared.rows[1]["Pics"]), [{
+            "mimetype": "image/jpeg", "size": 1003, "title": "pic3.jpg",
+            "url": "https://storage.example.invalid/demo-bucket/cat/pic3.jpg"}])
+        based = load.prepare_rows(self.records(), self.catalog, "https://s3.example.invalid/new")
+        self.assertEqual(json.loads(based.rows[1]["Pics"])[0]["url"],
+                         "https://s3.example.invalid/new/demo-bucket/cat/pic3.jpg")  # путь из исходной url
+
+    def test_skipped_fields_ignored(self):
+        recs = self.records()
+        self.assertIn("nc_created_by", recs[0])
+        load.check_fields(recs, self.catalog)
+        rows = load.prepare_rows(recs, self.catalog).rows
+        for name in ("nc_created_by", "nc_order", "Stock", "_nc_m2m_demo_stock"):
+            self.assertNotIn(name, rows[0])
+        for r in recs:
+            for name in ("nc_created_by", "nc_order", "Stock"):
+                r.pop(name, None)
+        load.check_fields(recs, self.catalog)  # пропущенных полей может и не быть
+
+    def test_table_keyed_by_field(self):
+        store = MemoryStore()
+        run(store, self.dir)
+        self.assertEqual(sorted(store.data["demo_credit_programs"]), ["P1", "P2"])
+        self.assertNotIn("Id", store.data["demo_credit_programs"]["P1"])  # Id создаёт база
+        recs = self.records("credit_programs")
+        recs[0]["Base_Rate"] = 11
+        self.write(recs[:1], "credit_programs", rows=1)
+        lines = run(store, self.dir, prune=True)
+        self.assertIn("demo_credit_programs: вставлено 0, обновлено 1, без изменений 0, нет в файле 1, удалено 1", lines)
+        self.assertEqual(sorted(store.data["demo_credit_programs"]), ["P1"])
+        recs[0]["Id"] = 7
+        with self.assertRaisesRegex(load.LoadError, r"extra \['Id'\]"):
+            load.check_fields(recs, self.meta[("demo", "credit_programs")])
+        recs[0].pop("Id")
+        recs[0]["Program_id"] = None
+        with self.assertRaisesRegex(load.LoadError, "has no 'Program_id'"):
+            load.prepare_rows(recs, self.meta[("demo", "credit_programs")])
+
     def test_photo_base_url(self):
         prepared = load.prepare_rows(self.records(), self.catalog, "https://s3.example.invalid/bucket/")
         self.assertEqual(json.loads(prepared.rows[0]["Title_pic"])[0]["url"],
@@ -138,7 +178,8 @@ class LoadTest(unittest.TestCase):
             load.check_fields(recs, self.catalog)
 
     def test_service_field_that_is_a_column_is_kept(self):
-        table = load.TableMeta("demo", "t", "demo_t", (load.Column("Id", "ID"), load.Column("ncRecordHash", "SingleLineText")))
+        table = load.TableMeta("demo", "t", "demo_t", (load.Column("Id", "ID", "bigserial", "key"),
+                                                       load.Column("ncRecordHash", "SingleLineText", "text")))
         records = [{"Id": 1, "ncRecordHash": "h1"}]
         load.check_fields(records, table)
         self.assertEqual(load.prepare_rows(records, table).rows, [{"Id": 1, "ncRecordHash": "h1"}])
@@ -183,7 +224,7 @@ class LoadTest(unittest.TestCase):
         self.assertEqual(table_line(lines, "demo_catalog"),
                          "demo_catalog: вставлено 3, обновлено 0, без изменений 0, нет в файле 0, удалено 0")
         self.assertEqual(lines[-1], "import done")
-        self.assertEqual(len(store.imports), 8)
+        self.assertEqual(len(store.imports), len(self.meta))
         self.assertEqual(sorted(store.data["demo_catalog"]), [1, 2, 5])
         sha = {i["pg_table"]: i["file_sha256"] for i in store.imports}
         self.assertRegex(sha["demo_catalog"], r"^[0-9a-f]{64}$")
@@ -191,7 +232,7 @@ class LoadTest(unittest.TestCase):
         lines = run(store, self.dir)
         for t in self.meta.values():
             self.assertRegex(table_line(lines, t.pg_table), r": вставлено 0, обновлено 0, без изменений \d+,")
-        self.assertEqual(sum(i["inserted"] + i["updated"] for i in store.imports[8:]), 0)
+        self.assertEqual(sum(i["inserted"] + i["updated"] for i in store.imports[len(self.meta):]), 0)
 
     def test_changed_row_updated(self):
         store = MemoryStore()
@@ -217,19 +258,19 @@ class LoadTest(unittest.TestCase):
         self.write(self.records()[:2], rows=2)
         lines = run(store, self.dir)
         self.assertIn("нет в файле 1, удалено 0", table_line(lines, "demo_catalog"))
-        self.assertIn("  нет в файле, id: 5 (удалить — ключ --prune)", lines)
+        self.assertIn("  нет в файле, ключ Id: 5 (удалить — ключ --prune)", lines)
         self.assertIn(5, store.data["demo_catalog"])
         lines = run(store, self.dir, prune=True)
         self.assertIn("нет в файле 1, удалено 1", table_line(lines, "demo_catalog"))
         self.assertNotIn(5, store.data["demo_catalog"])
-        self.assertEqual(store.imports[-8:][0]["deleted"], 1)
+        self.assertEqual([i["deleted"] for i in store.imports if i["pg_table"] == "demo_catalog"][-1], 1)
 
     def test_photo_report(self):
         lines = run(MemoryStore(), self.dir)
-        self.assertIn("фото к переносу в S3: 2", lines)
+        self.assertIn("фото без ссылки (только path), к переносу в S3: 2", lines)
         self.assertIn("photo: download/demo/pic1.jpg", lines)
         lines = run(MemoryStore(), self.dir, photo_base_url="https://s3.example.invalid/b")
-        self.assertFalse(any(line.startswith("фото к переносу") for line in lines))
+        self.assertFalse(any(line.startswith("фото без ссылки") for line in lines))
 
     def test_missing_vars(self):
         self.assertEqual(load.missing_vars({}), list(load.REQUIRED_VARS))

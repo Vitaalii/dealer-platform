@@ -5,6 +5,14 @@
       "uidt": "ID"
     },
     {
+      "title": "nc_created_by",
+      "uidt": "CreatedBy"
+    },
+    {
+      "title": "nc_order",
+      "uidt": "Order"
+    },
+    {
       "title": "Model",
       "uidt": "SingleLineText"
     },
@@ -84,6 +92,14 @@
     {
       "title": "CreatedAt",
       "uidt": "CreatedTime"
+    },
+    {
+      "title": "Stock",
+      "uidt": "Links"
+    },
+    {
+      "title": "_nc_m2m_demo_stock",
+      "uidt": "LinkToAnotherRecord"
     }
   ]
 }

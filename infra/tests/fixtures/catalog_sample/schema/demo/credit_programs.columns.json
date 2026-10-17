@@ -1,0 +1,24 @@
+{
+  "columns": [
+    {
+      "title": "CreatedAt",
+      "uidt": "CreatedTime"
+    },
+    {
+      "title": "nc_order",
+      "uidt": "Order"
+    },
+    {
+      "title": "Program_id",
+      "uidt": "SingleLineText"
+    },
+    {
+      "title": "Bank_name",
+      "uidt": "SingleLineText"
+    },
+    {
+      "title": "Base_Rate",
+      "uidt": "Number"
+    }
+  ]
+}

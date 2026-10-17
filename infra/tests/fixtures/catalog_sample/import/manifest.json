@@ -41,6 +41,11 @@
       "brand": "demo",
       "table": "option_silences",
       "rows": 2
+    },
+    {
+      "brand": "demo",
+      "table": "credit_programs",
+      "rows": 2
     }
   ]
 }

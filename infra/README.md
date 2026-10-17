@@ -479,11 +479,23 @@ docker compose exec postgres psql -U nocodb_src -d platform -c "INSERT INTO plat
 свои таблицы в схеме `catalog`: `catalog.<марка>_<таблица>`, например `catalog.haval_catalog`. Имена колонок —
 точно как поля в NocoDB. Фото — только ссылки (DEC:20): сами файлы переносятся отдельной задачей.
 
+Миграция `0002_catalog_brands.py` собрана из описаний колонок CE от 17.10: 4 марки (geely, belgee, tenet, haval),
+43 таблицы — catalog, features, colors, credit_programs, credit_rates, sites, parsed_prices, staging_changes,
+run_log, site_config_history, option_silences; stock — только у geely. У tenet нет credit_programs и
+credit_rates. Склад в эту копию не входит: его будет заполнять грабер.
+
+Что не переносится (решения по PDL-32): системные поля старой NocoDB `nc_created_by`, `nc_updated_by`, `nc_order`
+и поля-связи со складом (`GEELY_Stock`, `GEELY copy`, `GEELY Color copy`, `_nc_m2m_…`). Колонок для них нет,
+загрузчик пропускает их в записях; в `platform_meta.catalog_columns` они отмечены `role = 'skipped'`.
+У `geely/credit_programs` и `geely/credit_rates` нет колонки `Id`: строки сверяются по `Program_id` и `Rate_id`
+(`db/catalog/schema/keys.json`), а `Id` создаёт база.
+
 Как это устроено:
 
 | Что | Где |
 |---|---|
 | описания колонок от CE (без записей) | `db/catalog/schema/<марка>/<таблица>.columns.json` |
+| ключ для таблиц без колонки `Id` | `db/catalog/schema/keys.json` |
 | генератор миграции | `db/catalog/gen_migration.py` → `db/migrations/0002_catalog_brands.py` |
 | загрузчик копии | `db/catalog/load.py`, запускается в сервисе `migrate` |
 | типы полей и варианты SingleSelect | `platform_meta.catalog_columns` |
@@ -492,9 +504,7 @@ docker compose exec postgres psql -U nocodb_src -d platform -c "INSERT INTO plat
 Права на таблицы каталога даёт миграция `0001`: бот и n8n только читают, NocoDB и код платформы правят строки.
 Служебные таблицы `platform_meta` доступны только `platform_admin`.
 
-**Раздел выполняется, когда в `main` есть миграция `0002_catalog_brands.py`** (она появится, когда CE пришлёт
-описания колонок). Записи каталога (`*.records.json`) в задачу и в репозиторий не кладутся — только на сервер,
-командами ниже.
+Записи каталога (`*.records.json`) в задачу и в репозиторий не кладутся — только на сервер, командами ниже.
 
 ### Формат выгрузки от CE
 
@@ -555,8 +565,9 @@ docker compose run --rm -v ~/catalog-import:/import:ro migrate python /app/db/ca
 ```
 docker compose run --rm -v ~/catalog-import:/import:ro migrate python /app/db/catalog/load.py --dir /import
 ```
-Ожидается: `вставлено N, обновлено 0` по каждой таблице, строки `photo: …` (фото, которые нужно перенести в S3),
-в конце `import done`.
+Ожидается: `вставлено N, обновлено 0` по каждой таблице, в конце `import done`. Если есть фото без ссылки
+(во вложении только `path`, без `url`), перед `import done` будут строка `фото без ссылки (только path), к переносу
+в S3: N` и строки `photo: …`.
 
 Повтор той же команды:
 ```
@@ -583,8 +594,9 @@ rm -rf ~/catalog-import
 Ожидается: пустой вывод.
 
 Ключи загрузчика: `--dry-run` — только показать; `--prune` — удалить строки, которых нет в файле (без него они
-только перечисляются: `нет в файле, id: …`); `--photo-base-url <адрес S3>` — записать во вложения `url` = адрес +
-путь фото. Свежая копия в день переезда марки загружается той же командой.
+только перечисляются: `нет в файле, ключ Id: …`); `--photo-base-url <адрес S3>` — записать во вложения `url` =
+адрес + путь фото (если `path` нет — путь из исходной `url`, вместе с именем бакета). Без ключа исходная `url`
+сохраняется как есть: по словам CE, фото уже лежат в Yandex Object Storage. Свежая копия в день переезда марки загружается той же командой.
 
 Для разработчика — новая миграция после смены описаний колонок, из корня репозитория:
 ```
